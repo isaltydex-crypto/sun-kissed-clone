@@ -6,20 +6,20 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-4 md:px-8">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-sun font-bold text-ocean-deep">S</span>
-            <span className="text-lg font-semibold">SOLDIS</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-sun font-bold text-ocean-deep">P</span>
+            <span className="text-lg font-semibold">PEPTIDA</span>
           </div>
           <p className="mt-4 text-sm text-primary-foreground/70">
-            Premium självbruna produkter utan sol och utan UV. Sveriges nya favorit för en naturlig solbränna.
+            Premium peptidbaserad hudvård utvecklad i Sverige. Vetenskap och vård för en synligt fastare och friskare hud.
           </p>
         </div>
         <div>
           <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-sun">Butik</h4>
           <ul className="space-y-2 text-sm text-primary-foreground/80">
             <li><Link to="/produkter" className="hover:text-sun">Alla produkter</Link></li>
-            <li><Link to="/produkter" className="hover:text-sun">Mousse</Link></li>
-            <li><Link to="/produkter" className="hover:text-sun">Droppar</Link></li>
-            <li><Link to="/produkter" className="hover:text-sun">Mist</Link></li>
+            <li><Link to="/produkter" className="hover:text-sun">Serum</Link></li>
+            <li><Link to="/produkter" className="hover:text-sun">Boosters</Link></li>
+            <li><Link to="/produkter" className="hover:text-sun">Krämer</Link></li>
           </ul>
         </div>
         <div>
@@ -41,7 +41,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-7xl px-4 py-5 text-center text-xs text-primary-foreground/60 md:px-8">
-          © {new Date().getFullYear()} Soldis. Alla rättigheter förbehållna.
+          © {new Date().getFullYear()} Peptida. Alla rättigheter förbehållna.
         </div>
       </div>
     </footer>

@@ -16,8 +16,8 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 bg-ocean-deep text-primary-foreground shadow-lg">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-8">
         <Link to="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-sun font-bold text-ocean-deep">S</span>
-          <span className="text-lg font-semibold tracking-wide">SOLDIS</span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-sun font-bold text-ocean-deep">P</span>
+          <span className="text-lg font-semibold tracking-wide">PEPTIDA</span>
         </Link>
         <nav className="hidden items-center gap-8 md:flex">
           {nav.map((n) => (

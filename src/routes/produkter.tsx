@@ -5,10 +5,10 @@ import { ProductCard } from "@/components/ProductCard";
 export const Route = createFileRoute("/produkter")({
   head: () => ({
     meta: [
-      { title: "Produkter — Soldis" },
-      { name: "description", content: "Utforska Soldis sortiment av självbruna mousser, droppar, mist och body lotion." },
-      { property: "og:title", content: "Produkter — Soldis" },
-      { property: "og:description", content: "Utforska Soldis sortiment av självbruna mousser, droppar och mist." },
+      { title: "Produkter — Peptida" },
+      { name: "description", content: "Utforska Peptidas sortiment av peptidserum, boosters, ögonkrämer och nattkrämer." },
+      { property: "og:title", content: "Produkter — Peptida" },
+      { property: "og:description", content: "Peptidserum, boosters och krämer för synliga resultat." },
     ],
   }),
   component: ProductsPage,
@@ -21,7 +21,7 @@ function ProductsPage() {
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <h1 className="text-4xl font-bold md:text-5xl">Alla produkter</h1>
           <p className="mt-3 max-w-xl text-primary-foreground/80">
-            Allt du behöver för en naturlig, jämn solbränna utan UV.
+            Vetenskapligt formulerad peptidhudvård för fastare, slätare och friskare hud.
           </p>
         </div>
       </section>
