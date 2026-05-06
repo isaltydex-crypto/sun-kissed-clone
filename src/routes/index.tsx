@@ -7,9 +7,9 @@ import { ProductCard } from "@/components/ProductCard";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Peptida — Premium peptidhudvård för synliga resultat" },
+      { title: "PeptivaLab Group — Premium peptidhudvård för synliga resultat" },
       { name: "description", content: "Vetenskapligt formulerade peptidserum, boosters och krämer för fastare, slätare hud. Fri frakt över 499 kr." },
-      { property: "og:title", content: "Peptida — Premium peptidhudvård" },
+      { property: "og:title", content: "PeptivaLab Group — Premium peptidhudvård" },
       { property: "og:description", content: "Vetenskapligt formulerade peptidprodukter för fastare, slätare hud." },
     ],
   }),
@@ -52,7 +52,7 @@ function HomePage() {
           <div className="relative">
             <img
               src={hero}
-              alt="Peptida peptidserum och krämer"
+              alt="PeptivaLab Group peptidserum och krämer"
               width={1600}
               height={1024}
               className="rounded-3xl shadow-[var(--shadow-warm)]"

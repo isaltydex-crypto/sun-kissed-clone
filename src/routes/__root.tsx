@@ -24,9 +24,9 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Peptida — Premium peptidhudvård" },
+      { title: "PeptivaLab Group — Premium peptidhudvård" },
       { name: "description", content: "Klinisk peptidhudvård för fastare, slätare hud. Serum, boosters och krämer — fri frakt över 499 kr." },
-      { property: "og:title", content: "Peptida — Premium peptidhudvård" },
+      { property: "og:title", content: "PeptivaLab Group — Premium peptidhudvård" },
       { property: "og:description", content: "Klinisk peptidhudvård för fastare, slätare hud." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
