@@ -22,36 +22,36 @@ function HomePage() {
     <>
       {/* Centered hero */}
       <section className="bg-background">
-        <div className="mx-auto flex max-w-3xl flex-col items-center px-4 pt-20 pb-14 text-center md:pt-28 md:pb-20">
+        <div className="mx-auto flex max-w-3xl flex-col items-center px-4 pt-12 pb-12 text-center md:pt-28 md:pb-20">
           <div className="flex flex-col items-center">
             <img
               src={logo}
               alt="PeptivaLab Group"
-              className="h-32 w-32 object-contain md:h-44 md:w-44"
+              className="h-24 w-24 object-contain sm:h-32 sm:w-32 md:h-44 md:w-44"
             />
             <h2
-              className="-mt-2 text-3xl italic tracking-tight text-ocean-deep md:text-4xl"
+              className="-mt-1 text-2xl italic tracking-tight text-ocean-deep sm:text-3xl md:text-4xl"
               style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
             >
               peptiva<span className="font-normal">Lab</span>
-              <span className="ml-2 align-middle text-xs not-italic uppercase tracking-[0.4em] text-sun-deep">Group</span>
+              <span className="ml-2 align-middle text-[10px] not-italic uppercase tracking-[0.35em] text-sun-deep sm:text-xs sm:tracking-[0.4em]">Group</span>
             </h2>
           </div>
-          <span className="mt-8 text-xs font-semibold uppercase tracking-[0.3em] text-sun-deep">
+          <span className="mt-6 text-[10px] font-semibold uppercase tracking-[0.3em] text-sun-deep sm:text-xs">
             Klinisk peptidhudvård
           </span>
-          <h1 className="mt-5 text-4xl font-bold leading-[1.05] text-ocean-deep md:text-6xl">
-            Vetenskap för<br />en synligt friskare hud.
+          <h1 className="mt-4 text-[2rem] font-bold leading-[1.1] text-ocean-deep sm:text-4xl md:text-6xl">
+            Vetenskap för en synligt friskare hud.
           </h1>
-          <p className="mt-6 max-w-xl text-base text-muted-foreground md:text-lg">
+          <p className="mt-5 max-w-xl text-[15px] text-muted-foreground sm:text-base md:text-lg">
             Rena, kliniskt doserade peptidformuleringar utvecklade i Sverige — för fastare,
             slätare och mer återhämtad hud, dag för dag.
           </p>
-          <div className="mt-9 flex flex-wrap justify-center gap-3">
-            <Link to="/produkter" className="rounded-full bg-ocean-deep px-7 py-3 text-sm font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean">
+          <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center">
+            <Link to="/produkter" className="rounded-full bg-ocean-deep px-7 py-3 text-center text-sm font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean">
               Handla sortimentet
             </Link>
-            <Link to="/om-oss" className="rounded-full border border-ocean-deep/20 px-7 py-3 text-sm font-semibold uppercase tracking-wider text-ocean-deep transition hover:bg-sand">
+            <Link to="/om-oss" className="rounded-full border border-ocean-deep/20 px-7 py-3 text-center text-sm font-semibold uppercase tracking-wider text-ocean-deep transition hover:bg-sand">
               Vår vetenskap
             </Link>
           </div>

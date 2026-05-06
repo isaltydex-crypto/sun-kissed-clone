@@ -15,10 +15,10 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-50 bg-ocean-deep text-primary-foreground shadow-lg">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-8">
-        <Link to="/" className="flex items-center gap-3">
-          <img src={logo} alt="peptivaLab Group" className="h-11 w-11 object-contain" />
-          <span className="text-lg font-semibold tracking-wide">peptivaLab Group</span>
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 md:py-4 md:px-8">
+        <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <img src={logo} alt="peptivaLab Group" className="h-9 w-9 shrink-0 object-contain md:h-11 md:w-11" />
+          <span className="truncate text-base font-semibold tracking-wide sm:text-lg">peptivaLab Group</span>
         </Link>
         <nav className="hidden items-center gap-8 md:flex">
           {nav.map((n) => (
