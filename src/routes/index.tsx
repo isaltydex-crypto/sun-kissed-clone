@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Star, Truck, Shield, Leaf, FlaskConical } from "lucide-react";
-import logo from "@/assets/logo.jpeg";
+import logo from "@/assets/logo.png";
 import hero from "@/assets/hero-products.jpg";
 import { products } from "@/data/products";
 import { ProductCard } from "@/components/ProductCard";
@@ -26,7 +26,7 @@ function HomePage() {
           <img
             src={logo}
             alt="PeptivaLab Group"
-            className="h-28 w-28 rounded-xl bg-white object-contain p-2 shadow-[var(--shadow-card)] md:h-36 md:w-36"
+            className="h-32 w-32 object-contain md:h-44 md:w-44"
           />
           <span className="mt-8 text-xs font-semibold uppercase tracking-[0.3em] text-sun-deep">
             Klinisk peptidhudvård

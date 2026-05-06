@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import logo from "@/assets/logo.jpeg";
+import logo from "@/assets/logo.png";
 
 export function SiteFooter() {
   return (
@@ -7,7 +7,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-4 md:px-8">
         <div>
           <div className="flex items-center gap-3">
-            <img src={logo} alt="PeptivaLab Group" className="h-11 w-11 rounded-md bg-white object-contain p-1" />
+            <img src={logo} alt="PeptivaLab Group" className="h-11 w-11 object-contain" />
             <span className="text-lg font-semibold">PEPTIVALAB GROUP</span>
           </div>
           <p className="mt-4 text-sm text-primary-foreground/70">
