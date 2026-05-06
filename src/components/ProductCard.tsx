@@ -1,6 +1,8 @@
 import type { Product } from "@/data/products";
+import { useCart } from "@/context/CartContext";
 
 export function ProductCard({ product }: { product: Product }) {
+  const { addItem } = useCart();
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl bg-card shadow-[var(--shadow-card)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-warm)]">
       <div className="relative aspect-square overflow-hidden bg-sand">
@@ -27,7 +29,10 @@ export function ProductCard({ product }: { product: Product }) {
           )}
           <span className="text-xl font-bold text-ocean">{product.price} kr</span>
         </div>
-        <button className="mt-4 w-full rounded-lg bg-ocean py-2.5 text-sm font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean-deep">
+        <button
+          onClick={() => addItem(product)}
+          className="mt-4 w-full rounded-lg bg-ocean py-2.5 text-sm font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean-deep"
+        >
           Lägg i varukorg
         </button>
       </div>
