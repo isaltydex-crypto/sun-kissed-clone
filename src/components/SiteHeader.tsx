@@ -21,55 +21,49 @@ const nav = [
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-50 bg-ocean-deep text-primary-foreground">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 md:py-4 md:px-8">
-        <button className="relative rounded-full p-2 transition hover:bg-white/10" aria-label="Varukorg">
-          <ShoppingBag className="h-5 w-5" />
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-sun text-[10px] font-bold text-ocean-deep">0</span>
-        </button>
-        <nav className="hidden items-center gap-8 md:flex">
-          {nav.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to}
-              className="text-sm font-medium uppercase tracking-wider text-primary-foreground/80 transition hover:text-sun"
-              activeProps={{ className: "text-sun" }}
-            >
-              {n.label}
-            </Link>
-          ))}
-        </nav>
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <button className="rounded-md p-2 hover:bg-white/10 md:hidden" aria-label="Öppna meny">
-              <Menu className="h-5 w-5" />
-            </button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-72 bg-ocean-deep text-primary-foreground border-l-white/10">
-            <SheetHeader>
-              <SheetTitle className="text-left text-primary-foreground">
-                <span className="flex items-center gap-2">
-                  <img src={logo} alt="" className="h-8 w-8 object-contain" />
-                  <span className="text-base font-semibold">peptivaLab Group</span>
-                </span>
-              </SheetTitle>
-            </SheetHeader>
-            <nav className="mt-6 flex flex-col">
-              {nav.map((n) => (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  onClick={() => setOpen(false)}
-                  className="border-b border-white/10 py-4 text-sm font-medium uppercase tracking-wider text-primary-foreground/85 transition hover:text-sun"
-                  activeProps={{ className: "text-sun" }}
-                >
-                  {n.label}
-                </Link>
-              ))}
-            </nav>
-          </SheetContent>
-        </Sheet>
-      </div>
-    </header>
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between px-4 py-3 md:px-8 md:py-4">
+      <button
+        className="pointer-events-auto relative rounded-full bg-ocean-deep/85 p-2.5 text-primary-foreground shadow-md backdrop-blur transition hover:bg-ocean-deep"
+        aria-label="Varukorg"
+      >
+        <ShoppingBag className="h-5 w-5" />
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-sun text-[10px] font-bold text-ocean-deep">
+          0
+        </span>
+      </button>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <button
+            className="pointer-events-auto rounded-full bg-ocean-deep/85 p-2.5 text-primary-foreground shadow-md backdrop-blur transition hover:bg-ocean-deep"
+            aria-label="Öppna meny"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-72 bg-ocean-deep text-primary-foreground border-l-white/10">
+          <SheetHeader>
+            <SheetTitle className="text-left text-primary-foreground">
+              <span className="flex items-center gap-2">
+                <img src={logo} alt="" className="h-8 w-8 object-contain" />
+                <span className="text-base font-semibold">peptivaLab Group</span>
+              </span>
+            </SheetTitle>
+          </SheetHeader>
+          <nav className="mt-6 flex flex-col">
+            {nav.map((n) => (
+              <Link
+                key={n.to}
+                to={n.to}
+                onClick={() => setOpen(false)}
+                className="border-b border-white/10 py-4 text-sm font-medium uppercase tracking-wider text-primary-foreground/85 transition hover:text-sun"
+                activeProps={{ className: "text-sun" }}
+              >
+                {n.label}
+              </Link>
+            ))}
+          </nav>
+        </SheetContent>
+      </Sheet>
+    </div>
   );
 }
