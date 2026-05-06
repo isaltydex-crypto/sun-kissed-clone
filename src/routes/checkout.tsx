@@ -9,6 +9,7 @@ import {
   PAYMENTS_API_BASE_URL,
   type PayCurrency,
 } from "@/lib/paymentsApi";
+import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
 
 const COINS: { value: PayCurrency; label: string; sub: string }[] = [
   { value: "btc", label: "Bitcoin", sub: "BTC" },
@@ -57,9 +58,30 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const [payCurrency, setPayCurrency] = useState<PayCurrency>("btc");
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [discountInput, setDiscountInput] = useState("");
+  const [discount, setDiscount] = useState<AppliedDiscount | null>(null);
+  const [discountError, setDiscountError] = useState<string | null>(null);
 
   const shipping = items.length === 0 ? 0 : subtotal >= SHIPPING_FREE_OVER ? 0 : SHIPPING_COST;
-  const total = subtotal + shipping;
+  const discountAmount = discount?.amount ?? 0;
+  const total = Math.max(0, subtotal + shipping - discountAmount);
+
+  const handleApplyDiscount = () => {
+    setDiscountError(null);
+    const result = applyDiscountCode(discountInput, subtotal);
+    if (result.ok) {
+      setDiscount(result.discount);
+      setDiscountInput("");
+    } else {
+      setDiscount(null);
+      setDiscountError(result.error);
+    }
+  };
+
+  const handleRemoveDiscount = () => {
+    setDiscount(null);
+    setDiscountError(null);
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
