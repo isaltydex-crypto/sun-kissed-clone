@@ -9,6 +9,7 @@ import {
   PAYMENTS_API_BASE_URL,
   type PayCurrency,
 } from "@/lib/paymentsApi";
+import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
 
 const COINS: { value: PayCurrency; label: string; sub: string }[] = [
   { value: "btc", label: "Bitcoin", sub: "BTC" },
@@ -57,9 +58,30 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const [payCurrency, setPayCurrency] = useState<PayCurrency>("btc");
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [discountInput, setDiscountInput] = useState("");
+  const [discount, setDiscount] = useState<AppliedDiscount | null>(null);
+  const [discountError, setDiscountError] = useState<string | null>(null);
 
   const shipping = items.length === 0 ? 0 : subtotal >= SHIPPING_FREE_OVER ? 0 : SHIPPING_COST;
-  const total = subtotal + shipping;
+  const discountAmount = discount?.amount ?? 0;
+  const total = Math.max(0, subtotal + shipping - discountAmount);
+
+  const handleApplyDiscount = () => {
+    setDiscountError(null);
+    const result = applyDiscountCode(discountInput, subtotal);
+    if (result.ok) {
+      setDiscount(result.discount);
+      setDiscountInput("");
+    } else {
+      setDiscount(null);
+      setDiscountError(result.error);
+    }
+  };
+
+  const handleRemoveDiscount = () => {
+    setDiscount(null);
+    setDiscountError(null);
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -85,6 +107,7 @@ function CheckoutPage() {
       items,
       subtotal,
       shipping,
+      discount,
       total,
       payCurrency,
     };
@@ -111,6 +134,7 @@ function CheckoutPage() {
             price: i.price,
             quantity: i.quantity,
           })),
+          discount: discount ?? undefined,
           successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
           cancelUrl: `${origin}/checkout?cancelled=1`,
         });
@@ -302,6 +326,54 @@ function CheckoutPage() {
                 </li>
               ))}
             </ul>
+            <div className="mt-4 border-t border-border pt-4">
+              <label htmlFor="discount" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-ocean-deep">
+                Rabattkod
+              </label>
+              {discount ? (
+                <div className="flex items-center justify-between rounded-md border border-ocean-deep/30 bg-ocean-deep/5 px-3 py-2 text-sm">
+                  <div>
+                    <p className="font-semibold text-ocean-deep">{discount.code}</p>
+                    {discount.description && (
+                      <p className="text-xs text-muted-foreground">{discount.description}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveDiscount}
+                    className="text-xs font-medium text-destructive underline-offset-4 hover:underline"
+                  >
+                    Ta bort
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    id="discount"
+                    type="text"
+                    value={discountInput}
+                    onChange={(e) => setDiscountInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleApplyDiscount();
+                      }
+                    }}
+                    placeholder="Ange kod"
+                    maxLength={32}
+                    className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ocean focus:outline-none focus:ring-2 focus:ring-ocean/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyDiscount}
+                    className="rounded-md bg-ocean-deep px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean"
+                  >
+                    Använd
+                  </button>
+                </div>
+              )}
+              {discountError && <p className="mt-1 text-xs text-destructive">{discountError}</p>}
+            </div>
             <dl className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Delsumma</dt>
@@ -311,6 +383,12 @@ function CheckoutPage() {
                 <dt className="text-muted-foreground">Frakt</dt>
                 <dd className="font-medium text-foreground">{shipping === 0 ? "Fri" : `${shipping} kr`}</dd>
               </div>
+              {discount && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Rabatt ({discount.code})</dt>
+                  <dd className="font-medium text-ocean-deep">−{discount.amount} kr</dd>
+                </div>
+              )}
               <div className="flex justify-between border-t border-border pt-3 text-base">
                 <dt className="font-semibold text-ocean-deep">Totalt</dt>
                 <dd className="font-bold text-ocean-deep">{total} kr</dd>
