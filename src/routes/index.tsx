@@ -27,7 +27,7 @@ function HomePage() {
             <img
               src={logo}
               alt="PeptivaLab Group"
-              className="h-30 w-30 object-contain sm:h-40 sm:w-40 md:h-56 md:w-56"
+              className="h-[7.5rem] w-[7.5rem] object-contain sm:h-40 sm:w-40 md:h-56 md:w-56"
             />
             <h2
               className="-mt-1 text-2xl italic tracking-tight text-ocean-deep sm:text-3xl md:text-4xl"
