@@ -201,13 +201,65 @@ function AdminProductsPage() {
                   onChange={(e) => setForm({ ...form, oldPrice: e.target.value })}
                 />
               </Field>
-              <Field label="Bild-URL" className="sm:col-span-2">
-                <input
-                  className="input"
-                  value={form.image}
-                  onChange={(e) => setForm({ ...form, image: e.target.value })}
-                  placeholder="https://..."
-                />
+              <Field label="Produktbild" className="sm:col-span-2">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                  <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-sand">
+                    {form.image ? (
+                      <img src={form.image} alt="Förhandsvisning" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">Ingen bild</span>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs font-medium hover:bg-muted">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          e.target.value = "";
+                          if (!file) return;
+                          if (!file.type.startsWith("image/")) {
+                            setError("Endast bildfiler tillåts.");
+                            return;
+                          }
+                          if (file.size > 2 * 1024 * 1024) {
+                            setError("Bilden får vara högst 2 MB.");
+                            return;
+                          }
+                          setError(null);
+                          const dataUrl = await new Promise<string>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(String(reader.result));
+                            reader.onerror = () => reject(reader.error);
+                            reader.readAsDataURL(file);
+                          });
+                          setForm((f) => ({ ...f, image: dataUrl }));
+                        }}
+                      />
+                      Välj bild från datorn
+                    </label>
+                    <input
+                      className="input"
+                      value={form.image.startsWith("data:") ? "" : form.image}
+                      onChange={(e) => setForm({ ...form, image: e.target.value })}
+                      placeholder="… eller klistra in en bild-URL"
+                    />
+                    {form.image && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, image: "" }))}
+                        className="text-xs text-muted-foreground hover:text-destructive"
+                      >
+                        Ta bort bild
+                      </button>
+                    )}
+                    <p className="text-[11px] text-muted-foreground">
+                      JPG/PNG/WebP, max 2 MB. Sparas direkt i butiken.
+                    </p>
+                  </div>
+                </div>
               </Field>
               <Field label="Badge (valfri)">
                 <input
