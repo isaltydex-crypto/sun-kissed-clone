@@ -1,4 +1,5 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   Sheet,
   SheetContent,
