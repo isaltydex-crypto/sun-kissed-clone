@@ -14,6 +14,7 @@ import { Route as OmOssRouteImport } from './routes/om-oss'
 import { Route as KontaktRouteImport } from './routes/kontakt'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutBekraftelseRouteImport } from './routes/checkout.bekraftelse'
 import { Route as AdminProdukterRouteImport } from './routes/admin.produkter'
@@ -44,6 +45,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -55,18 +61,19 @@ const CheckoutBekraftelseRoute = CheckoutBekraftelseRouteImport.update({
   getParentRoute: () => CheckoutRoute,
 } as any)
 const AdminProdukterRoute = AdminProdukterRouteImport.update({
-  id: '/admin/produkter',
-  path: '/admin/produkter',
-  getParentRoute: () => rootRouteImport,
+  id: '/produkter',
+  path: '/produkter',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/admin/login',
-  path: '/admin/login',
-  getParentRoute: () => rootRouteImport,
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/checkout': typeof CheckoutRouteWithChildren
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/checkout': typeof CheckoutRouteWithChildren
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/checkout': typeof CheckoutRouteWithChildren
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/checkout'
     | '/faq'
     | '/kontakt'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/checkout'
     | '/faq'
     | '/kontakt'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/checkout'
     | '/faq'
     | '/kontakt'
@@ -137,13 +149,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CheckoutRoute: typeof CheckoutRouteWithChildren
   FaqRoute: typeof FaqRoute
   KontaktRoute: typeof KontaktRoute
   OmOssRoute: typeof OmOssRoute
   ProdukterRoute: typeof ProdukterRoute
-  AdminLoginRoute: typeof AdminLoginRoute
-  AdminProdukterRoute: typeof AdminProdukterRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -183,6 +194,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -199,20 +217,32 @@ declare module '@tanstack/react-router' {
     }
     '/admin/produkter': {
       id: '/admin/produkter'
-      path: '/admin/produkter'
+      path: '/produkter'
       fullPath: '/admin/produkter'
       preLoaderRoute: typeof AdminProdukterRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/login': {
       id: '/admin/login'
-      path: '/admin/login'
+      path: '/login'
       fullPath: '/admin/login'
       preLoaderRoute: typeof AdminLoginRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
     }
   }
 }
+
+interface AdminRouteChildren {
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminProdukterRoute: typeof AdminProdukterRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminLoginRoute: AdminLoginRoute,
+  AdminProdukterRoute: AdminProdukterRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface CheckoutRouteChildren {
   CheckoutBekraftelseRoute: typeof CheckoutBekraftelseRoute
@@ -228,14 +258,22 @@ const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   CheckoutRoute: CheckoutRouteWithChildren,
   FaqRoute: FaqRoute,
   KontaktRoute: KontaktRoute,
   OmOssRoute: OmOssRoute,
   ProdukterRoute: ProdukterRoute,
-  AdminLoginRoute: AdminLoginRoute,
-  AdminProdukterRoute: AdminProdukterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
