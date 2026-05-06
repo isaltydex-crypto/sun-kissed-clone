@@ -4,22 +4,23 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
-      { title: "Vanliga frågor — Soldis" },
-      { name: "description", content: "Svar på de vanligaste frågorna om Soldis självbruna produkter, leverans och retur." },
-      { property: "og:title", content: "Vanliga frågor — Soldis" },
-      { property: "og:description", content: "Svar på de vanligaste frågorna om Soldis självbruna produkter." },
+      { title: "Vanliga frågor — Peptida" },
+      { name: "description", content: "Svar på de vanligaste frågorna om Peptidas peptidhudvård, leverans och retur." },
+      { property: "og:title", content: "Vanliga frågor — Peptida" },
+      { property: "og:description", content: "Svar på de vanligaste frågorna om Peptidas peptidhudvård." },
     ],
   }),
   component: FaqPage,
 });
 
 const faqs = [
+  { q: "Vad är peptider och vad gör de för huden?", a: "Peptider är korta kedjor av aminosyror som signalerar till huden att producera mer kollagen och elastin. Resultatet blir fastare, slätare och mer återhämtad hud över tid." },
   { q: "Hur lång tid tar leveransen?", a: "Vi skickar samma dag om du beställer före kl 14. Leverans tar normalt 1–3 arbetsdagar inom Sverige." },
-  { q: "Är produkterna veganska?", a: "Ja, alla våra produkter är 100% veganska och cruelty-free. Vi testar aldrig på djur." },
-  { q: "Hur länge håller solbrännan?", a: "Med rätt förberedelse och underhåll håller färgen i 5–7 dagar och bleknar sedan jämnt." },
-  { q: "Kan jag returnera produkten?", a: "Vi erbjuder 30 dagars öppet köp. Oöppnade produkter kan returneras för full återbetalning." },
+  { q: "När ser jag resultat?", a: "De flesta märker en mjukare och mer återfuktad hud inom 1–2 veckor. Synlig förbättring av fina linjer och spänst syns vanligtvis efter 4–8 veckors daglig användning." },
+  { q: "Kan jag använda peptider med retinol eller vitamin C?", a: "Ja. Peptider fungerar bra ihop med retinol (kvällstid) och vitamin C (morgon). Applicera peptidserumet först och låt det absorberas i en minut." },
+  { q: "Är produkterna säkra för känslig hud och under graviditet?", a: "Ja, alla våra peptidformuleringar är dermatologiskt testade och anses säkra under graviditet och amning. Vid tveksamhet — rådfråga din läkare." },
+  { q: "Kan jag returnera produkten?", a: "Vi erbjuder 30 dagars nöjdkundgaranti — även på öppnade produkter. Är du inte nöjd får du pengarna tillbaka." },
   { q: "Vilka betalningssätt accepterar ni?", a: "Vi tar emot Klarna (faktura och delbetalning), Swish, samt kort via Visa, Mastercard och Amex." },
-  { q: "Är produkterna säkra för känslig hud?", a: "Ja, samtliga produkter är dermatologiskt testade och fria från parabener, mineraloljor och parfym." },
 ];
 
 function FaqPage() {

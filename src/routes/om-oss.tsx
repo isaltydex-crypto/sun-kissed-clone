@@ -3,10 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/om-oss")({
   head: () => ({
     meta: [
-      { title: "Om oss — Soldis" },
-      { name: "description", content: "Soldis grundades 2018 i Stockholm med en enkel idé: en vacker solbränna utan att skada huden." },
-      { property: "og:title", content: "Om oss — Soldis" },
-      { property: "og:description", content: "Lär känna Soldis — Sveriges favorit för självbruna produkter." },
+      { title: "Om oss — Peptida" },
+      { name: "description", content: "Peptida grundades 2020 i Stockholm med en mission: göra klinisk peptidhudvård tillgänglig för alla." },
+      { property: "og:title", content: "Om oss — Peptida" },
+      { property: "og:description", content: "Lär känna Peptida — svensk peptidhudvård utvecklad med dermatologer." },
     ],
   }),
   component: AboutPage,
@@ -17,9 +17,9 @@ function AboutPage() {
     <>
       <section className="bg-ocean py-16 text-primary-foreground md:py-20">
         <div className="mx-auto max-w-4xl px-4 md:px-8">
-          <h1 className="text-4xl font-bold md:text-5xl">Om Soldis</h1>
+          <h1 className="text-4xl font-bold md:text-5xl">Om Peptida</h1>
           <p className="mt-4 text-lg text-primary-foreground/80">
-            Vi tror på att alla förtjänar att kunna känna sig sommarfräscha — året runt, utan kompromisser för hudens hälsa.
+            Vi tror att alla förtjänar hudvård som faktiskt fungerar — formulerad med kliniska doser av de mest effektiva peptiderna.
           </p>
         </div>
       </section>
@@ -28,20 +28,20 @@ function AboutPage() {
           <div>
             <h2 className="text-2xl font-bold text-ocean">Vår historia</h2>
             <p className="mt-4 text-muted-foreground">
-              Soldis grundades 2018 i Stockholm av två väninnor som var trötta på orangea, randiga självbruna produkter. Efter två år av utveckling tillsammans med dermatologer lanserade vi vår första mousse — och resten är historia.
+              Peptida grundades 2020 i Stockholm av en biokemist och en hudterapeut som ville göra avancerad peptidhudvård tillgänglig utanför kliniker. Efter två års utveckling tillsammans med dermatologer lanserade vi vårt första Matrixyl-serum — och kundernas resultat talar för sig själva.
             </p>
           </div>
           <div>
             <h2 className="text-2xl font-bold text-ocean">Vår filosofi</h2>
             <p className="mt-4 text-muted-foreground">
-              Naturligt resultat, snälla ingredienser och förpackningar du vill ställa fram. Alla våra produkter är veganska, cruelty-free och formulerade utan parabener eller mineraloljor.
+              Aktiva i kliniska doser, transparenta INCI-listor och förpackningar som skyddar formulan. Alla våra produkter är veganska, cruelty-free och fria från parabener, parfym och mineraloljor.
             </p>
           </div>
         </div>
         <div className="mx-auto mt-16 max-w-5xl px-4 md:px-8">
           <div className="grid gap-6 rounded-2xl bg-sand p-8 sm:grid-cols-3">
             {[
-              { n: "150k+", l: "Nöjda kunder" },
+              { n: "80k+", l: "Nöjda kunder" },
               { n: "4.9★", l: "Snittbetyg" },
               { n: "100%", l: "Vegan & CF" },
             ].map((s) => (

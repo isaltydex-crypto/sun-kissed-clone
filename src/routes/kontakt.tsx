@@ -4,10 +4,10 @@ import { Mail, MapPin, Clock } from "lucide-react";
 export const Route = createFileRoute("/kontakt")({
   head: () => ({
     meta: [
-      { title: "Kontakt — Soldis" },
-      { name: "description", content: "Kontakta Soldis kundservice. Vi finns här mån–fre 9–17." },
-      { property: "og:title", content: "Kontakt — Soldis" },
-      { property: "og:description", content: "Kontakta Soldis kundservice — vi svarar inom 24 timmar." },
+      { title: "Kontakt — Peptida" },
+      { name: "description", content: "Kontakta Peptidas kundservice. Vi finns här mån–fre 9–17." },
+      { property: "og:title", content: "Kontakt — Peptida" },
+      { property: "og:description", content: "Kontakta Peptidas kundservice — vi svarar inom 24 timmar." },
     ],
   }),
   component: ContactPage,
@@ -29,7 +29,7 @@ function ContactPage() {
               <Mail className="h-6 w-6 flex-shrink-0 text-sun-deep" />
               <div>
                 <h3 className="font-semibold text-ocean">E-post</h3>
-                <p className="text-muted-foreground">hej@soldis.se</p>
+                <p className="text-muted-foreground">hej@peptida.se</p>
               </div>
             </div>
             <div className="flex gap-4">
