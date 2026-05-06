@@ -107,6 +107,7 @@ function CheckoutPage() {
       items,
       subtotal,
       shipping,
+      discount,
       total,
       payCurrency,
     };
@@ -133,6 +134,7 @@ function CheckoutPage() {
             price: i.price,
             quantity: i.quantity,
           })),
+          discount: discount ?? undefined,
           successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
           cancelUrl: `${origin}/checkout?cancelled=1`,
         });
