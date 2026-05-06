@@ -45,7 +45,13 @@ export function SiteHeader() {
             <SheetTitle className="text-left text-primary-foreground">
               <span className="flex items-center gap-2">
                 <img src={logo} alt="" className="h-8 w-8 object-contain" />
-                <span className="text-base font-semibold">peptivaLab Group</span>
+                <span
+                  className="text-xl italic tracking-tight text-primary-foreground"
+                  style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
+                >
+                  peptiva<span className="font-normal">Lab</span>
+                  <span className="ml-2 align-middle text-[10px] not-italic uppercase tracking-[0.35em] text-sun">Group</span>
+                </span>
               </span>
             </SheetTitle>
           </SheetHeader>
