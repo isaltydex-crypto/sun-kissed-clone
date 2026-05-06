@@ -1,4 +1,5 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   Sheet,
   SheetContent,
@@ -73,9 +74,13 @@ export function CartDrawer() {
               <p className="mt-1 text-xs text-muted-foreground">
                 Frakt och rabatter beräknas i kassan.
               </p>
-              <button className="mt-4 w-full rounded-lg bg-ocean-deep py-3 text-sm font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean">
+              <Link
+                to="/checkout"
+                onClick={closeCart}
+                className="mt-4 block w-full rounded-lg bg-ocean-deep py-3 text-center text-sm font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean"
+              >
                 Till kassan
-              </button>
+              </Link>
               <button
                 onClick={clear}
                 className="mt-2 w-full rounded-lg py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground"

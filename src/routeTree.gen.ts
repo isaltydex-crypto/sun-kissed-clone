@@ -13,7 +13,9 @@ import { Route as ProdukterRouteImport } from './routes/produkter'
 import { Route as OmOssRouteImport } from './routes/om-oss'
 import { Route as KontaktRouteImport } from './routes/kontakt'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CheckoutBekraftelseRouteImport } from './routes/checkout.bekraftelse'
 
 const ProdukterRoute = ProdukterRouteImport.update({
   id: '/produkter',
@@ -35,44 +37,83 @@ const FaqRoute = FaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutBekraftelseRoute = CheckoutBekraftelseRouteImport.update({
+  id: '/bekraftelse',
+  path: '/bekraftelse',
+  getParentRoute: () => CheckoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/checkout': typeof CheckoutRouteWithChildren
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/checkout': typeof CheckoutRouteWithChildren
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/checkout': typeof CheckoutRouteWithChildren
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/faq' | '/kontakt' | '/om-oss' | '/produkter'
+  fullPaths:
+    | '/'
+    | '/checkout'
+    | '/faq'
+    | '/kontakt'
+    | '/om-oss'
+    | '/produkter'
+    | '/checkout/bekraftelse'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/faq' | '/kontakt' | '/om-oss' | '/produkter'
-  id: '__root__' | '/' | '/faq' | '/kontakt' | '/om-oss' | '/produkter'
+  to:
+    | '/'
+    | '/checkout'
+    | '/faq'
+    | '/kontakt'
+    | '/om-oss'
+    | '/produkter'
+    | '/checkout/bekraftelse'
+  id:
+    | '__root__'
+    | '/'
+    | '/checkout'
+    | '/faq'
+    | '/kontakt'
+    | '/om-oss'
+    | '/produkter'
+    | '/checkout/bekraftelse'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CheckoutRoute: typeof CheckoutRouteWithChildren
   FaqRoute: typeof FaqRoute
   KontaktRoute: typeof KontaktRoute
   OmOssRoute: typeof OmOssRoute
@@ -109,6 +150,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -116,11 +164,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/bekraftelse': {
+      id: '/checkout/bekraftelse'
+      path: '/bekraftelse'
+      fullPath: '/checkout/bekraftelse'
+      preLoaderRoute: typeof CheckoutBekraftelseRouteImport
+      parentRoute: typeof CheckoutRoute
+    }
   }
 }
 
+interface CheckoutRouteChildren {
+  CheckoutBekraftelseRoute: typeof CheckoutBekraftelseRoute
+}
+
+const CheckoutRouteChildren: CheckoutRouteChildren = {
+  CheckoutBekraftelseRoute: CheckoutBekraftelseRoute,
+}
+
+const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
+  CheckoutRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CheckoutRoute: CheckoutRouteWithChildren,
   FaqRoute: FaqRoute,
   KontaktRoute: KontaktRoute,
   OmOssRoute: OmOssRoute,
