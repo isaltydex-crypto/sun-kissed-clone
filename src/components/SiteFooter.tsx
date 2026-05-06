@@ -7,8 +7,8 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-4 md:px-8">
         <div>
           <div className="flex items-center gap-3">
-            <img src={logo} alt="PeptivaLab Group" className="h-11 w-11 object-contain" />
-            <span className="text-lg font-semibold">PeptivaLab Group</span>
+            <img src={logo} alt="peptivaLab Group" className="h-11 w-11 object-contain" />
+            <span className="text-lg font-semibold">peptivaLab Group</span>
           </div>
           <p className="mt-4 text-sm text-primary-foreground/70">
             Premium peptidbaserad hudvård utvecklad i Sverige. Vetenskap och vård för en synligt fastare och friskare hud.
@@ -42,7 +42,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-7xl px-4 py-5 text-center text-xs text-primary-foreground/60 md:px-8">
-          © {new Date().getFullYear()} PeptivaLab Group. Alla rättigheter förbehållna.
+          © {new Date().getFullYear()} peptivaLab Group. Alla rättigheter förbehållna.
         </div>
       </div>
     </footer>
