@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Star, Truck, Shield, Leaf, FlaskConical } from "lucide-react";
 import logo from "@/assets/logo.png";
 import hero from "@/assets/hero-products.jpg";
-import { products } from "@/data/products";
+import { useProducts } from "@/context/ProductsContext";
 import { ProductCard } from "@/components/ProductCard";
 
 export const Route = createFileRoute("/")({
@@ -18,6 +18,7 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const { products } = useProducts();
   return (
     <>
       {/* Centered hero */}

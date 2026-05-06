@@ -16,6 +16,7 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutBekraftelseRouteImport } from './routes/checkout.bekraftelse'
+import { Route as AdminProdukterRouteImport } from './routes/admin.produkter'
 
 const ProdukterRoute = ProdukterRouteImport.update({
   id: '/produkter',
@@ -52,6 +53,11 @@ const CheckoutBekraftelseRoute = CheckoutBekraftelseRouteImport.update({
   path: '/bekraftelse',
   getParentRoute: () => CheckoutRoute,
 } as any)
+const AdminProdukterRoute = AdminProdukterRouteImport.update({
+  id: '/admin/produkter',
+  path: '/admin/produkter',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/admin/produkter': typeof AdminProdukterRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/admin/produkter': typeof AdminProdukterRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/admin/produkter': typeof AdminProdukterRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/kontakt'
     | '/om-oss'
     | '/produkter'
+    | '/admin/produkter'
     | '/checkout/bekraftelse'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/kontakt'
     | '/om-oss'
     | '/produkter'
+    | '/admin/produkter'
     | '/checkout/bekraftelse'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/kontakt'
     | '/om-oss'
     | '/produkter'
+    | '/admin/produkter'
     | '/checkout/bekraftelse'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   KontaktRoute: typeof KontaktRoute
   OmOssRoute: typeof OmOssRoute
   ProdukterRoute: typeof ProdukterRoute
+  AdminProdukterRoute: typeof AdminProdukterRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutBekraftelseRouteImport
       parentRoute: typeof CheckoutRoute
     }
+    '/admin/produkter': {
+      id: '/admin/produkter'
+      path: '/admin/produkter'
+      fullPath: '/admin/produkter'
+      preLoaderRoute: typeof AdminProdukterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -193,6 +213,7 @@ const rootRouteChildren: RootRouteChildren = {
   KontaktRoute: KontaktRoute,
   OmOssRoute: OmOssRoute,
   ProdukterRoute: ProdukterRoute,
+  AdminProdukterRoute: AdminProdukterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
