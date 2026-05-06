@@ -51,19 +51,29 @@ export type CreateInvoiceInput = {
     notes?: string;
   };
   items: { slug: string; name: string; price: number; quantity: number }[];
-  discount?: {
-    code: string;
-    type: "percent" | "fixed";
-    value: number;
-    amount: number;
-  };
+  /** Plain code string. The server validates and computes the discount. */
+  discountCode?: string;
   successUrl: string;
   cancelUrl: string;
+};
+
+export type ServerDiscount = {
+  code: string;
+  type: "percent" | "fixed";
+  value: number;
+  amount: number;
+  description?: string;
 };
 
 export type CreateInvoiceResponse = {
   invoiceUrl: string;
   invoiceId: string;
+  totals?: {
+    subtotal: number;
+    shipping: number;
+    discount: ServerDiscount | null;
+    total: number;
+  };
 };
 
 export class PaymentsApiError extends Error {
@@ -107,4 +117,30 @@ export async function getOrderStatus(orderId: string): Promise<{ status: string;
     throw new PaymentsApiError(`Failed to fetch order status (${res.status}).`, res.status);
   }
   return await res.json();
+}
+
+/**
+ * Server-side discount validation. Returns the authoritative discount the
+ * server will apply when creating the invoice. If no payments server is
+ * configured this throws — call sites should fall back to local validation.
+ */
+export async function validateDiscountOnServer(
+  code: string,
+  items: { slug: string; price: number; quantity: number }[],
+): Promise<
+  | { ok: true; discount: ServerDiscount }
+  | { ok: false; error: string }
+> {
+  const base = ensureBaseUrl();
+  const res = await fetch(`${base}/api/discount/validate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, items }),
+  });
+  if (!res.ok) {
+    return { ok: false, error: `Server error (${res.status})` };
+  }
+  return (await res.json()) as
+    | { ok: true; discount: ServerDiscount }
+    | { ok: false; error: string };
 }
