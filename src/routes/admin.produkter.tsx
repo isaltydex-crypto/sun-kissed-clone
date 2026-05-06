@@ -335,5 +335,3 @@ function Field({
     </label>
   );
 }
-
-type ReactNode = import("react").ReactNode;
