@@ -22,7 +22,7 @@ function HomePage() {
     <>
       {/* Centered hero */}
       <section className="bg-background">
-        <div className="mx-auto flex max-w-3xl flex-col items-center px-4 pt-12 pb-12 text-center md:pt-28 md:pb-20">
+        <div className="mx-auto flex max-w-3xl flex-col items-center px-4 pt-2 pb-10 text-center md:pt-10 md:pb-20">
           <div className="flex flex-col items-center">
             <img
               src={logo}

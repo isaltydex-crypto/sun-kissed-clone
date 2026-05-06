@@ -21,7 +21,7 @@ const nav = [
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-50 bg-ocean-deep text-primary-foreground shadow-lg">
+    <header className="sticky top-0 z-50 bg-ocean-deep text-primary-foreground">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 md:py-4 md:px-8">
         <button className="relative rounded-full p-2 transition hover:bg-white/10" aria-label="Varukorg">
           <ShoppingBag className="h-5 w-5" />
