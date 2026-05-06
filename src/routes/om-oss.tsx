@@ -3,10 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/om-oss")({
   head: () => ({
     meta: [
-      { title: "Om oss — Peptida" },
-      { name: "description", content: "Peptida grundades 2020 i Stockholm med en mission: göra klinisk peptidhudvård tillgänglig för alla." },
-      { property: "og:title", content: "Om oss — Peptida" },
-      { property: "og:description", content: "Lär känna Peptida — svensk peptidhudvård utvecklad med dermatologer." },
+      { title: "Om oss — PeptivaLab Group" },
+      { name: "description", content: "PeptivaLab Group grundades 2020 i Stockholm med en mission: göra klinisk peptidhudvård tillgänglig för alla." },
+      { property: "og:title", content: "Om oss — PeptivaLab Group" },
+      { property: "og:description", content: "Lär känna PeptivaLab Group — svensk peptidhudvård utvecklad med dermatologer." },
     ],
   }),
   component: AboutPage,
@@ -17,7 +17,7 @@ function AboutPage() {
     <>
       <section className="bg-ocean py-16 text-primary-foreground md:py-20">
         <div className="mx-auto max-w-4xl px-4 md:px-8">
-          <h1 className="text-4xl font-bold md:text-5xl">Om Peptida</h1>
+          <h1 className="text-4xl font-bold md:text-5xl">Om PeptivaLab Group</h1>
           <p className="mt-4 text-lg text-primary-foreground/80">
             Vi tror att alla förtjänar hudvård som faktiskt fungerar — formulerad med kliniska doser av de mest effektiva peptiderna.
           </p>
@@ -28,7 +28,7 @@ function AboutPage() {
           <div>
             <h2 className="text-2xl font-bold text-ocean">Vår historia</h2>
             <p className="mt-4 text-muted-foreground">
-              Peptida grundades 2020 i Stockholm av en biokemist och en hudterapeut som ville göra avancerad peptidhudvård tillgänglig utanför kliniker. Efter två års utveckling tillsammans med dermatologer lanserade vi vårt första Matrixyl-serum — och kundernas resultat talar för sig själva.
+              PeptivaLab Group grundades 2020 i Stockholm av en biokemist och en hudterapeut som ville göra avancerad peptidhudvård tillgänglig utanför kliniker. Efter två års utveckling tillsammans med dermatologer lanserade vi vårt första Matrixyl-serum — och kundernas resultat talar för sig själva.
             </p>
           </div>
           <div>

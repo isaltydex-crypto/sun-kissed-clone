@@ -4,10 +4,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
-      { title: "Vanliga frågor — Peptida" },
-      { name: "description", content: "Svar på de vanligaste frågorna om Peptidas peptidhudvård, leverans och retur." },
-      { property: "og:title", content: "Vanliga frågor — Peptida" },
-      { property: "og:description", content: "Svar på de vanligaste frågorna om Peptidas peptidhudvård." },
+      { title: "Vanliga frågor — PeptivaLab Group" },
+      { name: "description", content: "Svar på de vanligaste frågorna om PeptivaLab Groups peptidhudvård, leverans och retur." },
+      { property: "og:title", content: "Vanliga frågor — PeptivaLab Group" },
+      { property: "og:description", content: "Svar på de vanligaste frågorna om PeptivaLab Groups peptidhudvård." },
     ],
   }),
   component: FaqPage,

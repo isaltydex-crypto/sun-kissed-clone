@@ -5,9 +5,9 @@ import { ProductCard } from "@/components/ProductCard";
 export const Route = createFileRoute("/produkter")({
   head: () => ({
     meta: [
-      { title: "Produkter — Peptida" },
-      { name: "description", content: "Utforska Peptidas sortiment av peptidserum, boosters, ögonkrämer och nattkrämer." },
-      { property: "og:title", content: "Produkter — Peptida" },
+      { title: "Produkter — PeptivaLab Group" },
+      { name: "description", content: "Utforska PeptivaLab Groups sortiment av peptidserum, boosters, ögonkrämer och nattkrämer." },
+      { property: "og:title", content: "Produkter — PeptivaLab Group" },
       { property: "og:description", content: "Peptidserum, boosters och krämer för synliga resultat." },
     ],
   }),
