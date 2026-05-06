@@ -134,7 +134,7 @@ function CheckoutPage() {
             price: i.price,
             quantity: i.quantity,
           })),
-          discount: discount ?? undefined,
+          discountCode: discount?.code,
           successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
           cancelUrl: `${origin}/checkout?cancelled=1`,
         });
