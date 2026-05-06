@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { products } from "@/data/products";
+import { useProducts } from "@/context/ProductsContext";
 import { ProductCard } from "@/components/ProductCard";
 
 export const Route = createFileRoute("/produkter")({
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/produkter")({
 });
 
 function ProductsPage() {
+  const { products } = useProducts();
   return (
     <>
       <section className="bg-ocean py-16 text-primary-foreground md:py-20">
