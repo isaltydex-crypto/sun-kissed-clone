@@ -8,7 +8,7 @@ export function SiteFooter() {
         <div>
           <div className="flex items-center gap-3">
             <img src={logo} alt="PeptivaLab Group" className="h-11 w-11 object-contain" />
-            <span className="text-lg font-semibold">PEPTIVALAB GROUP</span>
+            <span className="text-lg font-semibold">PeptivaLab Group</span>
           </div>
           <p className="mt-4 text-sm text-primary-foreground/70">
             Premium peptidbaserad hudvård utvecklad i Sverige. Vetenskap och vård för en synligt fastare och friskare hud.
