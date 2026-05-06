@@ -42,16 +42,9 @@ export function SiteHeader() {
         </SheetTrigger>
         <SheetContent side="right" className="w-72 bg-ocean-deep text-primary-foreground border-l-white/10">
           <SheetHeader>
-            <SheetTitle className="text-left text-primary-foreground">
-              <span className="flex items-center gap-3">
-                <img src={logo} alt="" className="h-20 w-20 object-contain" />
-                <span
-                  className="text-lg italic tracking-tight text-primary-foreground"
-                  style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
-                >
-                  peptiva<span className="font-normal">Lab</span>
-                  <span className="ml-1.5 align-middle text-[9px] not-italic uppercase tracking-[0.3em] text-sun">Group</span>
-                </span>
+            <SheetTitle className="text-primary-foreground">
+              <span className="flex justify-center">
+                <img src={logo} alt="peptivaLab Group" className="h-24 w-24 object-contain" />
               </span>
             </SheetTitle>
           </SheetHeader>
