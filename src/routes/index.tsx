@@ -28,6 +28,7 @@ function HomePage() {
             alt="PeptivaLab Group"
             className="h-32 w-32 object-contain md:h-44 md:w-44"
           />
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-ocean-deep md:text-3xl">peptivaLab Group</h2>
           <span className="mt-8 text-xs font-semibold uppercase tracking-[0.3em] text-sun-deep">
             Klinisk peptidhudvård
           </span>
