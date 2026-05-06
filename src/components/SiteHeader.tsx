@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingBag, Menu } from "lucide-react";
 import { useState } from "react";
+import { useCart } from "@/context/CartContext";
 import logo from "@/assets/logo.png";
 import {
   Sheet,
@@ -20,6 +21,7 @@ const nav = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const { count, openCart } = useCart();
   return (
     <>
       {/* Desktop header */}
@@ -41,11 +43,13 @@ export function SiteHeader() {
               </Link>
             ))}
           </nav>
-          <button className="relative rounded-full p-2 transition hover:bg-white/10" aria-label="Varukorg">
+          <button onClick={openCart} className="relative rounded-full p-2 transition hover:bg-white/10" aria-label="Varukorg">
             <ShoppingBag className="h-5 w-5" />
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-sun text-[10px] font-bold text-ocean-deep">
-              0
-            </span>
+            {count > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-sun px-1 text-[10px] font-bold text-ocean-deep">
+                {count}
+              </span>
+            )}
           </button>
         </div>
       </header>
@@ -53,13 +57,16 @@ export function SiteHeader() {
       {/* Mobile floating buttons + side menu */}
       <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between px-4 py-3 md:hidden">
         <button
+          onClick={openCart}
           className="pointer-events-auto relative rounded-full bg-ocean-deep/85 p-2.5 text-primary-foreground shadow-md backdrop-blur transition hover:bg-ocean-deep"
           aria-label="Varukorg"
         >
           <ShoppingBag className="h-5 w-5" />
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-sun text-[10px] font-bold text-ocean-deep">
-            0
-          </span>
+          {count > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-sun px-1 text-[10px] font-bold text-ocean-deep">
+              {count}
+            </span>
+          )}
         </button>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
