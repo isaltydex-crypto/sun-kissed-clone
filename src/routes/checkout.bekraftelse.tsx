@@ -18,6 +18,13 @@ type Order = {
   items: { slug: string; name: string; price: number; quantity: number }[];
   subtotal: number;
   shipping: number;
+  discount?: {
+    code: string;
+    type: "percent" | "fixed";
+    value: number;
+    amount: number;
+    description?: string;
+  } | null;
   total: number;
 };
 
@@ -88,6 +95,17 @@ function ConfirmationPage() {
               <dt className="text-muted-foreground">Frakt</dt>
               <dd className="font-medium text-foreground">{order.shipping === 0 ? "Fri" : `${order.shipping} kr`}</dd>
             </div>
+            {order.discount && (
+              <div className="flex justify-between text-ocean-deep">
+                <dt>
+                  Rabatt <span className="font-mono font-semibold">({order.discount.code})</span>
+                  {order.discount.description && (
+                    <span className="block text-xs text-muted-foreground">{order.discount.description}</span>
+                  )}
+                </dt>
+                <dd className="font-semibold">−{order.discount.amount} kr</dd>
+              </div>
+            )}
             <div className="flex justify-between border-t border-border pt-3 text-base">
               <dt className="font-semibold text-ocean-deep">Totalt</dt>
               <dd className="font-bold text-ocean-deep">{order.total} kr</dd>
