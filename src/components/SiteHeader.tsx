@@ -43,14 +43,14 @@ export function SiteHeader() {
         <SheetContent side="right" className="w-72 bg-ocean-deep text-primary-foreground border-l-white/10">
           <SheetHeader>
             <SheetTitle className="text-left text-primary-foreground">
-              <span className="flex items-center gap-2">
-                <img src={logo} alt="" className="h-8 w-8 object-contain" />
+              <span className="flex items-center gap-3">
+                <img src={logo} alt="" className="h-14 w-14 object-contain" />
                 <span
-                  className="text-xl italic tracking-tight text-primary-foreground"
+                  className="text-3xl italic tracking-tight text-primary-foreground"
                   style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
                 >
                   peptiva<span className="font-normal">Lab</span>
-                  <span className="ml-2 align-middle text-[10px] not-italic uppercase tracking-[0.35em] text-sun">Group</span>
+                  <span className="ml-1.5 align-middle text-[11px] not-italic uppercase tracking-[0.35em] text-sun">Group</span>
                 </span>
               </span>
             </SheetTitle>
