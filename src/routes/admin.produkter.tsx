@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Pencil, Trash2, Plus, X, Save, RotateCcw } from "lucide-react";
 import { useProducts } from "@/context/ProductsContext";
 import type { Product } from "@/data/products";
