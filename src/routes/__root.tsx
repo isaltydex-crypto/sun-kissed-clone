@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CartProvider } from "@/context/CartContext";
 import { ProductsProvider } from "@/context/ProductsContext";
+import { AdminAuthProvider } from "@/context/AdminAuthContext";
 import { CartDrawer } from "@/components/CartDrawer";
 
 import appCss from "../styles.css?url";
