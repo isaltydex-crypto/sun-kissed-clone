@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingBag, Menu, X } from "lucide-react";
 import { useState } from "react";
+import logo from "@/assets/logo.jpeg";
 
 const nav = [
   { to: "/", label: "Hem" },
@@ -15,9 +16,9 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 bg-ocean-deep text-primary-foreground shadow-lg">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-8">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-sun font-bold text-ocean-deep">P</span>
-          <span className="text-lg font-semibold tracking-wide">PEPTIVALAB</span>
+        <Link to="/" className="flex items-center gap-3">
+          <img src={logo} alt="PeptivaLab Group" className="h-11 w-11 rounded-md bg-white object-contain p-1" />
+          <span className="text-lg font-semibold tracking-wide">PEPTIVALAB GROUP</span>
         </Link>
         <nav className="hidden items-center gap-8 md:flex">
           {nav.map((n) => (
