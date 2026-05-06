@@ -2,7 +2,20 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import {
+  createCryptoInvoice,
+  PAYMENTS_API_BASE_URL,
+  type PayCurrency,
+} from "@/lib/paymentsApi";
+
+const COINS: { value: PayCurrency; label: string; sub: string }[] = [
+  { value: "btc", label: "Bitcoin", sub: "BTC" },
+  { value: "eth", label: "Ethereum", sub: "ETH" },
+  { value: "usdc", label: "USD Coin", sub: "USDC" },
+  { value: "usdt", label: "Tether", sub: "USDT" },
+];
 
 const SHIPPING_FREE_OVER = 499;
 const SHIPPING_COST = 49;
@@ -42,6 +55,8 @@ export const Route = createFileRoute("/checkout")({
 function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
+  const [payCurrency, setPayCurrency] = useState<PayCurrency>("btc");
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const shipping = items.length === 0 ? 0 : subtotal >= SHIPPING_FREE_OVER ? 0 : SHIPPING_COST;
   const total = subtotal + shipping;
@@ -60,21 +75,57 @@ function CheckoutPage() {
     },
   });
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
+    setSubmitError(null);
+    const orderId = `PL-${Date.now().toString(36).toUpperCase()}`;
     const order = {
-      id: `PL-${Date.now().toString(36).toUpperCase()}`,
+      id: orderId,
       createdAt: new Date().toISOString(),
       customer: data,
       items,
       subtotal,
       shipping,
       total,
+      payCurrency,
     };
     try {
       sessionStorage.setItem("peptivalab.lastOrder", JSON.stringify(order));
     } catch {
       // ignore
     }
+
+    // If a payments server is configured, create a NOWPayments invoice
+    // through it and redirect the customer to the hosted checkout.
+    if (PAYMENTS_API_BASE_URL) {
+      try {
+        const origin = window.location.origin;
+        const { invoiceUrl } = await createCryptoInvoice({
+          orderId,
+          amount: total,
+          currency: "SEK",
+          payCurrency,
+          customer: { ...data, notes: data.notes || undefined },
+          items: items.map((i) => ({
+            slug: i.slug,
+            name: i.name,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+          successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
+          cancelUrl: `${origin}/checkout?cancelled=1`,
+        });
+        clear();
+        window.location.href = invoiceUrl;
+        return;
+      } catch (err) {
+        setSubmitError(
+          err instanceof Error ? err.message : "Kunde inte starta betalningen. Försök igen.",
+        );
+        return;
+      }
+    }
+
+    // No payments server configured yet — fall back to confirmation page.
     clear();
     navigate({ to: "/checkout/bekraftelse" });
   };
