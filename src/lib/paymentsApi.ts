@@ -51,6 +51,12 @@ export type CreateInvoiceInput = {
     notes?: string;
   };
   items: { slug: string; name: string; price: number; quantity: number }[];
+  discount?: {
+    code: string;
+    type: "percent" | "fixed";
+    value: number;
+    amount: number;
+  };
   successUrl: string;
   cancelUrl: string;
 };
