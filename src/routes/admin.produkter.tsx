@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Navigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Pencil, Trash2, Plus, X, Save, RotateCcw, LogOut } from "lucide-react";
 import { useProducts } from "@/context/ProductsContext";
@@ -64,11 +64,7 @@ function fromForm(f: FormState): Product | null {
 }
 
 function AdminProductsPage() {
-  const { isAuthenticated, logout } = useAdminAuth();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (!isAuthenticated) {
-    return <Navigate to="/admin/login" search={{ redirect: pathname }} />;
-  }
+  const { logout } = useAdminAuth();
   const { products, addProduct, updateProduct, removeProduct, resetToDefaults } = useProducts();
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(empty);
