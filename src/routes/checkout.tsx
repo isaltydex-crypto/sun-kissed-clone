@@ -2,7 +2,20 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import {
+  createCryptoInvoice,
+  PAYMENTS_API_BASE_URL,
+  type PayCurrency,
+} from "@/lib/paymentsApi";
+
+const COINS: { value: PayCurrency; label: string; sub: string }[] = [
+  { value: "btc", label: "Bitcoin", sub: "BTC" },
+  { value: "eth", label: "Ethereum", sub: "ETH" },
+  { value: "usdc", label: "USD Coin", sub: "USDC" },
+  { value: "usdt", label: "Tether", sub: "USDT" },
+];
 
 const SHIPPING_FREE_OVER = 499;
 const SHIPPING_COST = 49;
@@ -42,6 +55,8 @@ export const Route = createFileRoute("/checkout")({
 function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
+  const [payCurrency, setPayCurrency] = useState<PayCurrency>("btc");
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const shipping = items.length === 0 ? 0 : subtotal >= SHIPPING_FREE_OVER ? 0 : SHIPPING_COST;
   const total = subtotal + shipping;
@@ -60,21 +75,57 @@ function CheckoutPage() {
     },
   });
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
+    setSubmitError(null);
+    const orderId = `PL-${Date.now().toString(36).toUpperCase()}`;
     const order = {
-      id: `PL-${Date.now().toString(36).toUpperCase()}`,
+      id: orderId,
       createdAt: new Date().toISOString(),
       customer: data,
       items,
       subtotal,
       shipping,
       total,
+      payCurrency,
     };
     try {
       sessionStorage.setItem("peptivalab.lastOrder", JSON.stringify(order));
     } catch {
       // ignore
     }
+
+    // If a payments server is configured, create a NOWPayments invoice
+    // through it and redirect the customer to the hosted checkout.
+    if (PAYMENTS_API_BASE_URL) {
+      try {
+        const origin = window.location.origin;
+        const { invoiceUrl } = await createCryptoInvoice({
+          orderId,
+          amount: total,
+          currency: "SEK",
+          payCurrency,
+          customer: { ...data, notes: data.notes || undefined },
+          items: items.map((i) => ({
+            slug: i.slug,
+            name: i.name,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+          successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
+          cancelUrl: `${origin}/checkout?cancelled=1`,
+        });
+        clear();
+        window.location.href = invoiceUrl;
+        return;
+      } catch (err) {
+        setSubmitError(
+          err instanceof Error ? err.message : "Kunde inte starta betalningen. Försök igen.",
+        );
+        return;
+      }
+    }
+
+    // No payments server configured yet — fall back to confirmation page.
     clear();
     navigate({ to: "/checkout/bekraftelse" });
   };
@@ -169,6 +220,45 @@ function CheckoutPage() {
               </div>
             </fieldset>
 
+            <fieldset className="space-y-3">
+              <legend className="mb-2 text-lg font-semibold text-ocean-deep">Betalning med krypto</legend>
+              <p className="text-sm text-muted-foreground">
+                Välj kryptovaluta. Du skickas vidare till en säker betalsida för att slutföra köpet.
+              </p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {COINS.map((coin) => {
+                  const active = payCurrency === coin.value;
+                  return (
+                    <button
+                      type="button"
+                      key={coin.value}
+                      onClick={() => setPayCurrency(coin.value)}
+                      aria-pressed={active}
+                      className={`rounded-xl border px-3 py-3 text-left transition ${
+                        active
+                          ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
+                          : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
+                      }`}
+                    >
+                      <p className="text-sm font-semibold text-ocean-deep">{coin.label}</p>
+                      <p className="text-xs text-muted-foreground">{coin.sub}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              {!PAYMENTS_API_BASE_URL && (
+                <p className="rounded-md border border-dashed border-border bg-sand/40 p-3 text-xs text-muted-foreground">
+                  Betalningsservern är inte konfigurerad ännu. Sätt <code className="font-mono">VITE_PAYMENTS_API_BASE_URL</code> till din serverdomän för att aktivera kryptobetalningar.
+                </p>
+              )}
+            </fieldset>
+
+            {submitError && (
+              <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                {submitError}
+              </p>
+            )}
+
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Link to="/produkter" className="text-sm font-medium text-ocean-deep underline-offset-4 hover:underline">
                 ← Fortsätt handla
@@ -178,11 +268,15 @@ function CheckoutPage() {
                 disabled={form.formState.isSubmitting}
                 className="rounded-full bg-ocean-deep px-8 py-3 text-sm font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean disabled:opacity-60"
               >
-                Bekräfta beställning
+                {form.formState.isSubmitting
+                  ? "Bearbetar…"
+                  : PAYMENTS_API_BASE_URL
+                  ? "Betala med krypto"
+                  : "Bekräfta beställning"}
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Genom att bekräfta godkänner du våra villkor. Betalning aktiveras inom kort.
+              Genom att bekräfta godkänner du våra villkor. Betalningen hanteras säkert via NOWPayments.
             </p>
           </form>
 
