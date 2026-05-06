@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Pencil, Trash2, Plus, X, Save, RotateCcw } from "lucide-react";
+import { Pencil, Trash2, Plus, X, Save, RotateCcw, LogOut } from "lucide-react";
 import { useProducts } from "@/context/ProductsContext";
+import { useAdminAuth } from "@/context/AdminAuthContext";
 import type { Product } from "@/data/products";
 
 export const Route = createFileRoute("/admin/produkter")({
@@ -63,6 +64,11 @@ function fromForm(f: FormState): Product | null {
 }
 
 function AdminProductsPage() {
+  const { isAuthenticated, logout } = useAdminAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (!isAuthenticated) {
+    return <Navigate to="/admin/login" search={{ redirect: pathname }} />;
+  }
   const { products, addProduct, updateProduct, removeProduct, resetToDefaults } = useProducts();
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(empty);
@@ -139,6 +145,12 @@ function AdminProductsPage() {
               className="inline-flex items-center gap-2 rounded-md bg-ocean-deep px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-ocean disabled:opacity-50"
             >
               <Plus className="h-4 w-4" /> Ny produkt
+            </button>
+            <button
+              onClick={logout}
+              className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              <LogOut className="h-4 w-4" /> Logga ut
             </button>
           </div>
         </div>
