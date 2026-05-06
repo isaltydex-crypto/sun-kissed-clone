@@ -23,12 +23,20 @@ function HomePage() {
       {/* Centered hero */}
       <section className="bg-background">
         <div className="mx-auto flex max-w-3xl flex-col items-center px-4 pt-20 pb-14 text-center md:pt-28 md:pb-20">
-          <img
-            src={logo}
-            alt="PeptivaLab Group"
-            className="h-32 w-32 object-contain md:h-44 md:w-44"
-          />
-          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-ocean-deep md:text-3xl">peptivaLab Group</h2>
+          <div className="flex flex-col items-center">
+            <img
+              src={logo}
+              alt="PeptivaLab Group"
+              className="h-32 w-32 object-contain md:h-44 md:w-44"
+            />
+            <h2
+              className="-mt-2 text-3xl italic tracking-tight text-ocean-deep md:text-4xl"
+              style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
+            >
+              peptiva<span className="font-normal">Lab</span>
+              <span className="ml-2 align-middle text-xs not-italic uppercase tracking-[0.4em] text-sun-deep">Group</span>
+            </h2>
+          </div>
           <span className="mt-8 text-xs font-semibold uppercase tracking-[0.3em] text-sun-deep">
             Klinisk peptidhudvård
           </span>
