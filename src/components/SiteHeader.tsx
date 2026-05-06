@@ -1,7 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, Menu, X } from "lucide-react";
+import { ShoppingBag, Menu } from "lucide-react";
 import { useState } from "react";
 import logo from "@/assets/logo.png";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 const nav = [
   { to: "/", label: "Hem" },
@@ -32,31 +39,43 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 sm:gap-3">
           <button className="relative rounded-full p-2 transition hover:bg-white/10" aria-label="Varukorg">
             <ShoppingBag className="h-5 w-5" />
             <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-sun text-[10px] font-bold text-ocean-deep">0</span>
           </button>
-          <button className="md:hidden rounded-md p-2 hover:bg-white/10" onClick={() => setOpen(!open)} aria-label="Meny">
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <button className="rounded-md p-2 hover:bg-white/10 md:hidden" aria-label="Öppna meny">
+                <Menu className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-72 bg-ocean-deep text-primary-foreground border-l-white/10">
+              <SheetHeader>
+                <SheetTitle className="text-left text-primary-foreground">
+                  <span className="flex items-center gap-2">
+                    <img src={logo} alt="" className="h-8 w-8 object-contain" />
+                    <span className="text-base font-semibold">peptivaLab Group</span>
+                  </span>
+                </SheetTitle>
+              </SheetHeader>
+              <nav className="mt-6 flex flex-col">
+                {nav.map((n) => (
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    onClick={() => setOpen(false)}
+                    className="border-b border-white/10 py-4 text-sm font-medium uppercase tracking-wider text-primary-foreground/85 transition hover:text-sun"
+                    activeProps={{ className: "text-sun" }}
+                  >
+                    {n.label}
+                  </Link>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-      {open && (
-        <nav className="border-t border-white/10 px-4 pb-4 md:hidden">
-          {nav.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to}
-              onClick={() => setOpen(false)}
-              className="block py-3 text-sm font-medium uppercase tracking-wider"
-              activeProps={{ className: "text-sun" }}
-            >
-              {n.label}
-            </Link>
-          ))}
-        </nav>
-      )}
     </header>
   );
 }
