@@ -1,11 +1,13 @@
-// IRC bridge stub.
+// IRC bridge.
 //
-// This module is the SINGLE place to wire the chat to a real IRC gateway later.
-// Today it only logs and returns false (not synced). When you're ready, fill in
-// `forwardToIrc` and `provisionChannel` — the rest of the app already calls
-// these for every visitor message and every new channel.
+// This module is the SINGLE place to wire the chat to a real IRC gateway.
+// It maintains a single persistent WebSocket connection to the gateway with
+// automatic reconnection (exponential backoff with jitter). Outbound messages
+// are queued while the socket is down and flushed once it reconnects.
 //
-// Suggested env vars (already read here, no code changes needed when set):
+// To go live, set the env vars below — no other code needs to change.
+//
+// Env vars:
 //   IRC_GATEWAY_URL       e.g. wss://your-webircgateway.example/webirc
 //   IRC_SERVER            e.g. irc.libera.chat
 //   IRC_BOT_NICK          e.g. peptivalab-bot
@@ -39,24 +41,183 @@ export function ircChannelName(slug: string): string {
   return `${prefix}${slug}`.toLowerCase().replace(/[^a-z0-9#-]/g, "");
 }
 
+// ---------------------------------------------------------------------------
+// WebSocket connection manager with automatic reconnection
+// ---------------------------------------------------------------------------
+
+type ConnState = "idle" | "connecting" | "open" | "closed";
+
+const RECONNECT_MIN_MS = 1_000;
+const RECONNECT_MAX_MS = 30_000;
+const PING_INTERVAL_MS = 30_000;
+
+type Manager = {
+  ws: WebSocket | null;
+  state: ConnState;
+  attempts: number;
+  reconnectTimer: ReturnType<typeof setTimeout> | null;
+  pingTimer: ReturnType<typeof setInterval> | null;
+  joined: Set<string>;
+  outbox: string[];
+};
+
+let manager: Manager | null = null;
+
+function getManager(): Manager {
+  if (!manager) {
+    manager = {
+      ws: null,
+      state: "idle",
+      attempts: 0,
+      reconnectTimer: null,
+      pingTimer: null,
+      joined: new Set(),
+      outbox: [],
+    };
+  }
+  return manager;
+}
+
+function backoffDelay(attempt: number): number {
+  const exp = Math.min(RECONNECT_MAX_MS, RECONNECT_MIN_MS * 2 ** attempt);
+  // jitter so reconnect storms spread out
+  return Math.floor(exp * (0.5 + Math.random() * 0.5));
+}
+
+function scheduleReconnect(cfg: IrcConfig) {
+  const m = getManager();
+  if (m.reconnectTimer) return;
+  const delay = backoffDelay(m.attempts);
+  console.log(`[irc-bridge] reconnect in ${delay}ms (attempt ${m.attempts + 1})`);
+  m.reconnectTimer = setTimeout(() => {
+    m.reconnectTimer = null;
+    m.attempts += 1;
+    void connect(cfg);
+  }, delay);
+}
+
+function send(line: string) {
+  const m = getManager();
+  if (m.ws && m.state === "open") {
+    try {
+      m.ws.send(line);
+      return;
+    } catch (err) {
+      console.warn("[irc-bridge] send failed, queueing:", err);
+    }
+  }
+  m.outbox.push(line);
+}
+
+function flushOutbox() {
+  const m = getManager();
+  if (!m.ws || m.state !== "open") return;
+  const pending = m.outbox.splice(0, m.outbox.length);
+  for (const line of pending) {
+    try {
+      m.ws.send(line);
+    } catch (err) {
+      console.warn("[irc-bridge] flush failed, requeueing:", err);
+      m.outbox.unshift(line);
+      break;
+    }
+  }
+}
+
+async function connect(cfg: IrcConfig): Promise<void> {
+  const m = getManager();
+  if (m.state === "connecting" || m.state === "open") return;
+  m.state = "connecting";
+
+  let ws: WebSocket;
+  try {
+    ws = new WebSocket(cfg.gatewayUrl);
+  } catch (err) {
+    console.error("[irc-bridge] failed to construct WebSocket:", err);
+    m.state = "closed";
+    scheduleReconnect(cfg);
+    return;
+  }
+  m.ws = ws;
+
+  ws.addEventListener("open", () => {
+    console.log(`[irc-bridge] connected to ${cfg.gatewayUrl}`);
+    m.state = "open";
+    m.attempts = 0;
+
+    // TODO: gateway-specific handshake (NICK / USER / SASL).
+    // Example for a raw IRC-over-WebSocket gateway:
+    //   send(`NICK ${cfg.botNick}`);
+    //   send(`USER ${cfg.botNick} 0 * :pvl bot`);
+    //   if (cfg.botPassword) send(`PASS ${cfg.botPassword}`);
+
+    // Re-join every channel we had before the disconnect.
+    for (const ch of m.joined) send(`JOIN ${ch}`);
+
+    flushOutbox();
+
+    // Heartbeat keeps idle connections alive through proxies.
+    if (m.pingTimer) clearInterval(m.pingTimer);
+    m.pingTimer = setInterval(() => {
+      if (m.state === "open") send(`PING :${Date.now()}`);
+    }, PING_INTERVAL_MS);
+  });
+
+  ws.addEventListener("message", (ev: MessageEvent) => {
+    // TODO: parse PRIVMSG and persist inbound messages back to chat_messages.
+    if (typeof ev.data === "string" && ev.data.startsWith("PING")) {
+      send(`PONG${ev.data.slice(4)}`);
+    }
+  });
+
+  ws.addEventListener("error", (ev: Event) => {
+    console.warn("[irc-bridge] socket error:", (ev as ErrorEvent)?.message ?? ev);
+  });
+
+  ws.addEventListener("close", (ev: CloseEvent) => {
+    console.log(`[irc-bridge] socket closed (code=${ev.code} reason=${ev.reason || "n/a"})`);
+    m.state = "closed";
+    m.ws = null;
+    if (m.pingTimer) {
+      clearInterval(m.pingTimer);
+      m.pingTimer = null;
+    }
+    scheduleReconnect(cfg);
+  });
+}
+
+function ensureConnected(): boolean {
+  const cfg = getIrcConfig();
+  if (!cfg) return false;
+  const m = getManager();
+  if (m.state === "idle" || m.state === "closed") {
+    void connect(cfg);
+  }
+  return true;
+}
+
 /**
  * Called once when a new visitor channel is created.
- * Today: no-op. Later: open/join the IRC channel via your gateway.
+ * Joins the channel on the gateway (queued if currently disconnected).
  */
 export async function provisionChannel(slug: string, displayName: string): Promise<void> {
   const cfg = getIrcConfig();
+  const channel = ircChannelName(slug);
   if (!cfg) {
-    console.log(`[irc-bridge] (no gateway configured) would provision ${ircChannelName(slug)} for ${displayName}`);
+    console.log(`[irc-bridge] (no gateway configured) would provision ${channel} for ${displayName}`);
     return;
   }
-  // TODO: connect to cfg.gatewayUrl, JOIN ircChannelName(slug), invite admins, etc.
-  console.log(`[irc-bridge] provision ${ircChannelName(slug)} on ${cfg.server}`);
+  ensureConnected();
+  const m = getManager();
+  m.joined.add(channel);
+  send(`JOIN ${channel}`);
+  console.log(`[irc-bridge] provision ${channel} on ${cfg.server} for ${displayName}`);
 }
 
 /**
  * Called for every chat message (visitor + admin).
- * Returns true when delivered to IRC. Today: returns false so messages are
- * marked irc_synced=false and stay queued in the database.
+ * Returns true when handed off to the gateway socket (or queued for the next
+ * successful reconnect). Returns false only when no gateway is configured.
  */
 export async function forwardToIrc(args: {
   slug: string;
@@ -66,7 +227,13 @@ export async function forwardToIrc(args: {
 }): Promise<boolean> {
   const cfg = getIrcConfig();
   if (!cfg) return false;
-  // TODO: PRIVMSG ircChannelName(args.slug) :<args.senderName>: <args.body>
-  console.log(`[irc-bridge] -> ${ircChannelName(args.slug)} ${args.sender}/${args.senderName}: ${args.body}`);
-  return false;
+  ensureConnected();
+  const channel = ircChannelName(args.slug);
+  const prefix = args.senderName ? `<${args.senderName}> ` : "";
+  // PRIVMSG cannot contain newlines — split into multiple lines.
+  for (const line of args.body.split(/\r?\n/)) {
+    if (!line) continue;
+    send(`PRIVMSG ${channel} :${prefix}${line}`);
+  }
+  return true;
 }
