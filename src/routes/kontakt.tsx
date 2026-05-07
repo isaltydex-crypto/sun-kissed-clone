@@ -1,25 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail, MapPin, Clock } from "lucide-react";
+import { useSiteContent } from "@/context/SiteContentContext";
 
 export const Route = createFileRoute("/kontakt")({
   head: () => ({
     meta: [
       { title: "Kontakt — PeptivaLab Group" },
-      { name: "description", content: "Kontakta PeptivaLab Groups kundservice. Vi finns här mån–fre 9–17." },
-      { property: "og:title", content: "Kontakt — PeptivaLab Group" },
-      { property: "og:description", content: "Kontakta PeptivaLab Groups kundservice — vi svarar inom 24 timmar." },
+      { name: "description", content: "Kontakta PeptivaLab Groups kundservice." },
     ],
   }),
   component: ContactPage,
 });
 
 function ContactPage() {
+  const c = useSiteContent().contact;
   return (
     <>
       <section className="bg-ocean py-16 text-primary-foreground md:py-20">
         <div className="mx-auto max-w-4xl px-4 md:px-8">
-          <h1 className="text-4xl font-bold md:text-5xl">Kontakta oss</h1>
-          <p className="mt-3 text-primary-foreground/80">Vi svarar normalt inom 24 timmar på vardagar.</p>
+          <h1 className="text-4xl font-bold md:text-5xl">{c.heroTitle}</h1>
+          <p className="mt-3 text-primary-foreground/80">{c.heroSubtitle}</p>
         </div>
       </section>
       <section className="bg-background py-16 md:py-20">
@@ -29,21 +29,21 @@ function ContactPage() {
               <Mail className="h-6 w-6 flex-shrink-0 text-sun-deep" />
               <div>
                 <h3 className="font-semibold text-ocean">E-post</h3>
-                <p className="text-muted-foreground">hej@peptivalab.se</p>
+                <p className="text-muted-foreground">{c.email}</p>
               </div>
             </div>
             <div className="flex gap-4">
               <MapPin className="h-6 w-6 flex-shrink-0 text-sun-deep" />
               <div>
                 <h3 className="font-semibold text-ocean">Adress</h3>
-                <p className="text-muted-foreground">Götgatan 12<br />118 46 Stockholm</p>
+                <p className="whitespace-pre-wrap text-muted-foreground">{c.address}</p>
               </div>
             </div>
             <div className="flex gap-4">
               <Clock className="h-6 w-6 flex-shrink-0 text-sun-deep" />
               <div>
                 <h3 className="font-semibold text-ocean">Öppettider</h3>
-                <p className="text-muted-foreground">Mån–fre 9:00–17:00</p>
+                <p className="text-muted-foreground">{c.hours}</p>
               </div>
             </div>
           </div>
