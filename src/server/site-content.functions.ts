@@ -53,8 +53,9 @@ export const fetchCustomPage = createServerFn({ method: "GET" })
 
 // ---------- Admin reads ----------
 
-export const adminFetchAll = createServerFn({ method: "POST" }).handler(async () => {
-  requireAdmin();
+export const adminFetchAll = createServerFn({ method: "POST" })
+  .middleware([adminAuthMiddleware])
+  .handler(async () => {
   const [contentRes, pagesRes] = await Promise.all([
     supabaseAdmin.from("site_content").select("key,value"),
     supabaseAdmin.from("site_pages").select("*").order("menu_order", { ascending: true }),
