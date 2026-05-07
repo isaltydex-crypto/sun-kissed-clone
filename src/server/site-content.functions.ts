@@ -1,18 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader, getCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { mergeContent, type SiteContentMap, type SiteDefaults } from "@/lib/site-defaults";
+import { adminAuthMiddleware } from "./admin-middleware";
 
-function requireAdmin() {
-  const fromHeader = getRequestHeader("x-admin-password") || "";
-  const fromCookie = getCookie("pvl_admin") || "";
-  const provided = fromHeader || fromCookie;
-  const expected = process.env.ADMIN_CHAT_PASSWORD || "peptiva-admin-2026";
-  if (!provided || provided !== expected) {
-    throw new Error("Unauthorized");
-  }
-}
 
 export type CustomPage = {
   id: string;
@@ -62,8 +53,9 @@ export const fetchCustomPage = createServerFn({ method: "GET" })
 
 // ---------- Admin reads ----------
 
-export const adminFetchAll = createServerFn({ method: "POST" }).handler(async () => {
-  requireAdmin();
+export const adminFetchAll = createServerFn({ method: "POST" })
+  .middleware([adminAuthMiddleware])
+  .handler(async () => {
   const [contentRes, pagesRes] = await Promise.all([
     supabaseAdmin.from("site_content").select("key,value"),
     supabaseAdmin.from("site_pages").select("*").order("menu_order", { ascending: true }),
@@ -82,6 +74,7 @@ export const adminFetchAll = createServerFn({ method: "POST" }).handler(async ()
 // ---------- Admin writes ----------
 
 export const adminSaveSection = createServerFn({ method: "POST" })
+  .middleware([adminAuthMiddleware])
   .inputValidator((d) =>
     z
       .object({
@@ -91,7 +84,6 @@ export const adminSaveSection = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    requireAdmin();
     const { error } = await supabaseAdmin
       .from("site_content")
       .upsert({ key: data.key, value: data.value as never });
@@ -106,6 +98,7 @@ const slugSchema = z
   .regex(/^[a-z0-9-]+$/, "Endast små bokstäver, siffror och bindestreck");
 
 export const adminUpsertPage = createServerFn({ method: "POST" })
+  .middleware([adminAuthMiddleware])
   .inputValidator((d) =>
     z
       .object({
@@ -122,7 +115,6 @@ export const adminUpsertPage = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    requireAdmin();
     const payload = {
       slug: data.slug,
       title: data.title,
@@ -153,9 +145,9 @@ export const adminUpsertPage = createServerFn({ method: "POST" })
   });
 
 export const adminDeletePage = createServerFn({ method: "POST" })
+  .middleware([adminAuthMiddleware])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
-    requireAdmin();
     const { error } = await supabaseAdmin.from("site_pages").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
