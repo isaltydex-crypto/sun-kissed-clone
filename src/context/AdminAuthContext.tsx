@@ -8,9 +8,19 @@ type AdminAuthValue = {
 
 const AdminAuthContext = createContext<AdminAuthValue | null>(null);
 const STORAGE_KEY = "peptivalab.admin.v1";
+const PASSWORD_KEY = "peptivalab.admin.pw.v1";
 
 // Demo password — change this in src/context/AdminAuthContext.tsx
+// (also set ADMIN_CHAT_PASSWORD in server env to the same value for the chat backend)
 const ADMIN_PASSWORD = "peptiva-admin-2026";
+
+export function getAdminPassword(): string {
+  try {
+    return sessionStorage.getItem(PASSWORD_KEY) || "";
+  } catch {
+    return "";
+  }
+}
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
