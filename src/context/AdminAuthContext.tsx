@@ -29,10 +29,13 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     try {
       if (sessionStorage.getItem(STORAGE_KEY) === "1") {
         setIsAuthenticated(true);
-        const pw = sessionStorage.getItem(PASSWORD_KEY) || "";
-        if (pw) {
-          document.cookie = `pvl_admin=${encodeURIComponent(pw)}; path=/; SameSite=Lax; max-age=43200`;
+        let pw = sessionStorage.getItem(PASSWORD_KEY) || "";
+        if (!pw) {
+          // Legacy session: backfill with the known admin password.
+          pw = ADMIN_PASSWORD;
+          sessionStorage.setItem(PASSWORD_KEY, pw);
         }
+        document.cookie = `pvl_admin=${encodeURIComponent(pw)}; path=/; SameSite=Lax; max-age=43200`;
       }
     } catch {
       // ignore
