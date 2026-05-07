@@ -245,3 +245,42 @@ export async function forwardToIrc(args: {
   }
   return true;
 }
+
+// ---------------------------------------------------------------------------
+// Inbound IRC line handler. Parses PRIVMSG from human operators and writes
+// them back into chat_messages so the visitor's widget renders them live.
+// ---------------------------------------------------------------------------
+
+const PRIVMSG_RE =
+  /^:(?<nick>[^! ]+)(?:![^ ]+)?\s+PRIVMSG\s+(?<target>#\S+)\s+:(?<body>.*)$/;
+
+async function handleInbound(line: string, cfg: IrcConfig): Promise<void> {
+  const m = PRIVMSG_RE.exec(line);
+  if (!m?.groups) return;
+  const { nick, target, body } = m.groups as { nick: string; target: string; body: string };
+  // Ignore our own echoes.
+  if (nick.toLowerCase() === cfg.botNick.toLowerCase()) return;
+  const prefix = cfg.channelPrefix.toLowerCase();
+  if (!target.toLowerCase().startsWith(prefix)) return;
+  const slug = target.toLowerCase().slice(prefix.length);
+
+  const { data: ch, error: chErr } = await supabaseAdmin
+    .from("chat_channels")
+    .select("id")
+    .eq("irc_channel_slug", slug)
+    .maybeSingle();
+  if (chErr || !ch) return;
+
+  const { error } = await supabaseAdmin.from("chat_messages").insert({
+    channel_id: ch.id,
+    sender: "admin",
+    sender_name: nick,
+    body,
+    irc_synced: true,
+  });
+  if (error) console.warn("[irc-bridge] inbound insert failed:", error.message);
+  await supabaseAdmin
+    .from("chat_channels")
+    .update({ last_message_at: new Date().toISOString() })
+    .eq("id", ch.id);
+}
