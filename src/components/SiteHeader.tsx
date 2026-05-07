@@ -45,6 +45,17 @@ export function SiteHeader() {
                 {n.label}
               </Link>
             ))}
+            {customMenuPages.map((p) => (
+              <Link
+                key={p.id}
+                to="/sida/$slug"
+                params={{ slug: p.slug }}
+                className="text-sm font-medium uppercase tracking-wider text-primary-foreground/80 transition hover:text-sun"
+                activeProps={{ className: "text-sun" }}
+              >
+                {p.menu_label || p.title}
+              </Link>
+            ))}
           </nav>
           <button onClick={openCart} className="relative rounded-full p-2 transition hover:bg-white/10" aria-label="Varukorg">
             <ShoppingBag className="h-5 w-5" />
