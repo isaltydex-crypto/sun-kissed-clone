@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { MessageCircle, X, Send } from "lucide-react";
+import { MessageCircle, X, Send, Trash2 } from "lucide-react";
 import {
+  endVisitorChat,
   ensureChannel,
   fetchVisitorMessages,
   sendVisitorMessage,
