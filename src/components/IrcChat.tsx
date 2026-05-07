@@ -82,6 +82,66 @@ export function IrcChat() {
     }
   }, []);
 
+  // Subscribe to realtime inserts for this channel, with auto-reconnect
+  // (exponential backoff + jitter) whenever the WebSocket drops.
+  const subscribe = useCallback((dbChannelId: string) => {
+    // Tear down any previous subscription first.
+    if (realtimeRef.current) {
+      void supabase.removeChannel(realtimeRef.current);
+      realtimeRef.current = null;
+    }
+
+    setStatus("connecting");
+    const channel = supabase
+      .channel(`chat:${dbChannelId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `channel_id=eq.${dbChannelId}`,
+        },
+        (payload) => {
+          const m = payload.new as Msg;
+          setMessages((prev) => {
+            if (prev.some((x) => x.id === m.id)) return prev;
+            lastTsRef.current = m.created_at;
+            return [...prev, m];
+          });
+        },
+      )
+      .subscribe((subStatus) => {
+        if (subStatus === "SUBSCRIBED") {
+          setStatus("online");
+          reconnectAttemptsRef.current = 0;
+          // Catch up on anything that arrived while we were disconnected.
+          void refresh();
+        } else if (
+          subStatus === "CHANNEL_ERROR" ||
+          subStatus === "TIMED_OUT" ||
+          subStatus === "CLOSED"
+        ) {
+          setStatus("offline");
+          scheduleReconnect(dbChannelId);
+        }
+      });
+
+    realtimeRef.current = channel;
+  }, [refresh]);
+
+  const scheduleReconnect = useCallback((dbChannelId: string) => {
+    if (reconnectTimerRef.current) return;
+    const attempt = reconnectAttemptsRef.current;
+    const base = Math.min(30_000, 1_000 * 2 ** attempt);
+    const delay = Math.floor(base * (0.5 + Math.random() * 0.5));
+    reconnectTimerRef.current = setTimeout(() => {
+      reconnectTimerRef.current = null;
+      reconnectAttemptsRef.current = attempt + 1;
+      subscribe(dbChannelId);
+    }, delay);
+  }, [subscribe]);
+
   // Initialize channel on first open
   useEffect(() => {
     if (!open || initedRef.current) return;
@@ -96,19 +156,37 @@ export function IrcChat() {
           data: { visitorToken: tokenRef.current, displayName: name },
         });
         setIrcChannel(res.ircChannel);
+        setChannelDbId(res.channelId);
         await refresh();
+        subscribe(res.channelId);
       } catch (e) {
         setError((e as Error).message);
+        setStatus("offline");
       }
     })();
-  }, [open, name, refresh]);
+  }, [open, name, refresh, subscribe]);
 
-  // Polling while open
+  // Reconnect when the browser comes back online or the tab becomes visible.
   useEffect(() => {
-    if (!open || needsName) return;
-    const id = setInterval(refresh, 4000);
-    return () => clearInterval(id);
-  }, [open, needsName, refresh]);
+    if (!channelDbId) return;
+    const kick = () => {
+      if (status !== "online") subscribe(channelDbId);
+    };
+    window.addEventListener("online", kick);
+    document.addEventListener("visibilitychange", kick);
+    return () => {
+      window.removeEventListener("online", kick);
+      document.removeEventListener("visibilitychange", kick);
+    };
+  }, [channelDbId, status, subscribe]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      if (realtimeRef.current) void supabase.removeChannel(realtimeRef.current);
+    };
+  }, []);
 
   // Auto-scroll
   useEffect(() => {
