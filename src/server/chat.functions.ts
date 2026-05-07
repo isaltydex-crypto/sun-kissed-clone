@@ -12,7 +12,9 @@ function makeSlug(): string {
 }
 
 function requireAdmin() {
-  const provided = getRequestHeader("x-admin-password") || "";
+  const fromHeader = getRequestHeader("x-admin-password") || "";
+  const fromCookie = getCookie("pvl_admin") || "";
+  const provided = fromHeader || fromCookie;
   const expected = process.env.ADMIN_CHAT_PASSWORD || "peptiva-admin-2026";
   if (!provided || provided !== expected) {
     throw new Response("Unauthorized", { status: 401 });
