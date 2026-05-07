@@ -74,6 +74,7 @@ export const adminFetchAll = createServerFn({ method: "POST" })
 // ---------- Admin writes ----------
 
 export const adminSaveSection = createServerFn({ method: "POST" })
+  .middleware([adminAuthMiddleware])
   .inputValidator((d) =>
     z
       .object({
@@ -83,7 +84,6 @@ export const adminSaveSection = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    requireAdmin();
     const { error } = await supabaseAdmin
       .from("site_content")
       .upsert({ key: data.key, value: data.value as never });
