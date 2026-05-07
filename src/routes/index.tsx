@@ -101,11 +101,9 @@ function HomePage() {
       {/* Products */}
       <section className="bg-background py-20 md:py-28">
         <div className="mx-auto max-w-3xl px-4 text-center md:px-8">
-          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sun-deep">Sortimentet</span>
-          <h2 className="mt-3 text-3xl font-bold text-ocean-deep md:text-4xl">En komplett peptidrutin</h2>
-          <p className="mt-4 text-muted-foreground">
-            Fyra produkter — formulerade för att fungera tillsammans eller var för sig.
-          </p>
+          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sun-deep">{c.home.productsEyebrow}</span>
+          <h2 className="mt-3 text-3xl font-bold text-ocean-deep md:text-4xl">{c.home.productsTitle}</h2>
+          <p className="mt-4 text-muted-foreground">{c.home.productsSubtitle}</p>
         </div>
         <div className="mx-auto mt-14 max-w-6xl px-4 md:px-8">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -117,15 +115,11 @@ function HomePage() {
       {/* Ritual */}
       <section className="bg-sand py-20 md:py-28">
         <div className="mx-auto max-w-2xl px-4 text-center md:px-8">
-          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sun-deep">Ritualen</span>
-          <h2 className="mt-3 text-3xl font-bold text-ocean-deep md:text-4xl">Tre lugna steg</h2>
+          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sun-deep">{c.home.ritualEyebrow}</span>
+          <h2 className="mt-3 text-3xl font-bold text-ocean-deep md:text-4xl">{c.home.ritualTitle}</h2>
         </div>
         <div className="mx-auto mt-14 max-w-3xl space-y-10 px-4 md:px-8">
-          {[
-            { n: "01", t: "Rengör", d: "Börja med ren och lätt fuktig hud för optimal absorption." },
-            { n: "02", t: "Applicera", d: "Massera in serum eller booster i ansikte och hals." },
-            { n: "03", t: "Lås in", d: "Avsluta med en peptidkräm för fukt och långvarig effekt." },
-          ].map((s) => (
+          {c.home.ritualSteps.map((s) => (
             <div key={s.n} className="flex gap-6 border-b border-border pb-8 last:border-b-0">
               <div className="text-3xl font-light text-sun-deep">{s.n}</div>
               <div>
@@ -140,12 +134,10 @@ function HomePage() {
       {/* CTA */}
       <section className="bg-background py-24">
         <div className="mx-auto max-w-2xl px-4 text-center md:px-8">
-          <h2 className="text-3xl font-bold text-ocean-deep md:text-4xl">Börja din peptidresa.</h2>
-          <p className="mt-4 text-muted-foreground">
-            Få 10% rabatt på din första order när du anmäler dig till nyhetsbrevet.
-          </p>
+          <h2 className="text-3xl font-bold text-ocean-deep md:text-4xl">{c.home.ctaTitle}</h2>
+          <p className="mt-4 text-muted-foreground">{c.home.ctaSubtitle}</p>
           <Link to="/produkter" className="mt-8 inline-block rounded-full bg-ocean-deep px-8 py-3 text-sm font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean">
-            Utforska sortimentet
+            {c.home.ctaButton}
           </Link>
         </div>
       </section>
