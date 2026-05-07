@@ -41,21 +41,20 @@ function HomePage() {
             </h2>
           </div>
           <span className="mt-6 text-[10px] font-semibold uppercase tracking-[0.3em] text-sun-deep sm:text-xs">
-            Klinisk peptidhudvård
+            {c.home.eyebrow}
           </span>
           <h1 className="mt-4 text-[2rem] font-bold leading-[1.1] text-ocean-deep sm:text-4xl md:text-6xl">
-            Vetenskap för en synligt friskare hud.
+            {c.home.title}
           </h1>
           <p className="mt-5 max-w-xl text-[15px] text-muted-foreground sm:text-base md:text-lg">
-            Rena, kliniskt doserade peptidformuleringar utvecklade i Sverige — för fastare,
-            slätare och mer återhämtad hud, dag för dag.
+            {c.home.subtitle}
           </p>
           <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center">
             <Link to="/produkter" className="rounded-full bg-ocean-deep px-7 py-3 text-center text-sm font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean">
-              Handla sortimentet
+              {c.home.primaryCta}
             </Link>
             <Link to="/om-oss" className="rounded-full border border-ocean-deep/20 px-7 py-3 text-center text-sm font-semibold uppercase tracking-wider text-ocean-deep transition hover:bg-sand">
-              Vår vetenskap
+              {c.home.secondaryCta}
             </Link>
           </div>
           <div className="mt-8 flex items-center gap-2">
@@ -64,7 +63,7 @@ function HomePage() {
                 <Star key={i} className="h-4 w-4 fill-sun-deep text-sun-deep" />
               ))}
             </div>
-            <span className="text-sm text-muted-foreground">4.9 / 5 — 1 820 verifierade recensioner</span>
+            <span className="text-sm text-muted-foreground">{c.home.rating}</span>
           </div>
         </div>
       </section>
