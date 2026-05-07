@@ -98,6 +98,7 @@ const slugSchema = z
   .regex(/^[a-z0-9-]+$/, "Endast små bokstäver, siffror och bindestreck");
 
 export const adminUpsertPage = createServerFn({ method: "POST" })
+  .middleware([adminAuthMiddleware])
   .inputValidator((d) =>
     z
       .object({
@@ -114,7 +115,6 @@ export const adminUpsertPage = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    requireAdmin();
     const payload = {
       slug: data.slug,
       title: data.title,
