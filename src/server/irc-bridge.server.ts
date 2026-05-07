@@ -149,18 +149,17 @@ async function connect(cfg: IrcConfig): Promise<void> {
     m.state = "open";
     m.attempts = 0;
 
-    // TODO: gateway-specific handshake (NICK / USER / SASL).
-    // Example for a raw IRC-over-WebSocket gateway:
-    //   send(`NICK ${cfg.botNick}`);
-    //   send(`USER ${cfg.botNick} 0 * :pvl bot`);
-    //   if (cfg.botPassword) send(`PASS ${cfg.botPassword}`);
+    // 1) Auth to the ws-gateway. It opens the upstream IRC TCP after this.
+    if (cfg.botPassword) send(`AUTH ${cfg.botPassword}`);
+
+    // 2) Standard IRC registration. PASS was already sent by the gateway.
+    send(`NICK ${cfg.botNick}`);
+    send(`USER ${cfg.botNick} 0 * :peptivaLab support bot`);
 
     // Re-join every channel we had before the disconnect.
     for (const ch of m.joined) send(`JOIN ${ch}`);
-
     flushOutbox();
 
-    // Heartbeat keeps idle connections alive through proxies.
     if (m.pingTimer) clearInterval(m.pingTimer);
     m.pingTimer = setInterval(() => {
       if (m.state === "open") send(`PING :${Date.now()}`);
@@ -168,9 +167,14 @@ async function connect(cfg: IrcConfig): Promise<void> {
   });
 
   ws.addEventListener("message", (ev: MessageEvent) => {
-    // TODO: parse PRIVMSG and persist inbound messages back to chat_messages.
-    if (typeof ev.data === "string" && ev.data.startsWith("PING")) {
-      send(`PONG${ev.data.slice(4)}`);
+    if (typeof ev.data !== "string") return;
+    for (const line of ev.data.split(/\r?\n/)) {
+      if (!line) continue;
+      if (line.startsWith("PING ")) {
+        send(`PONG ${line.slice(5)}`);
+        continue;
+      }
+      void handleInbound(line, cfg);
     }
   });
 
