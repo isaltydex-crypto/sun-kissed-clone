@@ -3,6 +3,7 @@ import { Star, Truck, Shield, Leaf, FlaskConical } from "lucide-react";
 import logo from "@/assets/logo.png";
 import hero from "@/assets/hero-products.jpg";
 import { useProducts } from "@/context/ProductsContext";
+import { useSiteContent } from "@/context/SiteContentContext";
 import { ProductCard } from "@/components/ProductCard";
 
 export const Route = createFileRoute("/")({
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const { products } = useProducts();
+  const c = useSiteContent();
   return (
     <>
       {/* Centered hero */}
