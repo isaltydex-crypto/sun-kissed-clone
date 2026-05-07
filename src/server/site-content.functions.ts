@@ -94,7 +94,7 @@ export const adminSaveSection = createServerFn({ method: "POST" })
     requireAdmin();
     const { error } = await supabaseAdmin
       .from("site_content")
-      .upsert({ key: data.key, value: data.value as object });
+      .upsert({ key: data.key, value: data.value as never });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
