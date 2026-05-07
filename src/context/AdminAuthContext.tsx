@@ -57,14 +57,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
   };
 
-  const logout = () => {
-    try {
-      sessionStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore
-    }
-    setIsAuthenticated(false);
-  };
 
   return (
     <AdminAuthContext.Provider value={{ isAuthenticated, login, logout }}>
