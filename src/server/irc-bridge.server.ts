@@ -1,18 +1,21 @@
 // IRC bridge.
 //
-// This module is the SINGLE place to wire the chat to a real IRC gateway.
-// It maintains a single persistent WebSocket connection to the gateway with
-// automatic reconnection (exponential backoff with jitter). Outbound messages
-// are queued while the socket is down and flushed once it reconnects.
-//
-// To go live, set the env vars below — no other code needs to change.
+// Single persistent WebSocket to the self-hosted ws-gateway in irc-server/.
+// Protocol on that socket:
+//   1. We send       "AUTH <IRC_BOT_PASSWORD>"
+//   2. Gateway opens TCP IRC, sends PASS <server-pwd>, replies "READY"
+//   3. We send NICK / USER and then JOIN/PRIVMSG as raw IRC lines.
+// Inbound IRC lines come back unchanged; PRIVMSGs from human operators are
+// parsed and inserted into chat_messages so the visitor sees them live.
 //
 // Env vars:
-//   IRC_GATEWAY_URL       e.g. wss://your-webircgateway.example/webirc
-//   IRC_SERVER            e.g. irc.libera.chat
-//   IRC_BOT_NICK          e.g. peptivalab-bot
-//   IRC_BOT_PASSWORD      optional SASL/NickServ password
-//   IRC_CHANNEL_PREFIX    e.g. #pvl-   (per-visitor channels become #pvl-<slug>)
+//   IRC_GATEWAY_URL    e.g. wss://chat.yourdomain.com
+//   IRC_SERVER         e.g. chat.yourdomain.com   (informational)
+//   IRC_BOT_NICK       e.g. pvl-bot
+//   IRC_BOT_PASSWORD   shared GATEWAY_TOKEN from irc-server/.env
+//   IRC_CHANNEL_PREFIX e.g. #pvl-
+
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type IrcConfig = {
   gatewayUrl: string;
@@ -40,6 +43,7 @@ export function ircChannelName(slug: string): string {
   const prefix = cfg?.channelPrefix || "#pvl-";
   return `${prefix}${slug}`.toLowerCase().replace(/[^a-z0-9#-]/g, "");
 }
+
 
 // ---------------------------------------------------------------------------
 // WebSocket connection manager with automatic reconnection
