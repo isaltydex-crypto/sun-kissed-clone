@@ -38,6 +38,8 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       try {
         sessionStorage.setItem(STORAGE_KEY, "1");
         sessionStorage.setItem(PASSWORD_KEY, password);
+        // Cookie so server functions can authorize admin RPC calls.
+        document.cookie = `pvl_admin=${encodeURIComponent(password)}; path=/; SameSite=Lax; max-age=43200`;
       } catch {
         // ignore
       }
@@ -51,6 +53,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     try {
       sessionStorage.removeItem(STORAGE_KEY);
       sessionStorage.removeItem(PASSWORD_KEY);
+      document.cookie = "pvl_admin=; path=/; max-age=0";
     } catch {
       // ignore
     }
