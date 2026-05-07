@@ -134,6 +134,31 @@ export function IrcChat() {
     }
   };
 
+  const endChat = async () => {
+    if (!confirm("Avsluta chatten? All chatthistorik raderas permanent.")) return;
+    try {
+      if (tokenRef.current) {
+        await endVisitorChat({ data: { visitorToken: tokenRef.current } });
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      // Reset local state and generate a fresh token next time
+      try {
+        localStorage.removeItem(TOKEN_KEY);
+      } catch {
+        /* ignore */
+      }
+      tokenRef.current = "";
+      lastTsRef.current = undefined;
+      setMessages([]);
+      setIrcChannel("");
+      setInput("");
+      setOpen(false);
+      initedRef.current = false;
+    }
+  };
+
   return (
     <>
       {!open && (
