@@ -37,6 +37,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     if (password === ADMIN_PASSWORD) {
       try {
         sessionStorage.setItem(STORAGE_KEY, "1");
+        sessionStorage.setItem(PASSWORD_KEY, password);
       } catch {
         // ignore
       }
@@ -44,6 +45,16 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       return true;
     }
     return false;
+  };
+
+  const logout = () => {
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(PASSWORD_KEY);
+    } catch {
+      // ignore
+    }
+    setIsAuthenticated(false);
   };
 
   const logout = () => {
