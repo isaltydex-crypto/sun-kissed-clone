@@ -18,8 +18,10 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SidaSlugRouteImport } from './routes/sida.$slug'
 import { Route as CheckoutBekraftelseRouteImport } from './routes/checkout.bekraftelse'
+import { Route as AdminSidorRouteImport } from './routes/admin.sidor'
 import { Route as AdminProdukterRouteImport } from './routes/admin.produkter'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminInnehallRouteImport } from './routes/admin.innehall'
 import { Route as AdminChattRouteImport } from './routes/admin.chatt'
 
 const ProdukterRoute = ProdukterRouteImport.update({
@@ -67,6 +69,11 @@ const CheckoutBekraftelseRoute = CheckoutBekraftelseRouteImport.update({
   path: '/bekraftelse',
   getParentRoute: () => CheckoutRoute,
 } as any)
+const AdminSidorRoute = AdminSidorRouteImport.update({
+  id: '/sidor',
+  path: '/sidor',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminProdukterRoute = AdminProdukterRouteImport.update({
   id: '/produkter',
   path: '/produkter',
@@ -75,6 +82,11 @@ const AdminProdukterRoute = AdminProdukterRouteImport.update({
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInnehallRoute = AdminInnehallRouteImport.update({
+  id: '/innehall',
+  path: '/innehall',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminChattRoute = AdminChattRouteImport.update({
@@ -92,8 +104,10 @@ export interface FileRoutesByFullPath {
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
   '/admin/chatt': typeof AdminChattRoute
+  '/admin/innehall': typeof AdminInnehallRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
 }
@@ -106,8 +120,10 @@ export interface FileRoutesByTo {
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
   '/admin/chatt': typeof AdminChattRoute
+  '/admin/innehall': typeof AdminInnehallRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
 }
@@ -121,8 +137,10 @@ export interface FileRoutesById {
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
   '/admin/chatt': typeof AdminChattRoute
+  '/admin/innehall': typeof AdminInnehallRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
 }
@@ -137,8 +155,10 @@ export interface FileRouteTypes {
     | '/om-oss'
     | '/produkter'
     | '/admin/chatt'
+    | '/admin/innehall'
     | '/admin/login'
     | '/admin/produkter'
+    | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
   fileRoutesByTo: FileRoutesByTo
@@ -151,8 +171,10 @@ export interface FileRouteTypes {
     | '/om-oss'
     | '/produkter'
     | '/admin/chatt'
+    | '/admin/innehall'
     | '/admin/login'
     | '/admin/produkter'
+    | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
   id:
@@ -165,8 +187,10 @@ export interface FileRouteTypes {
     | '/om-oss'
     | '/produkter'
     | '/admin/chatt'
+    | '/admin/innehall'
     | '/admin/login'
     | '/admin/produkter'
+    | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
   fileRoutesById: FileRoutesById
@@ -247,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutBekraftelseRouteImport
       parentRoute: typeof CheckoutRoute
     }
+    '/admin/sidor': {
+      id: '/admin/sidor'
+      path: '/sidor'
+      fullPath: '/admin/sidor'
+      preLoaderRoute: typeof AdminSidorRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/produkter': {
       id: '/admin/produkter'
       path: '/produkter'
@@ -261,6 +292,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/innehall': {
+      id: '/admin/innehall'
+      path: '/innehall'
+      fullPath: '/admin/innehall'
+      preLoaderRoute: typeof AdminInnehallRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/chatt': {
       id: '/admin/chatt'
       path: '/chatt'
@@ -273,14 +311,18 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminChattRoute: typeof AdminChattRoute
+  AdminInnehallRoute: typeof AdminInnehallRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminProdukterRoute: typeof AdminProdukterRoute
+  AdminSidorRoute: typeof AdminSidorRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminChattRoute: AdminChattRoute,
+  AdminInnehallRoute: AdminInnehallRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminProdukterRoute: AdminProdukterRoute,
+  AdminSidorRoute: AdminSidorRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -310,3 +352,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
