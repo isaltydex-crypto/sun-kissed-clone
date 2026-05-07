@@ -155,6 +155,22 @@ export const fetchVisitorMessages = createServerFn({ method: "POST" })
     };
   });
 
+export const endVisitorChat = createServerFn({ method: "POST" })
+  .inputValidator((d) =>
+    z.object({ visitorToken: z.string().min(8).max(128) }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const channel = await loadChannelByToken(data.visitorToken);
+    if (!channel) return { ok: true };
+    // Cascade deletes all chat_messages for this channel.
+    const { error } = await supabaseAdmin
+      .from("chat_channels")
+      .delete()
+      .eq("id", channel.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 // ---------- admin-side ----------
 
 export const adminListChannels = createServerFn({ method: "POST" })

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { MessageCircle, X, Send } from "lucide-react";
+import { MessageCircle, X, Send, Trash2 } from "lucide-react";
 import {
+  endVisitorChat,
   ensureChannel,
   fetchVisitorMessages,
   sendVisitorMessage,
@@ -133,6 +134,31 @@ export function IrcChat() {
     }
   };
 
+  const endChat = async () => {
+    if (!confirm("Avsluta chatten? All chatthistorik raderas permanent.")) return;
+    try {
+      if (tokenRef.current) {
+        await endVisitorChat({ data: { visitorToken: tokenRef.current } });
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      // Reset local state and generate a fresh token next time
+      try {
+        localStorage.removeItem(TOKEN_KEY);
+      } catch {
+        /* ignore */
+      }
+      tokenRef.current = "";
+      lastTsRef.current = undefined;
+      setMessages([]);
+      setIrcChannel("");
+      setInput("");
+      setOpen(false);
+      initedRef.current = false;
+    }
+  };
+
   return (
     <>
       {!open && (
@@ -153,14 +179,27 @@ export function IrcChat() {
               <span className="text-sm font-semibold">Kundchatt</span>
               <span className="text-[11px] opacity-80">{ircChannel || "ansluter…"}</span>
             </div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Stäng chatt"
-              className="rounded p-1 hover:bg-white/10"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              {!needsName && ircChannel && (
+                <button
+                  type="button"
+                  onClick={endChat}
+                  aria-label="Avsluta chatt och radera historik"
+                  title="Avsluta & radera"
+                  className="rounded p-1 hover:bg-white/10"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Minimera chatt"
+                className="rounded p-1 hover:bg-white/10"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           {needsName ? (
