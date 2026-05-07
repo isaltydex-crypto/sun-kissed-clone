@@ -1,0 +1,24 @@
+# peptivaLab Caddy config — single TLS proxy in front of everything.
+
+{
+  email {$LETSENCRYPT_EMAIL}
+}
+
+# Main website (TanStack Start app)
+{$SITE_DOMAIN}, {$WWW_DOMAIN} {
+  encode zstd gzip
+  reverse_proxy app:3000
+}
+
+# IRC WebSocket gateway
+{$CHAT_DOMAIN} {
+  reverse_proxy ws-gateway:8080
+}
+
+# Supabase Studio (DB admin) — protected by basic auth on top of its own login
+{$STUDIO_DOMAIN} {
+  basicauth {
+    {$DASHBOARD_USERNAME} {$DASHBOARD_PASSWORD}
+  }
+  reverse_proxy studio:3000
+}
