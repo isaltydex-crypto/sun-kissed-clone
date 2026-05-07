@@ -148,6 +148,18 @@ function AdminProductsPage() {
             >
               Kundchatt
             </Link>
+            <Link
+              to="/admin/innehall"
+              className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              Innehåll
+            </Link>
+            <Link
+              to="/admin/sidor"
+              className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              Sidor
+            </Link>
             <button
               onClick={logout}
               className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
