@@ -26,9 +26,6 @@ export function SiteHeader() {
   ];
   const customMenuPages = pages.filter((p) => p.in_menu);
 
-export function SiteHeader() {
-  const [open, setOpen] = useState(false);
-  const { count, openCart } = useCart();
   return (
     <>
       {/* Desktop header */}
