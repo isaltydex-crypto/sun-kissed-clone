@@ -179,14 +179,27 @@ export function IrcChat() {
               <span className="text-sm font-semibold">Kundchatt</span>
               <span className="text-[11px] opacity-80">{ircChannel || "ansluter…"}</span>
             </div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Stäng chatt"
-              className="rounded p-1 hover:bg-white/10"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              {!needsName && ircChannel && (
+                <button
+                  type="button"
+                  onClick={endChat}
+                  aria-label="Avsluta chatt och radera historik"
+                  title="Avsluta & radera"
+                  className="rounded p-1 hover:bg-white/10"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Minimera chatt"
+                className="rounded p-1 hover:bg-white/10"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           {needsName ? (
