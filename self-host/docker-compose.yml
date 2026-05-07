@@ -1,0 +1,250 @@
+# ============================================================================
+# peptivaLab — full self-host stack
+# Run: docker compose up -d
+# ============================================================================
+
+name: peptivalab
+
+networks:
+  pvl: {}
+
+volumes:
+  pg_data: {}
+  storage_data: {}
+  caddy_data: {}
+  caddy_config: {}
+  ircd_data: {}
+
+services:
+  # --------------------------------------------------------------------------
+  # Postgres (Supabase-tuned image)
+  # --------------------------------------------------------------------------
+  db:
+    image: supabase/postgres:15.6.1.115
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: 3600
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    networks: [pvl]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # --------------------------------------------------------------------------
+  # Supabase Auth (GoTrue)
+  # --------------------------------------------------------------------------
+  auth:
+    image: supabase/gotrue:v2.158.1
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: https://${SITE_DOMAIN}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+    networks: [pvl]
+
+  # --------------------------------------------------------------------------
+  # PostgREST (REST API over Postgres)
+  # --------------------------------------------------------------------------
+  rest:
+    image: postgrest/postgrest:v12.2.0
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+    networks: [pvl]
+
+  # --------------------------------------------------------------------------
+  # Realtime (Postgres replication → WS)
+  # --------------------------------------------------------------------------
+  realtime:
+    image: supabase/realtime:v2.30.34
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: postgres
+      DB_ENC_KEY: supabaserealtime
+      API_JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: ${JWT_SECRET}${JWT_SECRET}
+      ERL_AFLAGS: -proto_dist inet_tcp
+      ENABLE_TAILSCALE: "false"
+      DNS_NODES: "''"
+    networks: [pvl]
+
+  # --------------------------------------------------------------------------
+  # Storage
+  # --------------------------------------------------------------------------
+  storage:
+    image: supabase/storage-api:v1.11.13
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: stub
+      GLOBAL_S3_BUCKET: stub
+    volumes:
+      - storage_data:/var/lib/storage
+    networks: [pvl]
+
+  # --------------------------------------------------------------------------
+  # Kong API gateway (single Supabase entry point on :8000)
+  # --------------------------------------------------------------------------
+  kong:
+    image: kong:2.8.1
+    restart: unless-stopped
+    depends_on: [auth, rest, realtime, storage]
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+    volumes:
+      - ./kong.yml:/etc/kong/kong.yml:ro
+    networks: [pvl]
+
+  # --------------------------------------------------------------------------
+  # Supabase Studio (admin UI)
+  # --------------------------------------------------------------------------
+  studio:
+    image: supabase/studio:20241014-c083b3b
+    restart: unless-stopped
+    depends_on: [kong]
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DEFAULT_ORGANIZATION_NAME: peptivaLab
+      DEFAULT_PROJECT_NAME: peptivalab
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${PUBLIC_SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      AUTH_JWT_SECRET: ${JWT_SECRET}
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+    networks: [pvl]
+
+  meta:
+    image: supabase/postgres-meta:v0.84.2
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: supabase_admin
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    networks: [pvl]
+
+  # --------------------------------------------------------------------------
+  # The TanStack Start app itself (built from the repo root)
+  # --------------------------------------------------------------------------
+  app:
+    build:
+      context: ..
+      dockerfile: self-host/Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${PUBLIC_SUPABASE_URL}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${ANON_KEY}
+    restart: unless-stopped
+    depends_on: [kong, ws-gateway]
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # Server-side Supabase (use internal Kong, faster + no TLS overhead)
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLISHABLE_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      # Admin
+      ADMIN_CHAT_PASSWORD: ${ADMIN_CHAT_PASSWORD}
+      # IRC bridge
+      IRC_GATEWAY_URL: ws://ws-gateway:8080
+      IRC_SERVER: ${CHAT_DOMAIN}
+      IRC_BOT_NICK: ${IRC_BOT_NICK}
+      IRC_BOT_PASSWORD: ${GATEWAY_TOKEN}
+      IRC_CHANNEL_PREFIX: ${IRC_CHANNEL_PREFIX}
+    networks: [pvl]
+
+  # --------------------------------------------------------------------------
+  # IRC daemon + WebSocket gateway (re-uses your existing irc-server/ folder)
+  # --------------------------------------------------------------------------
+  ircd:
+    image: inspircd/inspircd-docker:3
+    restart: unless-stopped
+    environment:
+      INSP_NET_NAME: peptivalab
+      INSP_OPER_PASSWORD: ${IRC_OPER_PASSWORD}
+      INSP_SERVER_PASSWORD: ${IRC_SERVER_PASSWORD}
+    volumes:
+      - ircd_data:/inspircd/data
+      - ../irc-server/inspircd/inspircd.conf:/inspircd/conf/inspircd.conf:ro
+    ports:
+      - "6697:6697"   # public IRC over TLS for HexChat etc.
+    networks: [pvl]
+
+  ws-gateway:
+    build: ../irc-server/ws-gateway
+    restart: unless-stopped
+    depends_on: [ircd]
+    environment:
+      IRC_HOST: ircd
+      IRC_PORT: 6667
+      GATEWAY_TOKEN: ${GATEWAY_TOKEN}
+      PORT: 8080
+    networks: [pvl]
+
+  # --------------------------------------------------------------------------
+  # Caddy — single TLS reverse proxy for everything
+  # --------------------------------------------------------------------------
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [app, kong, ws-gateway, studio]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
+      WWW_DOMAIN: ${WWW_DOMAIN}
+      CHAT_DOMAIN: ${CHAT_DOMAIN}
+      STUDIO_DOMAIN: ${STUDIO_DOMAIN}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [pvl]
