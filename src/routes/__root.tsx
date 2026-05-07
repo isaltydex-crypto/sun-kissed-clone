@@ -63,6 +63,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isAdmin = pathname.startsWith("/admin");
   return (
     <AdminAuthProvider>
       <ProductsProvider>
@@ -74,6 +76,7 @@ function RootComponent() {
             </main>
             <SiteFooter />
             <CartDrawer />
+            {!isAdmin && <IrcChat />}
           </div>
         </CartProvider>
       </ProductsProvider>
