@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { CartProvider } from "@/context/CartContext";
 import { ProductsProvider } from "@/context/ProductsContext";
 import { AdminAuthProvider } from "@/context/AdminAuthContext";
+import { SiteContentProvider } from "@/context/SiteContentContext";
 import { CartDrawer } from "@/components/CartDrawer";
 import { IrcChat } from "@/components/IrcChat";
 
@@ -67,19 +68,21 @@ function RootComponent() {
   const isAdmin = pathname.startsWith("/admin");
   return (
     <AdminAuthProvider>
-      <ProductsProvider>
-        <CartProvider>
-          <div className="flex min-h-screen flex-col">
-            <SiteHeader />
-            <main className="flex-1">
-              <Outlet />
-            </main>
-            <SiteFooter />
-            <CartDrawer />
-            {!isAdmin && <IrcChat />}
-          </div>
-        </CartProvider>
-      </ProductsProvider>
+      <SiteContentProvider>
+        <ProductsProvider>
+          <CartProvider>
+            <div className="flex min-h-screen flex-col">
+              <SiteHeader />
+              <main className="flex-1">
+                <Outlet />
+              </main>
+              <SiteFooter />
+              <CartDrawer />
+              {!isAdmin && <IrcChat />}
+            </div>
+          </CartProvider>
+        </ProductsProvider>
+      </SiteContentProvider>
     </AdminAuthProvider>
   );
 }
