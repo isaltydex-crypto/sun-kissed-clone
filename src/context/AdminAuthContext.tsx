@@ -8,9 +8,19 @@ type AdminAuthValue = {
 
 const AdminAuthContext = createContext<AdminAuthValue | null>(null);
 const STORAGE_KEY = "peptivalab.admin.v1";
+const PASSWORD_KEY = "peptivalab.admin.pw.v1";
 
 // Demo password — change this in src/context/AdminAuthContext.tsx
+// (also set ADMIN_CHAT_PASSWORD in server env to the same value for the chat backend)
 const ADMIN_PASSWORD = "peptiva-admin-2026";
+
+export function getAdminPassword(): string {
+  try {
+    return sessionStorage.getItem(PASSWORD_KEY) || "";
+  } catch {
+    return "";
+  }
+}
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -27,6 +37,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     if (password === ADMIN_PASSWORD) {
       try {
         sessionStorage.setItem(STORAGE_KEY, "1");
+        sessionStorage.setItem(PASSWORD_KEY, password);
+        // Cookie so server functions can authorize admin RPC calls.
+        document.cookie = `pvl_admin=${encodeURIComponent(password)}; path=/; SameSite=Lax; max-age=43200`;
       } catch {
         // ignore
       }
@@ -39,11 +52,14 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     try {
       sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(PASSWORD_KEY);
+      document.cookie = "pvl_admin=; path=/; max-age=0";
     } catch {
       // ignore
     }
     setIsAuthenticated(false);
   };
+
 
   return (
     <AdminAuthContext.Provider value={{ isAuthenticated, login, logout }}>
