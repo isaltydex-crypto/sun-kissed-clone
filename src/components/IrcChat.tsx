@@ -275,7 +275,22 @@ export function IrcChat() {
           <div className="flex items-center justify-between gap-2 border-b border-border bg-primary px-4 py-3 text-primary-foreground">
             <div className="flex flex-col">
               <span className="text-sm font-semibold">Kundchatt</span>
-              <span className="text-[11px] opacity-80">{ircChannel || "ansluter…"}</span>
+              <span className="flex items-center gap-1 text-[11px] opacity-80">
+                {status === "online" ? (
+                  <Wifi className="h-3 w-3" />
+                ) : status === "connecting" ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <WifiOff className="h-3 w-3" />
+                )}
+                <span>
+                  {status === "online"
+                    ? ircChannel || "ansluten"
+                    : status === "connecting"
+                      ? "ansluter…"
+                      : "återansluter…"}
+                </span>
+              </span>
             </div>
             <div className="flex items-center gap-1">
               {!needsName && ircChannel && (
