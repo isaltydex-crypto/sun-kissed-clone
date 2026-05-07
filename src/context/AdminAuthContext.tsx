@@ -27,7 +27,13 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      if (sessionStorage.getItem(STORAGE_KEY) === "1") setIsAuthenticated(true);
+      if (sessionStorage.getItem(STORAGE_KEY) === "1") {
+        setIsAuthenticated(true);
+        const pw = sessionStorage.getItem(PASSWORD_KEY) || "";
+        if (pw) {
+          document.cookie = `pvl_admin=${encodeURIComponent(pw)}; path=/; SameSite=Lax; max-age=43200`;
+        }
+      }
     } catch {
       // ignore
     }
