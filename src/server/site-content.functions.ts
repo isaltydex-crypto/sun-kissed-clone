@@ -1,18 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader, getCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { mergeContent, type SiteContentMap, type SiteDefaults } from "@/lib/site-defaults";
+import { adminAuthMiddleware } from "./admin-middleware";
 
-function requireAdmin() {
-  const fromHeader = getRequestHeader("x-admin-password") || "";
-  const fromCookie = getCookie("pvl_admin") || "";
-  const provided = fromHeader || fromCookie;
-  const expected = process.env.ADMIN_CHAT_PASSWORD || "peptiva-admin-2026";
-  if (!provided || provided !== expected) {
-    throw new Error("Unauthorized");
-  }
-}
 
 export type CustomPage = {
   id: string;
