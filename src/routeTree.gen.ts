@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutBekraftelseRouteImport } from './routes/checkout.bekraftelse'
 import { Route as AdminProdukterRouteImport } from './routes/admin.produkter'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminChattRouteImport } from './routes/admin.chatt'
 
 const ProdukterRoute = ProdukterRouteImport.update({
   id: '/produkter',
@@ -70,6 +71,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminChattRoute = AdminChattRouteImport.update({
+  id: '/chatt',
+  path: '/chatt',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/admin/chatt': typeof AdminChattRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/admin/chatt': typeof AdminChattRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/admin/chatt': typeof AdminChattRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/kontakt'
     | '/om-oss'
     | '/produkter'
+    | '/admin/chatt'
     | '/admin/login'
     | '/admin/produkter'
     | '/checkout/bekraftelse'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/kontakt'
     | '/om-oss'
     | '/produkter'
+    | '/admin/chatt'
     | '/admin/login'
     | '/admin/produkter'
     | '/checkout/bekraftelse'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/kontakt'
     | '/om-oss'
     | '/produkter'
+    | '/admin/chatt'
     | '/admin/login'
     | '/admin/produkter'
     | '/checkout/bekraftelse'
@@ -229,15 +241,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/chatt': {
+      id: '/admin/chatt'
+      path: '/chatt'
+      fullPath: '/admin/chatt'
+      preLoaderRoute: typeof AdminChattRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminChattRoute: typeof AdminChattRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminProdukterRoute: typeof AdminProdukterRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminChattRoute: AdminChattRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminProdukterRoute: AdminProdukterRoute,
 }
