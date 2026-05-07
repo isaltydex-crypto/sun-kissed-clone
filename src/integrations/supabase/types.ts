@@ -14,7 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_channels: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          irc_channel_slug: string
+          last_message_at: string
+          status: string
+          visitor_token: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          irc_channel_slug: string
+          last_message_at?: string
+          status?: string
+          visitor_token: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          irc_channel_slug?: string
+          last_message_at?: string
+          status?: string
+          visitor_token?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          body: string
+          channel_id: string
+          created_at: string
+          id: string
+          irc_synced: boolean
+          sender: string
+          sender_name: string | null
+        }
+        Insert: {
+          body: string
+          channel_id: string
+          created_at?: string
+          id?: string
+          irc_synced?: boolean
+          sender: string
+          sender_name?: string | null
+        }
+        Update: {
+          body?: string
+          channel_id?: string
+          created_at?: string
+          id?: string
+          irc_synced?: boolean
+          sender?: string
+          sender_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
