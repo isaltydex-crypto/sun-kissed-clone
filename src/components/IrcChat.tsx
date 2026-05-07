@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { MessageCircle, X, Send, Trash2 } from "lucide-react";
+import { MessageCircle, X, Send, Trash2, Wifi, WifiOff, Loader2 } from "lucide-react";
 import {
   endVisitorChat,
   ensureChannel,
   fetchVisitorMessages,
   sendVisitorMessage,
 } from "@/server/chat.functions";
+import { supabase } from "@/integrations/supabase/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
+
+type ConnStatus = "connecting" | "online" | "offline";
 
 type Msg = {
   id: string;
