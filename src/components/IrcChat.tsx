@@ -236,10 +236,21 @@ export function IrcChat() {
       } catch {
         /* ignore */
       }
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+      if (realtimeRef.current) {
+        void supabase.removeChannel(realtimeRef.current);
+        realtimeRef.current = null;
+      }
+      reconnectAttemptsRef.current = 0;
       tokenRef.current = "";
       lastTsRef.current = undefined;
       setMessages([]);
       setIrcChannel("");
+      setChannelDbId(null);
+      setStatus("connecting");
       setInput("");
       setOpen(false);
       initedRef.current = false;
