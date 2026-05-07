@@ -1,0 +1,38 @@
+services:
+  ircd:
+    image: inspircd/inspircd-docker:3
+    container_name: pvl-ircd
+    restart: unless-stopped
+    environment:
+      INSP_NET_NAME: peptivalab
+      INSP_NET_SUFFIX: .peptivalab.local
+      INSP_OPER_NAME: admin
+      INSP_OPER_PASSWORD: ${IRC_OPER_PASSWORD}
+      INSP_SERVER_PASSWORD: ${IRC_SERVER_PASSWORD}
+      INSP_ENABLE_DNS: "false"
+    volumes:
+      - ./inspircd/inspircd.conf:/inspircd/conf/inspircd.conf:ro
+      - inspircd-data:/inspircd/data
+    ports:
+      - "6697:6697"  # TLS — for HexChat / mIRC
+      # 6667 stays inside the docker network for the ws-gateway only.
+    expose:
+      - "6667"
+
+  ws-gateway:
+    build: ./ws-gateway
+    container_name: pvl-ws-gateway
+    restart: unless-stopped
+    depends_on:
+      - ircd
+    environment:
+      IRC_HOST: ircd
+      IRC_PORT: "6667"
+      IRC_SERVER_PASSWORD: ${IRC_SERVER_PASSWORD}
+      GATEWAY_TOKEN: ${GATEWAY_TOKEN}
+      LISTEN_PORT: "8080"
+    ports:
+      - "8080:8080"
+
+volumes:
+  inspircd-data:

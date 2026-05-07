@@ -1,18 +1,21 @@
 // IRC bridge.
 //
-// This module is the SINGLE place to wire the chat to a real IRC gateway.
-// It maintains a single persistent WebSocket connection to the gateway with
-// automatic reconnection (exponential backoff with jitter). Outbound messages
-// are queued while the socket is down and flushed once it reconnects.
-//
-// To go live, set the env vars below — no other code needs to change.
+// Single persistent WebSocket to the self-hosted ws-gateway in irc-server/.
+// Protocol on that socket:
+//   1. We send       "AUTH <IRC_BOT_PASSWORD>"
+//   2. Gateway opens TCP IRC, sends PASS <server-pwd>, replies "READY"
+//   3. We send NICK / USER and then JOIN/PRIVMSG as raw IRC lines.
+// Inbound IRC lines come back unchanged; PRIVMSGs from human operators are
+// parsed and inserted into chat_messages so the visitor sees them live.
 //
 // Env vars:
-//   IRC_GATEWAY_URL       e.g. wss://your-webircgateway.example/webirc
-//   IRC_SERVER            e.g. irc.libera.chat
-//   IRC_BOT_NICK          e.g. peptivalab-bot
-//   IRC_BOT_PASSWORD      optional SASL/NickServ password
-//   IRC_CHANNEL_PREFIX    e.g. #pvl-   (per-visitor channels become #pvl-<slug>)
+//   IRC_GATEWAY_URL    e.g. wss://chat.yourdomain.com
+//   IRC_SERVER         e.g. chat.yourdomain.com   (informational)
+//   IRC_BOT_NICK       e.g. pvl-bot
+//   IRC_BOT_PASSWORD   shared GATEWAY_TOKEN from irc-server/.env
+//   IRC_CHANNEL_PREFIX e.g. #pvl-
+
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type IrcConfig = {
   gatewayUrl: string;
@@ -40,6 +43,7 @@ export function ircChannelName(slug: string): string {
   const prefix = cfg?.channelPrefix || "#pvl-";
   return `${prefix}${slug}`.toLowerCase().replace(/[^a-z0-9#-]/g, "");
 }
+
 
 // ---------------------------------------------------------------------------
 // WebSocket connection manager with automatic reconnection
@@ -145,18 +149,17 @@ async function connect(cfg: IrcConfig): Promise<void> {
     m.state = "open";
     m.attempts = 0;
 
-    // TODO: gateway-specific handshake (NICK / USER / SASL).
-    // Example for a raw IRC-over-WebSocket gateway:
-    //   send(`NICK ${cfg.botNick}`);
-    //   send(`USER ${cfg.botNick} 0 * :pvl bot`);
-    //   if (cfg.botPassword) send(`PASS ${cfg.botPassword}`);
+    // 1) Auth to the ws-gateway. It opens the upstream IRC TCP after this.
+    if (cfg.botPassword) send(`AUTH ${cfg.botPassword}`);
+
+    // 2) Standard IRC registration. PASS was already sent by the gateway.
+    send(`NICK ${cfg.botNick}`);
+    send(`USER ${cfg.botNick} 0 * :peptivaLab support bot`);
 
     // Re-join every channel we had before the disconnect.
     for (const ch of m.joined) send(`JOIN ${ch}`);
-
     flushOutbox();
 
-    // Heartbeat keeps idle connections alive through proxies.
     if (m.pingTimer) clearInterval(m.pingTimer);
     m.pingTimer = setInterval(() => {
       if (m.state === "open") send(`PING :${Date.now()}`);
@@ -164,9 +167,14 @@ async function connect(cfg: IrcConfig): Promise<void> {
   });
 
   ws.addEventListener("message", (ev: MessageEvent) => {
-    // TODO: parse PRIVMSG and persist inbound messages back to chat_messages.
-    if (typeof ev.data === "string" && ev.data.startsWith("PING")) {
-      send(`PONG${ev.data.slice(4)}`);
+    if (typeof ev.data !== "string") return;
+    for (const line of ev.data.split(/\r?\n/)) {
+      if (!line) continue;
+      if (line.startsWith("PING ")) {
+        send(`PONG ${line.slice(5)}`);
+        continue;
+      }
+      void handleInbound(line, cfg);
     }
   });
 
@@ -236,4 +244,43 @@ export async function forwardToIrc(args: {
     send(`PRIVMSG ${channel} :${prefix}${line}`);
   }
   return true;
+}
+
+// ---------------------------------------------------------------------------
+// Inbound IRC line handler. Parses PRIVMSG from human operators and writes
+// them back into chat_messages so the visitor's widget renders them live.
+// ---------------------------------------------------------------------------
+
+const PRIVMSG_RE =
+  /^:(?<nick>[^! ]+)(?:![^ ]+)?\s+PRIVMSG\s+(?<target>#\S+)\s+:(?<body>.*)$/;
+
+async function handleInbound(line: string, cfg: IrcConfig): Promise<void> {
+  const m = PRIVMSG_RE.exec(line);
+  if (!m?.groups) return;
+  const { nick, target, body } = m.groups as { nick: string; target: string; body: string };
+  // Ignore our own echoes.
+  if (nick.toLowerCase() === cfg.botNick.toLowerCase()) return;
+  const prefix = cfg.channelPrefix.toLowerCase();
+  if (!target.toLowerCase().startsWith(prefix)) return;
+  const slug = target.toLowerCase().slice(prefix.length);
+
+  const { data: ch, error: chErr } = await supabaseAdmin
+    .from("chat_channels")
+    .select("id")
+    .eq("irc_channel_slug", slug)
+    .maybeSingle();
+  if (chErr || !ch) return;
+
+  const { error } = await supabaseAdmin.from("chat_messages").insert({
+    channel_id: ch.id,
+    sender: "admin",
+    sender_name: nick,
+    body,
+    irc_synced: true,
+  });
+  if (error) console.warn("[irc-bridge] inbound insert failed:", error.message);
+  await supabaseAdmin
+    .from("chat_channels")
+    .update({ last_message_at: new Date().toISOString() })
+    .eq("id", ch.id);
 }
