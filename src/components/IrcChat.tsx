@@ -1,241 +1,140 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { MessageCircle, X, Send, Settings as SettingsIcon } from "lucide-react";
+import { MessageCircle, X, Send } from "lucide-react";
+import {
+  ensureChannel,
+  fetchVisitorMessages,
+  sendVisitorMessage,
+} from "@/server/chat.functions";
 
-type ChatMessage = {
+type Msg = {
   id: string;
-  from: string;
-  text: string;
-  ts: number;
-  system?: boolean;
+  sender: "visitor" | "admin" | "system";
+  sender_name: string | null;
+  body: string;
+  created_at: string;
 };
 
-type IrcConfig = {
-  gatewayUrl: string; // e.g. wss://your-gateway.example/webirc
-  channel: string; // e.g. #peptivalab-support
-  nickPrefix: string; // e.g. kund
-};
+const TOKEN_KEY = "peptivalab.chat.visitor.v1";
+const NAME_KEY = "peptivalab.chat.name.v1";
 
-const STORAGE_KEY = "peptivalab.ircchat.config.v1";
-
-const DEFAULT_CONFIG: IrcConfig = {
-  gatewayUrl: "",
-  channel: "#peptivalab-support",
-  nickPrefix: "kund",
-};
-
-function loadConfig(): IrcConfig {
-  if (typeof window === "undefined") return DEFAULT_CONFIG;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_CONFIG;
-    return { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
-  } catch {
-    return DEFAULT_CONFIG;
+function getOrCreateToken(): string {
+  if (typeof window === "undefined") return "";
+  let t = localStorage.getItem(TOKEN_KEY);
+  if (!t) {
+    t = (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)) + Date.now().toString(36);
+    localStorage.setItem(TOKEN_KEY, t);
   }
-}
-
-function saveConfig(cfg: IrcConfig) {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
-  } catch {
-    /* ignore */
-  }
-}
-
-function randomNick(prefix: string) {
-  const n = Math.floor(Math.random() * 9000) + 1000;
-  const safe = (prefix || "kund").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 10) || "kund";
-  return `${safe}${n}`;
-}
-
-// Minimal IRC line parser: ":prefix CMD args :trailing"
-function parseIrcLine(line: string) {
-  let rest = line;
-  let prefix = "";
-  if (rest.startsWith(":")) {
-    const sp = rest.indexOf(" ");
-    prefix = rest.slice(1, sp);
-    rest = rest.slice(sp + 1);
-  }
-  let trailing = "";
-  const tIdx = rest.indexOf(" :");
-  if (tIdx >= 0) {
-    trailing = rest.slice(tIdx + 2);
-    rest = rest.slice(0, tIdx);
-  }
-  const parts = rest.split(" ").filter(Boolean);
-  const command = parts.shift() || "";
-  if (trailing) parts.push(trailing);
-  const nickFromPrefix = prefix.split("!")[0] || "";
-  return { prefix, nick: nickFromPrefix, command, params: parts };
+  return t;
 }
 
 export function IrcChat() {
   const [open, setOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [config, setConfig] = useState<IrcConfig>(() => loadConfig());
-  const [draftConfig, setDraftConfig] = useState<IrcConfig>(config);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [status, setStatus] = useState<"idle" | "connecting" | "connected" | "error" | "closed">(
-    "idle",
+  const [name, setName] = useState<string>(
+    () => (typeof window !== "undefined" && localStorage.getItem(NAME_KEY)) || "",
   );
+  const [needsName, setNeedsName] = useState(false);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [ircChannel, setIrcChannel] = useState<string>("");
   const [input, setInput] = useState("");
-  const wsRef = useRef<WebSocket | null>(null);
-  const nickRef = useRef<string>("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const tokenRef = useRef<string>("");
+  const lastTsRef = useRef<string | undefined>(undefined);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const initedRef = useRef(false);
 
-  const pushMsg = useCallback((m: Omit<ChatMessage, "id" | "ts">) => {
-    setMessages((prev) => [
-      ...prev.slice(-199),
-      { ...m, id: Math.random().toString(36).slice(2), ts: Date.now() },
-    ]);
+  // Token only needed once on mount in browser
+  useEffect(() => {
+    tokenRef.current = getOrCreateToken();
   }, []);
 
-  const disconnect = useCallback(() => {
-    if (wsRef.current) {
-      try {
-        wsRef.current.close();
-      } catch {
-        /* ignore */
-      }
-      wsRef.current = null;
-    }
-    setStatus("closed");
-  }, []);
-
-  const connect = useCallback(() => {
-    if (!config.gatewayUrl || !config.channel) {
-      pushMsg({ from: "system", text: "Konfigurera gateway-URL och kanal i inställningar.", system: true });
-      setShowSettings(true);
-      return;
-    }
-    if (wsRef.current) return;
-
-    setStatus("connecting");
-    pushMsg({ from: "system", text: `Ansluter till ${config.gatewayUrl}…`, system: true });
-
-    let ws: WebSocket;
+  const refresh = useCallback(async () => {
+    if (!tokenRef.current) return;
     try {
-      ws = new WebSocket(config.gatewayUrl);
+      const res = await fetchVisitorMessages({
+        data: { visitorToken: tokenRef.current, sinceIso: lastTsRef.current },
+      });
+      if (res.channel) setIrcChannel(res.channel.ircChannel);
+      if (res.messages.length > 0) {
+        setMessages((prev) => {
+          const seen = new Set(prev.map((m) => m.id));
+          const merged = [...prev];
+          for (const m of res.messages as Msg[]) {
+            if (!seen.has(m.id)) merged.push(m);
+          }
+          const last = merged[merged.length - 1];
+          if (last) lastTsRef.current = last.created_at;
+          return merged;
+        });
+      }
     } catch (e) {
-      setStatus("error");
-      pushMsg({ from: "system", text: `Kunde inte öppna anslutning: ${(e as Error).message}`, system: true });
+      setError((e as Error).message);
+    }
+  }, []);
+
+  // Initialize channel on first open
+  useEffect(() => {
+    if (!open || initedRef.current) return;
+    initedRef.current = true;
+    if (!name) {
+      setNeedsName(true);
       return;
     }
-    wsRef.current = ws;
-
-    const nick = randomNick(config.nickPrefix);
-    nickRef.current = nick;
-
-    const send = (line: string) => {
-      if (ws.readyState === WebSocket.OPEN) ws.send(line + "\r\n");
-    };
-
-    ws.onopen = () => {
-      setStatus("connected");
-      pushMsg({ from: "system", text: `Ansluten som ${nick}`, system: true });
-      send(`NICK ${nick}`);
-      send(`USER ${nick} 0 * :Customer`);
-      // Many gateways auto-join after registration; we send JOIN once we see 001 (welcome).
-    };
-
-    let buffer = "";
-    ws.onmessage = (ev) => {
-      const data = typeof ev.data === "string" ? ev.data : "";
-      if (!data) return;
-      buffer += data;
-      const lines = buffer.split(/\r?\n/);
-      buffer = lines.pop() || "";
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        const { command, params, nick: fromNick } = parseIrcLine(line);
-
-        if (command === "PING") {
-          send(`PONG :${params[0] ?? ""}`);
-          continue;
-        }
-        if (command === "001") {
-          send(`JOIN ${config.channel}`);
-          continue;
-        }
-        if (command === "PRIVMSG") {
-          const target = params[0];
-          const text = params[1] ?? "";
-          if (target === config.channel || target === nickRef.current) {
-            pushMsg({ from: fromNick || "?", text });
-          }
-          continue;
-        }
-        if (command === "JOIN" && fromNick === nickRef.current) {
-          pushMsg({ from: "system", text: `Du gick med i ${config.channel}`, system: true });
-          continue;
-        }
-        if (command === "NOTICE") {
-          pushMsg({ from: fromNick || "notice", text: params[1] ?? "", system: true });
-          continue;
-        }
-        if (/^4\d\d|^5\d\d/.test(command)) {
-          pushMsg({ from: "server", text: `${command} ${params.join(" ")}`, system: true });
-        }
+    void (async () => {
+      try {
+        const res = await ensureChannel({
+          data: { visitorToken: tokenRef.current, displayName: name },
+        });
+        setIrcChannel(res.ircChannel);
+        await refresh();
+      } catch (e) {
+        setError((e as Error).message);
       }
-    };
+    })();
+  }, [open, name, refresh]);
 
-    ws.onerror = () => {
-      setStatus("error");
-      pushMsg({ from: "system", text: "Anslutningsfel.", system: true });
-    };
-
-    ws.onclose = () => {
-      setStatus("closed");
-      pushMsg({ from: "system", text: "Anslutning stängd.", system: true });
-      wsRef.current = null;
-    };
-  }, [config, pushMsg]);
-
-  // Auto-connect when chat opens (if configured)
+  // Polling while open
   useEffect(() => {
-    if (open && status === "idle" && config.gatewayUrl) connect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => disconnect();
-  }, [disconnect]);
+    if (!open || needsName) return;
+    const id = setInterval(refresh, 4000);
+    return () => clearInterval(id);
+  }, [open, needsName, refresh]);
 
   // Auto-scroll
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
 
-  const sendMessage = () => {
-    const text = input.trim();
-    if (!text) return;
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(`PRIVMSG ${config.channel} :${text}\r\n`);
-      pushMsg({ from: nickRef.current || "du", text });
-      setInput("");
-    } else {
-      pushMsg({ from: "system", text: "Inte ansluten – försöker återansluta…", system: true });
-      setStatus("idle");
-      connect();
-    }
+  const submitName = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    localStorage.setItem(NAME_KEY, trimmed);
+    setNeedsName(false);
+    initedRef.current = false; // re-trigger init
   };
 
-  const applySettings = () => {
-    setConfig(draftConfig);
-    saveConfig(draftConfig);
-    setShowSettings(false);
-    disconnect();
-    setStatus("idle");
-    setMessages([]);
-    // re-connect on next render via effect won't trigger (status now closed). Connect manually:
-    setTimeout(() => connect(), 50);
+  const sendMessage = async () => {
+    const text = input.trim();
+    if (!text || sending) return;
+    setSending(true);
+    setError(null);
+    try {
+      const res = await sendVisitorMessage({
+        data: { visitorToken: tokenRef.current, body: text },
+      });
+      setMessages((prev) => [...prev, res.message as Msg]);
+      lastTsRef.current = (res.message as Msg).created_at;
+      setInput("");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
     <>
-      {/* Floating button */}
       {!open && (
         <button
           type="button"
@@ -249,87 +148,41 @@ export function IrcChat() {
 
       {open && (
         <div className="fixed bottom-6 right-6 z-50 flex h-[480px] w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-          {/* Header */}
           <div className="flex items-center justify-between gap-2 border-b border-border bg-primary px-4 py-3 text-primary-foreground">
             <div className="flex flex-col">
               <span className="text-sm font-semibold">Kundchatt</span>
-              <span className="text-[11px] opacity-80">
-                {status === "connected" ? `online · ${config.channel}` : status}
-              </span>
+              <span className="text-[11px] opacity-80">{ircChannel || "ansluter…"}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setDraftConfig(config);
-                  setShowSettings((s) => !s);
-                }}
-                aria-label="Inställningar"
-                className="rounded p-1 hover:bg-white/10"
-              >
-                <SettingsIcon className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label="Stäng chatt"
-                className="rounded p-1 hover:bg-white/10"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Stäng chatt"
+              className="rounded p-1 hover:bg-white/10"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
-          {showSettings ? (
-            <div className="flex flex-1 flex-col gap-3 overflow-y-auto bg-background p-4 text-sm">
-              <p className="text-xs text-muted-foreground">
-                Ange en WebSocket-URL till en IRC-gateway (t.ex. Kiwi IRC's webircgateway konfigurerad
-                för raw IRC, ergo, eller InspIRCd m_websocket). URL:en måste börja med <code>wss://</code>.
+          {needsName ? (
+            <form onSubmit={submitName} className="flex flex-1 flex-col justify-center gap-3 bg-background p-6">
+              <p className="text-sm text-muted-foreground">
+                Vad ska vi kalla dig? Vi skapar en privat chattkanal åt dig.
               </p>
-              <label className="block">
-                <span className="text-xs font-medium text-foreground">Gateway-URL</span>
-                <input
-                  className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="wss://gateway.example.com/webirc"
-                  value={draftConfig.gatewayUrl}
-                  onChange={(e) => setDraftConfig({ ...draftConfig, gatewayUrl: e.target.value })}
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-medium text-foreground">Kanal</span>
-                <input
-                  className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="#peptivalab-support"
-                  value={draftConfig.channel}
-                  onChange={(e) => setDraftConfig({ ...draftConfig, channel: e.target.value })}
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-medium text-foreground">Nick-prefix</span>
-                <input
-                  className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="kund"
-                  value={draftConfig.nickPrefix}
-                  onChange={(e) => setDraftConfig({ ...draftConfig, nickPrefix: e.target.value })}
-                />
-              </label>
-              <div className="mt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={applySettings}
-                  className="flex-1 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
-                >
-                  Spara & anslut
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowSettings(false)}
-                  className="rounded-md border border-input px-3 py-2 text-xs font-medium hover:bg-muted"
-                >
-                  Avbryt
-                </button>
-              </div>
-            </div>
+              <input
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ditt namn"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button
+                type="submit"
+                disabled={!name.trim()}
+                className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                Starta chatt
+              </button>
+            </form>
           ) : (
             <>
               <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto bg-background p-3">
@@ -342,40 +195,43 @@ export function IrcChat() {
                   <div
                     key={m.id}
                     className={
-                      m.system
+                      m.sender === "system"
                         ? "text-center text-[11px] italic text-muted-foreground"
-                        : m.from === nickRef.current
+                        : m.sender === "visitor"
                           ? "ml-auto max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-3 py-1.5 text-sm text-primary-foreground"
                           : "mr-auto max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-3 py-1.5 text-sm text-foreground"
                     }
                   >
-                    {!m.system && m.from !== nickRef.current && (
+                    {m.sender === "admin" && (
                       <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-70">
-                        {m.from}
+                        {m.sender_name || "support"}
                       </div>
                     )}
-                    <div className="whitespace-pre-wrap break-words">{m.text}</div>
+                    <div className="whitespace-pre-wrap break-words">{m.body}</div>
                   </div>
                 ))}
+                {error && (
+                  <p className="text-center text-[11px] text-destructive">{error}</p>
+                )}
               </div>
 
               <form
                 className="flex items-center gap-2 border-t border-border bg-card p-2"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  sendMessage();
+                  void sendMessage();
                 }}
               >
                 <input
                   className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder={status === "connected" ? "Skriv ett meddelande…" : "Inte ansluten"}
+                  placeholder="Skriv ett meddelande…"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                 />
                 <button
                   type="submit"
                   className="rounded-md bg-primary p-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-                  disabled={!input.trim()}
+                  disabled={!input.trim() || sending}
                   aria-label="Skicka"
                 >
                   <Send className="h-4 w-4" />
