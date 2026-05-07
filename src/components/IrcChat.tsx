@@ -43,10 +43,15 @@ export function IrcChat() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<ConnStatus>("connecting");
+  const [channelDbId, setChannelDbId] = useState<string | null>(null);
   const tokenRef = useRef<string>("");
   const lastTsRef = useRef<string | undefined>(undefined);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const initedRef = useRef(false);
+  const realtimeRef = useRef<RealtimeChannel | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Token only needed once on mount in browser
   useEffect(() => {
