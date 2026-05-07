@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ShoppingBag, Menu } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { useSiteContent, useCustomPages } from "@/context/SiteContentContext";
 import logo from "@/assets/logo.png";
 import {
   Sheet,
@@ -11,13 +12,19 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const nav = [
-  { to: "/", label: "Hem" },
-  { to: "/produkter", label: "Produkter" },
-  { to: "/om-oss", label: "Om oss" },
-  { to: "/faq", label: "FAQ" },
-  { to: "/kontakt", label: "Kontakt" },
-] as const;
+export function SiteHeader() {
+  const [open, setOpen] = useState(false);
+  const { count, openCart } = useCart();
+  const content = useSiteContent();
+  const pages = useCustomPages();
+  const nav = [
+    { to: "/", label: content.menu.home },
+    { to: "/produkter", label: content.menu.products },
+    { to: "/om-oss", label: content.menu.about },
+    { to: "/faq", label: content.menu.faq },
+    { to: "/kontakt", label: content.menu.contact },
+  ];
+  const customMenuPages = pages.filter((p) => p.in_menu);
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
