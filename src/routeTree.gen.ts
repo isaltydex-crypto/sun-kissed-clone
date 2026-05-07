@@ -16,6 +16,7 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SidaSlugRouteImport } from './routes/sida.$slug'
 import { Route as CheckoutBekraftelseRouteImport } from './routes/checkout.bekraftelse'
 import { Route as AdminProdukterRouteImport } from './routes/admin.produkter'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
@@ -56,6 +57,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SidaSlugRoute = SidaSlugRouteImport.update({
+  id: '/sida/$slug',
+  path: '/sida/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CheckoutBekraftelseRoute = CheckoutBekraftelseRouteImport.update({
   id: '/bekraftelse',
   path: '/bekraftelse',
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
+  '/sida/$slug': typeof SidaSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
+  '/sida/$slug': typeof SidaSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
+  '/sida/$slug': typeof SidaSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/produkter'
     | '/checkout/bekraftelse'
+    | '/sida/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/produkter'
     | '/checkout/bekraftelse'
+    | '/sida/$slug'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/produkter'
     | '/checkout/bekraftelse'
+    | '/sida/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   KontaktRoute: typeof KontaktRoute
   OmOssRoute: typeof OmOssRoute
   ProdukterRoute: typeof ProdukterRoute
+  SidaSlugRoute: typeof SidaSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sida/$slug': {
+      id: '/sida/$slug'
+      path: '/sida/$slug'
+      fullPath: '/sida/$slug'
+      preLoaderRoute: typeof SidaSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout/bekraftelse': {
@@ -285,7 +305,17 @@ const rootRouteChildren: RootRouteChildren = {
   KontaktRoute: KontaktRoute,
   OmOssRoute: OmOssRoute,
   ProdukterRoute: ProdukterRoute,
+  SidaSlugRoute: SidaSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
