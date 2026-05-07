@@ -145,9 +145,9 @@ export const adminUpsertPage = createServerFn({ method: "POST" })
   });
 
 export const adminDeletePage = createServerFn({ method: "POST" })
+  .middleware([adminAuthMiddleware])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
-    requireAdmin();
     const { error } = await supabaseAdmin.from("site_pages").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
