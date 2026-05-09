@@ -248,7 +248,64 @@ directly to the internet.
 
 ---
 
-## 8. Analytics 🟢
+## 8. NOWPayments — crypto checkout 🟡
+
+Skip if you don't want to accept BTC / ETH / USDC / USDT. The site falls back
+to other payment methods when this isn't configured.
+
+NOWPayments is the crypto processor. Your VPS runs a small server that talks
+to it; the website talks to your VPS, never to NOWPayments directly. That
+keeps your API key off the browser.
+
+**Step 1. Create a NOWPayments account.**
+1. Sign up at <https://nowpayments.io> and complete the basic KYB form.
+2. **Dashboard → Store settings → Payout wallets** — add a receiving wallet
+   for each coin you want to accept (BTC, ETH, USDC, USDT). Without a payout
+   wallet, that coin is disabled at checkout.
+3. **Dashboard → Store settings → API keys** — click *Create*. Copy the key.
+4. **Dashboard → Store settings → IPN settings**:
+   - **IPN callback URL:** `https://peptivalab.se/api/crypto/webhook`
+   - Click *Generate* next to **IPN Secret key** and copy it.
+
+**Step 2. Generate the secrets locally.**
+```bash
+openssl rand -hex 32       # → CRYPTO_INTERNAL_TOKEN (links site ↔ payments server)
+```
+
+**Step 3. Fill into `self-host/.env`:**
+
+| Variable                       | Value                                               |
+| ------------------------------ | --------------------------------------------------- |
+| `NOWPAYMENTS_API_KEY`          | from step 1.3                                       |
+| `NOWPAYMENTS_IPN_SECRET`       | from step 1.4                                       |
+| `NOWPAYMENTS_BASE_URL`         | `https://api.nowpayments.io/v1` (default — leave)   |
+| `CRYPTO_INTERNAL_TOKEN`        | from step 2                                         |
+| `VITE_PAYMENTS_API_BASE_URL`   | `https://peptivalab.se` (where the payments routes live) |
+| `CRYPTO_SUCCESS_URL`           | `https://peptivalab.se/checkout/bekraftelse`        |
+| `CRYPTO_CANCEL_URL`            | `https://peptivalab.se/checkout`                    |
+
+> The frontend calls `${VITE_PAYMENTS_API_BASE_URL}/api/crypto/create-invoice`
+> and `/api/crypto/order/:id` — see `src/lib/paymentsApi.ts`. If you host the
+> payments routes on a different subdomain (e.g. `api.peptivalab.se`), point
+> `VITE_PAYMENTS_API_BASE_URL` there and add a matching DNS A-record + Caddy
+> entry.
+
+**Step 4. Test before going live.**
+1. NOWPayments dashboard → **Sandbox mode ON** (top right) for the first run.
+2. Place a small test order on `/checkout`, choose *Crypto*, complete the
+   sandbox payment.
+3. Check `docker compose logs -f app` — you should see
+   `crypto.webhook received` and the order should flip to `paid` in the admin
+   panel (`/admin/ordrar`).
+4. Turn sandbox **OFF** when satisfied.
+
+> **Common gotchas:** wrong IPN URL (must be HTTPS, must match exactly),
+> missing payout wallet (coin won't appear at checkout), or `CRYPTO_INTERNAL_TOKEN`
+> mismatch between the site and the payments server (invoice creation 401s).
+
+---
+
+## 9. Analytics 🟢
 
 Optional Plausible Analytics. Empty = no tracking.
 
