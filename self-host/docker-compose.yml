@@ -225,6 +225,9 @@ services:
       SMTP_PASS: ${SMTP_PASS:-}
       NOTIFY_EMAIL_FROM: ${NOTIFY_EMAIL_FROM:-}
       NOTIFY_EMAIL_TO: ${NOTIFY_EMAIL_TO:-}
+      # Shared bearer token used by sibling containers (e.g. backup) to POST
+      # alerts to /api/internal/notify. Generate with: openssl rand -hex 32
+      INTERNAL_NOTIFY_TOKEN: ${INTERNAL_NOTIFY_TOKEN:-}
     networks: [pvl]
 
   # --------------------------------------------------------------------------
@@ -307,12 +310,10 @@ services:
       OFFSITE_REMOTE: ${OFFSITE_REMOTE:-}
       RCLONE_CONFIG: ${RCLONE_CONFIG:-}
       # Email alerts on backup / verify failures (optional but recommended)
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASS: ${SMTP_PASS:-}
-      NOTIFY_EMAIL_FROM: ${NOTIFY_EMAIL_FROM:-}
-      NOTIFY_EMAIL_TO: ${NOTIFY_EMAIL_TO:-}
+      # Backup alerts now go through the app (uses editable templates from
+      # /admin/innehall). Set INTERNAL_NOTIFY_TOKEN in .env to enable.
+      APP_INTERNAL_URL: http://app:3000
+      INTERNAL_NOTIFY_TOKEN: ${INTERNAL_NOTIFY_TOKEN:-}
       TZ: UTC
     volumes:
       - backups:/backups
