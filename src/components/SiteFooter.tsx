@@ -34,8 +34,9 @@ export function SiteFooter() {
         <div>
           <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-sun">{c.footer.newsletterHeading}</h4>
           <p className="mb-3 text-sm text-primary-foreground/70">{c.footer.newsletterBlurb}</p>
-          <form className="flex gap-2">
-            <input type="email" placeholder="Din e-post" className="w-full rounded-md bg-white/10 px-3 py-2 text-sm placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-sun" />
+          <form className="flex gap-2" aria-label={c.footer.newsletterHeading}>
+            <label htmlFor="footer-newsletter-email" className="sr-only">Din e-post</label>
+            <input id="footer-newsletter-email" name="email" type="email" autoComplete="email" placeholder="Din e-post" className="w-full rounded-md bg-white/10 px-3 py-2 text-sm placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-sun" />
             <button type="submit" className="rounded-md bg-sun px-3 py-2 text-sm font-semibold text-ocean-deep hover:bg-sun-deep">OK</button>
           </form>
         </div>
