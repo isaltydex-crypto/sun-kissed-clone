@@ -5,7 +5,7 @@ It contains:
 
 - **InspIRCd** — the IRC daemon itself (port `6697` TLS, `6667` plain).
 - **ws-gateway** — a tiny Node.js WebSocket bridge in front of InspIRCd. The
-  Lovable site (the `irc-bridge.server.ts` module) connects to this
+  peptivaLab site (the `irc-bridge.server.ts` module) connects to this
   WebSocket; the gateway forwards every line over a real TCP IRC connection.
 - A self-signed TLS cert auto-generated on first start.
 
