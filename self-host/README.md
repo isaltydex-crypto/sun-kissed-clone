@@ -1,8 +1,8 @@
 # peptivaLab — Self-Hosting Kit
 
-Run the **entire stack** on your private server, no Lovable Cloud required:
+Run the **entire stack** on your private server, fully self-hosted:
 
-- **app** — TanStack Start app as a Node container (replaces Lovable hosting)
+- **app** — TanStack Start app as a Node container (your own host)
 - **supabase** — full self-hosted Supabase stack (Postgres + Auth + Storage + Realtime + Studio)
 - **ircd + ws-gateway** — your existing IRC server (re-used from `../irc-server/`)
 - **caddy** — single TLS reverse proxy in front of all of it (auto Let's Encrypt)
@@ -37,7 +37,7 @@ DNS records (point at this server's public IP):
 
 ## 1. Get the source onto the server
 
-From the Lovable project: **Settings → GitHub → Connect** (or use the
+From your editor or local clone (or use the
 "Export to GitHub" button), then:
 
 ```bash
@@ -51,7 +51,7 @@ The `self-host/` and `irc-server/` folders are already in the repo.
 
 ## 2. Apply the self-host build patch
 
-This swaps the Vite config from Cloudflare Workers (Lovable's default) to
+This swaps the Vite config from Cloudflare Workers (the editor default) to
 a plain Node SSR target. The patch only touches `vite.config.ts` and
 `package.json` — it does NOT change any application code.
 
@@ -62,7 +62,7 @@ cd ..
 bun install             # or: npm install
 ```
 
-You can revert with `./self-host/revert-patch.sh` if you ever go back to Lovable.
+You can revert with `./self-host/revert-patch.sh`.
 
 ---
 
@@ -94,11 +94,11 @@ For the Supabase `ANON_KEY` and `SERVICE_ROLE_KEY` use the JWT generator at
 
 ---
 
-## 4. (Only if migrating data) Export from Lovable Cloud
+## 4. (Only if migrating data) Export from your previous host
 
 Skip this if starting clean.
 
-In Lovable: **Cloud → Database → Export** → download `dump.sql`.
+Export the database from your previous host as `dump.sql`.
 Drop it next to the compose file:
 
 ```bash
@@ -132,13 +132,13 @@ Verify:
 
 Once you've smoke-tested:
 
-1. In Lovable → unpublish (or just leave the `*.lovable.app` URL dormant).
+1. Decommission the previous deployment (or just point traffic away from it).
 2. Update DNS: change `peptivalab.se` A record from `185.158.133.1`
-   (Lovable) → your server's IP.
+   the previous host → your server's IP.
 3. Wait for propagation, watch `docker compose logs caddy` for the cert.
 
 Done — the site, database, auth, storage, realtime and IRC all run on
-your box. Lovable is no longer in the request path.
+your box. The previous host is no longer in the request path.
 
 ---
 
@@ -153,7 +153,7 @@ docker compose down                           # stop everything
 
 ### Re-deploying after code changes
 
-You'll edit code in Lovable (or locally), `git push`, then on the server:
+You'll edit code locally, `git push`, then on the server:
 
 ```bash
 cd peptivalab

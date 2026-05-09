@@ -204,12 +204,12 @@ Then: `cp self-host/deploy.example.yml .github/workflows/deploy.yml`, push.
 
 ---
 
-## 12. Lovable Cloud cutover 🟡 (only if migrating)
+## 12. Cutover from previous host 🟡 (only if migrating)
 
-1. Lovable → **Cloud → Database → Export** → download `dump.sql`.
+1. Export the previous database as `dump.sql`.
 2. SCP up: `scp dump.sql deploy@<VPS_IP>:~/peptivalab/self-host/initdb/01-import.sql`.
 3. First boot auto-imports it after `00-schema.sql`.
-4. After smoke tests pass: Lovable → **Settings → Visibility → Unpublish**.
+4. After smoke tests pass: decommission the previous deployment.
 
 ---
 
