@@ -16,7 +16,7 @@ Keep both open.
 - [ ] A VPS (virtual server) with **Ubuntu 22.04 or newer**
       (Hetzner, DigitalOcean, Linode, OVH all work — see `README.md` for sizing)
 - [ ] You can SSH into it as a normal user with `sudo` rights (don't use root)
-- [ ] You own the domain `peptivalab.se` and can edit its DNS
+- [ ] You own the domain `peptivalabgroup.com` and can edit its DNS
 - [ ] An email address you actually check (for SSL cert warnings)
 - [ ] A local clone of this repo on your laptop, pushed to your own GitHub
 
@@ -38,20 +38,20 @@ Add **four A-records** — all pointing to that IP, all with TTL `300`:
 
 | Subdomain                 | Type | Points to    |
 | ------------------------- | ---- | ------------ |
-| `peptivalab.se`           | A    | your VPS IP  |
-| `www.peptivalab.se`       | A    | your VPS IP  |
-| `chat.peptivalab.se`      | A    | your VPS IP  |
-| `db.peptivalab.se`        | A    | your VPS IP  |
+| `peptivalabgroup.com`           | A    | your VPS IP  |
+| `www.peptivalabgroup.com`       | A    | your VPS IP  |
+| `chat.peptivalabgroup.com`      | A    | your VPS IP  |
+| `db.peptivalabgroup.com`        | A    | your VPS IP  |
 
 > **On Cloudflare?** Click each record → set proxy to **"DNS only" (grey
 > cloud)** for now. You can switch to orange later, after SSL certs are issued.
 
 **1.3.** Wait 5–30 minutes, then verify from your laptop:
 ```bash
-dig +short peptivalab.se
-dig +short www.peptivalab.se
-dig +short chat.peptivalab.se
-dig +short db.peptivalab.se
+dig +short peptivalabgroup.com
+dig +short www.peptivalabgroup.com
+dig +short chat.peptivalabgroup.com
+dig +short db.peptivalabgroup.com
 ```
 All four **must** print your VPS IP. **Don't continue** until they do.
 
@@ -198,7 +198,7 @@ Key things to double-check:
 - [ ] `SITE_DOMAIN`, `WWW_DOMAIN`, `CHAT_DOMAIN`, `STUDIO_DOMAIN` match your DNS
 - [ ] `LETSENCRYPT_EMAIL` is a real address you check
 - [ ] `JWT_SECRET` is the **exact** value you used to generate the keys
-- [ ] `PUBLIC_SUPABASE_URL=https://db.peptivalab.se`
+- [ ] `PUBLIC_SUPABASE_URL=https://db.peptivalabgroup.com`
 - [ ] `IRC_BOT_PASSWORD` (in app env) = `GATEWAY_TOKEN` (in ws-gateway env)
 
 Tighten file permissions so only you can read it:
@@ -252,12 +252,12 @@ domains. Press **Ctrl-C** once you see them.
 ## 10. Smoke tests — try everything from your laptop
 
 **Test 1 — The website**
-- [ ] Open <https://peptivalab.se> — page loads, padlock is green
+- [ ] Open <https://peptivalabgroup.com> — page loads, padlock is green
 - [ ] Visit `/produkter`, `/kontakt`, `/faq` — no errors
 - [ ] Open browser DevTools → Network tab → reload — no failed requests
 
 **Test 2 — Admin panel**
-- [ ] Open <https://peptivalab.se/admin/login>
+- [ ] Open <https://peptivalabgroup.com/admin/login>
 - [ ] Login with `ADMIN_CHAT_PASSWORD` works
 - [ ] `/admin/produkter`, `/admin/innehall`, `/admin/sidor` all load
 - [ ] Edit a page, save, reload → change persisted
@@ -269,12 +269,12 @@ domains. Press **Ctrl-C** once you see them.
 - [ ] Reply from admin → visitor window updates in real time
 
 **Test 4 — Database admin (Studio)**
-- [ ] Open <https://db.peptivalab.se>
+- [ ] Open <https://db.peptivalabgroup.com>
 - [ ] Login prompt accepts `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD`
 - [ ] Studio loads; you can browse the tables
 
 **Test 5 — IRC desktop client (only if you opened port 6697)**
-- [ ] Connect HexChat to `chat.peptivalab.se:6697`, password = `IRC_SERVER_PASSWORD`
+- [ ] Connect HexChat to `chat.peptivalabgroup.com:6697`, password = `IRC_SERVER_PASSWORD`
 - [ ] `/oper admin <IRC_OPER_PASSWORD>` succeeds
 
 > Anything fails? Check the matching log:
@@ -286,7 +286,7 @@ domains. Press **Ctrl-C** once you see them.
 
 Now that you can log in, swap the temporary password for a hashed one:
 
-1. Visit <https://peptivalab.se/admin/sakerhet>
+1. Visit <https://peptivalabgroup.com/admin/sakerhet>
 2. Click **"Generera lösenordshash"**
 3. Type a strong password you'll remember
 4. Copy the long `$2b$…` string it produces

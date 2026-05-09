@@ -5,7 +5,7 @@ HTTP 200 + JSON when the app and database are reachable.
 
 ## Quick option: UptimeRobot (free)
 1. Sign up at https://uptimerobot.com
-2. New monitor → HTTP(s) → `https://peptivalab.se/api/public/health`
+2. New monitor → HTTP(s) → `https://peptivalabgroup.com/api/public/health`
 3. Interval 5 min, alert by email/SMS.
 
 ## Self-hosted option: Uptime Kuma
@@ -19,4 +19,4 @@ Add to docker-compose.yml on the same VPS or another host:
     ports: ["3001:3001"]
 ```
 
-Then point a monitor at `https://peptivalab.se/api/public/health`.
+Then point a monitor at `https://peptivalabgroup.com/api/public/health`.

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const SITE_URL = (process.env.PUBLIC_SITE_URL || "https://peptivalab.se").replace(/\/+$/, "");
+const SITE_URL = (process.env.PUBLIC_SITE_URL || "https://peptivalabgroup.com").replace(/\/+$/, "");
 
 const STATIC_PATHS = [
   { path: "/",          changefreq: "weekly",  priority: 1.0 },

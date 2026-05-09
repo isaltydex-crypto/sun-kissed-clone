@@ -134,7 +134,7 @@ export const siteDefaults: SiteDefaults = {
   contact: {
     heroTitle: "Kontakta oss",
     heroSubtitle: "Vi svarar normalt inom 24 timmar på vardagar.",
-    email: "hej@peptivalab.se",
+    email: "hej@peptivalabgroup.com",
     address: "Götgatan 12\n118 46 Stockholm",
     hours: "Mån–fre 9:00–17:00",
   },
@@ -166,10 +166,10 @@ export const siteDefaults: SiteDefaults = {
   },
   emails: {
     brandHeader: "peptivaLab Group",
-    footer: "Detta är ett automatiskt mejl från peptivalab.se — svara inte direkt.",
+    footer: "Detta är ett automatiskt mejl från peptivalabgroup.com — svara inte direkt.",
     contactSubject: "Nytt kontaktmeddelande från {{name}}",
     contactBody:
-      "Hej!\n\nDu har fått ett nytt meddelande via kontaktformuläret på peptivalab.se.\n\nNamn:    {{name}}\nE-post:  {{email}}\nTid:     {{timestamp}}\n\nMeddelande:\n{{message}}\n\nSvara direkt på detta mejl för att svara kunden.",
+      "Hej!\n\nDu har fått ett nytt meddelande via kontaktformuläret på peptivalabgroup.com.\n\nNamn:    {{name}}\nE-post:  {{email}}\nTid:     {{timestamp}}\n\nMeddelande:\n{{message}}\n\nSvara direkt på detta mejl för att svara kunden.",
     alertSubject: "[peptivaLab] {{job}} misslyckades på {{host}}",
     alertBody:
       "Ett schemalagt jobb har misslyckats.\n\nJobb:      {{job}}\nServer:    {{host}}\nStartade:  {{startedAt}}\nFelade:    {{failedAt}}\nExit-kod:  {{exitCode}}\n\nSista raderna ur loggen:\n{{log}}\n\nKontrollera servern och åtgärda problemet så snart som möjligt.",
