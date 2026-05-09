@@ -283,6 +283,7 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       BACKUP_CRON: ${BACKUP_CRON:-17 3 * * *}
+      BACKUP_VERIFY_CRON: ${BACKUP_VERIFY_CRON:-43 4 * * 0}
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
       # Current encryption key — used to encrypt new dumps. Empty = plaintext.
       BACKUP_ENCRYPTION_KEY_ID: ${BACKUP_ENCRYPTION_KEY_ID:-}
@@ -290,6 +291,9 @@ services:
       # Old keys kept around so historical dumps can still be decrypted.
       # Format: id1:pass1,id2:pass2  (passphrases must not contain ',' or ':')
       BACKUP_OLD_KEYS: ${BACKUP_OLD_KEYS:-}
+      # Off-site upload (rclone). Set both to enable.
+      OFFSITE_REMOTE: ${OFFSITE_REMOTE:-}
+      RCLONE_CONFIG: ${RCLONE_CONFIG:-}
       TZ: UTC
     volumes:
       - backups:/backups
