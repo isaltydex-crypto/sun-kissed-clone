@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { sendNotification } from "./notify.server";
+import { renderEmail } from "./email-templates";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { mergeContent, type SiteContentMap } from "@/lib/site-defaults";
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, "Namn krävs").max(100),
@@ -8,43 +11,31 @@ const contactSchema = z.object({
   message: z.string().trim().min(1, "Meddelande krävs").max(2000),
 });
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+async function loadEmailTemplates() {
+  const { data } = await supabaseAdmin.from("site_content").select("key,value");
+  const stored: SiteContentMap = {};
+  for (const row of data ?? []) {
+    (stored as Record<string, unknown>)[row.key] = row.value as unknown;
+  }
+  return mergeContent(stored).emails;
 }
 
 export const submitContact = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => contactSchema.parse(data))
   .handler(async ({ data }) => {
-    const { name, email, message } = data;
-
-    const text = [
-      `Nytt meddelande från kontaktformuläret`,
-      ``,
-      `Namn:    ${name}`,
-      `E-post:  ${email}`,
-      ``,
-      `Meddelande:`,
-      message,
-    ].join("\n");
-
-    const html = `
-      <h2>Nytt meddelande från kontaktformuläret</h2>
-      <p><strong>Namn:</strong> ${escapeHtml(name)}</p>
-      <p><strong>E-post:</strong> <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>
-      <p><strong>Meddelande:</strong></p>
-      <pre style="white-space:pre-wrap;font-family:inherit;background:#f6f6f6;padding:12px;border-radius:6px">${escapeHtml(message)}</pre>
-    `;
+    const templates = await loadEmailTemplates();
+    const rendered = renderEmail(templates, "contact", {
+      name: data.name,
+      email: data.email,
+      message: data.message,
+      timestamp: new Date().toLocaleString("sv-SE", { timeZone: "Europe/Stockholm" }),
+    });
 
     const sent = await sendNotification({
-      subject: `Kontaktformulär: ${name}`,
-      text,
-      html,
-      replyTo: email,
+      subject: rendered.subject,
+      text: rendered.text,
+      html: rendered.html,
+      replyTo: data.email,
     });
 
     return { ok: true, emailed: sent };

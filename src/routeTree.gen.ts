@@ -26,6 +26,7 @@ import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminInnehallRouteImport } from './routes/admin.innehall'
 import { Route as AdminChattRouteImport } from './routes/admin.chatt'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiInternalNotifyRouteImport } from './routes/api/internal/notify'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -112,6 +113,11 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiInternalNotifyRoute = ApiInternalNotifyRouteImport.update({
+  id: '/api/internal/notify',
+  path: '/api/internal/notify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
 }
 export interface FileRoutesByTo {
@@ -149,6 +156,7 @@ export interface FileRoutesByTo {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
 }
 export interface FileRoutesById {
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
 }
 export interface FileRouteTypes {
@@ -190,6 +199,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/internal/notify'
     | '/api/public/health'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/internal/notify'
     | '/api/public/health'
   id:
     | '__root__'
@@ -228,6 +239,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/internal/notify'
     | '/api/public/health'
   fileRoutesById: FileRoutesById
 }
@@ -242,6 +254,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SidaSlugRoute: typeof SidaSlugRoute
+  ApiInternalNotifyRoute: typeof ApiInternalNotifyRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
 }
 
@@ -366,6 +379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/internal/notify': {
+      id: '/api/internal/notify'
+      path: '/api/internal/notify'
+      fullPath: '/api/internal/notify'
+      preLoaderRoute: typeof ApiInternalNotifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -410,8 +430,18 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SidaSlugRoute: SidaSlugRoute,
+  ApiInternalNotifyRoute: ApiInternalNotifyRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
