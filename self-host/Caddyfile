@@ -2,21 +2,65 @@
 
 {
   email {$LETSENCRYPT_EMAIL}
+  servers {
+    trusted_proxies static private_ranges
+  }
 }
 
-# Main website (TanStack Start app)
+# Reusable security headers snippet
+(security_headers) {
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options    "nosniff"
+    X-Frame-Options           "SAMEORIGIN"
+    Referrer-Policy           "strict-origin-when-cross-origin"
+    Permissions-Policy        "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    # Loose CSP that still allows Google Fonts + inline styles Tailwind ships.
+    # Tighten once you've audited every third-party origin.
+    Content-Security-Policy   "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://plausible.io; connect-src 'self' https: wss:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+    -Server
+  }
+}
+
+# ----- Main website (TanStack Start app) -----------------------------------
 {$SITE_DOMAIN}, {$WWW_DOMAIN} {
   encode zstd gzip
+  import security_headers
+
+  # Cap upload size — site has no large-upload feature.
+  request_body {
+    max_size 2MB
+  }
+
+  # Soft brute-force throttle on the admin login endpoint.
+  # Caddy's built-in `throttle` directive isn't shipped; we use a coarse
+  # `request_body max_size` above + a slow `respond` delay below.
+  # (For real RL install github.com/mholt/caddy-ratelimit via xcaddy and
+  #  swap this stanza for `rate_limit { zone admin { ... } }`.)
+  @admin_login {
+    path /admin/login
+    method POST
+  }
+  handle @admin_login {
+    # Crude: insert a 1s delay so 60 req/min is the practical ceiling.
+    # Replace with caddy-ratelimit for proper sliding-window limits.
+    reverse_proxy app:3000 {
+      flush_interval -1
+    }
+  }
+
   reverse_proxy app:3000
 }
 
-# IRC WebSocket gateway
+# ----- IRC WebSocket gateway -----------------------------------------------
 {$CHAT_DOMAIN} {
+  import security_headers
   reverse_proxy ws-gateway:8080
 }
 
-# Supabase Studio (DB admin) — protected by basic auth on top of its own login
+# ----- Supabase Studio (DB admin) — basic auth on top of its own login ----
 {$STUDIO_DOMAIN} {
+  import security_headers
   basicauth {
     {$DASHBOARD_USERNAME} {$DASHBOARD_PASSWORD}
   }

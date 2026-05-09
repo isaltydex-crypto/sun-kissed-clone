@@ -1,15 +1,7 @@
 #!/bin/sh
 # ============================================================================
-# Daily Postgres backup with GPG key rotation support.
-#
-# Encryption keys live in /run/secrets/keys (one file per key, name = key ID,
-# contents = passphrase). The CURRENT key is named in BACKUP_ENCRYPTION_KEY_ID
-# and is the only one used to ENCRYPT new dumps. All keys in the directory
-# remain available for DECRYPTION (see decrypt.sh).
-#
-# Filenames embed the key ID:
-#   peptivalab-20260509-031700.k2.sql.gz.gpg
-# So years from now you can tell which passphrase opens which dump.
+# Daily Postgres backup with GPG key rotation + optional off-site upload.
+# See entrypoint.sh / .env.example for env vars.
 # ============================================================================
 set -eu
 
@@ -49,6 +41,25 @@ fi
 
 echo "[$(date -u +%FT%TZ)] wrote $(du -h "${OUT}" | cut -f1)"
 
+# --- Off-site upload (rclone) ----------------------------------------------
+# Set OFFSITE_REMOTE to e.g. "b2:peptivalab-backups" or "s3:bucket/path".
+# rclone reads its config from /run/secrets/rclone.conf (mounted from env).
+if [ -n "${OFFSITE_REMOTE:-}" ] && [ -s /run/secrets/rclone.conf ]; then
+  echo "[$(date -u +%FT%TZ)] uploading to ${OFFSITE_REMOTE}"
+  rclone --config /run/secrets/rclone.conf \
+         copy "${OUT}" "${OFFSITE_REMOTE}" \
+         --no-traverse --transfers 1 --retries 5
+  # Mirror retention to the remote (delete files older than RETENTION days)
+  rclone --config /run/secrets/rclone.conf \
+         delete "${OFFSITE_REMOTE}" \
+         --min-age "${RETENTION}d" --include "peptivalab-*" || true
+  echo "[$(date -u +%FT%TZ)] off-site upload done"
+else
+  [ -n "${OFFSITE_REMOTE:-}" ] && \
+    echo "[$(date -u +%FT%TZ)] WARNING: OFFSITE_REMOTE set but no rclone.conf"
+fi
+
+# Local retention
 find /backups -maxdepth 1 -type f -name "${GLOB}" \
   -mtime +"${RETENTION}" -print -delete
 

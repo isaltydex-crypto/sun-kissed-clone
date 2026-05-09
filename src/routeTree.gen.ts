@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ProdukterRouteImport } from './routes/produkter'
 import { Route as OmOssRouteImport } from './routes/om-oss'
 import { Route as KontaktRouteImport } from './routes/kontakt'
@@ -23,7 +25,18 @@ import { Route as AdminProdukterRouteImport } from './routes/admin.produkter'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminInnehallRouteImport } from './routes/admin.innehall'
 import { Route as AdminChattRouteImport } from './routes/admin.chatt'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProdukterRoute = ProdukterRouteImport.update({
   id: '/produkter',
   path: '/produkter',
@@ -94,6 +107,11 @@ const AdminChattRoute = AdminChattRouteImport.update({
   path: '/chatt',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +121,8 @@ export interface FileRoutesByFullPath {
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
   '/admin/innehall': typeof AdminInnehallRoute
   '/admin/login': typeof AdminLoginRoute
@@ -110,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -119,6 +140,8 @@ export interface FileRoutesByTo {
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
   '/admin/innehall': typeof AdminInnehallRoute
   '/admin/login': typeof AdminLoginRoute
@@ -126,6 +149,7 @@ export interface FileRoutesByTo {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -136,6 +160,8 @@ export interface FileRoutesById {
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
   '/admin/innehall': typeof AdminInnehallRoute
   '/admin/login': typeof AdminLoginRoute
@@ -143,6 +169,7 @@ export interface FileRoutesById {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -154,6 +181,8 @@ export interface FileRouteTypes {
     | '/kontakt'
     | '/om-oss'
     | '/produkter'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/admin/chatt'
     | '/admin/innehall'
     | '/admin/login'
@@ -161,6 +190,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/public/health'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -170,6 +200,8 @@ export interface FileRouteTypes {
     | '/kontakt'
     | '/om-oss'
     | '/produkter'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/admin/chatt'
     | '/admin/innehall'
     | '/admin/login'
@@ -177,6 +209,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/public/health'
   id:
     | '__root__'
     | '/'
@@ -186,6 +219,8 @@ export interface FileRouteTypes {
     | '/kontakt'
     | '/om-oss'
     | '/produkter'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/admin/chatt'
     | '/admin/innehall'
     | '/admin/login'
@@ -193,6 +228,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/public/health'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -203,11 +239,28 @@ export interface RootRouteChildren {
   KontaktRoute: typeof KontaktRoute
   OmOssRoute: typeof OmOssRoute
   ProdukterRoute: typeof ProdukterRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SidaSlugRoute: typeof SidaSlugRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/produkter': {
       id: '/produkter'
       path: '/produkter'
@@ -306,6 +359,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminChattRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -347,8 +407,20 @@ const rootRouteChildren: RootRouteChildren = {
   KontaktRoute: KontaktRoute,
   OmOssRoute: OmOssRoute,
   ProdukterRoute: ProdukterRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SidaSlugRoute: SidaSlugRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
