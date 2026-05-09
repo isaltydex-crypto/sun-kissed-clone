@@ -1,14 +1,14 @@
-# Tiny image: postgres-client + cron, runs backup.sh on a schedule.
 FROM alpine:3.20
 
 RUN apk add --no-cache postgresql16-client tzdata dcron findutils coreutils gnupg
 
-COPY backup.sh /usr/local/bin/backup.sh
-RUN chmod +x /usr/local/bin/backup.sh
-
-# Crontab: every day at 03:17 UTC. Override BACKUP_CRON via env if you want.
-# (dcron honors /etc/crontabs/root.)
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY backup.sh      /usr/local/bin/backup.sh
+COPY decrypt.sh     /usr/local/bin/decrypt.sh
+COPY rotate-keys.sh /usr/local/bin/rotate-keys.sh
+COPY entrypoint.sh  /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/backup.sh \
+             /usr/local/bin/decrypt.sh \
+             /usr/local/bin/rotate-keys.sh \
+             /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

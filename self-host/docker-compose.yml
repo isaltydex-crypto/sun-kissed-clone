@@ -263,8 +263,12 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       BACKUP_CRON: ${BACKUP_CRON:-17 3 * * *}
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
-      # Leave empty to disable encryption (NOT recommended).
+      # Current encryption key — used to encrypt new dumps. Empty = plaintext.
+      BACKUP_ENCRYPTION_KEY_ID: ${BACKUP_ENCRYPTION_KEY_ID:-}
       BACKUP_ENCRYPTION_PASSPHRASE: ${BACKUP_ENCRYPTION_PASSPHRASE:-}
+      # Old keys kept around so historical dumps can still be decrypted.
+      # Format: id1:pass1,id2:pass2  (passphrases must not contain ',' or ':')
+      BACKUP_OLD_KEYS: ${BACKUP_OLD_KEYS:-}
       TZ: UTC
     volumes:
       - backups:/backups
