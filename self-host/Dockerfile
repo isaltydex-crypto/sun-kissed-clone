@@ -19,8 +19,12 @@ ENV VITE_PLAUSIBLE_DOMAIN=$VITE_PLAUSIBLE_DOMAIN
 ENV VITE_PLAUSIBLE_SRC=$VITE_PLAUSIBLE_SRC
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Apply the self-host build patch (swap Cloudflare → Node target)
-RUN sh ./self-host/apply-patch.sh
+# Swap to the Node-target vite config (equivalent of apply-patch.sh, but
+# without needing node/npm which aren't in the bun-alpine image).
+RUN if [ ! -f vite.config.editor.ts ]; then \
+      mv vite.config.ts vite.config.editor.ts && \
+      cp self-host/vite.config.node.ts vite.config.ts; \
+    fi
 RUN bun run build
 
 FROM node:20-alpine AS run
