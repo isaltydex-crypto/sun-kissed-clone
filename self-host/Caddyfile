@@ -7,18 +7,21 @@
   }
 }
 
-# Reusable security headers snippet
+# Reusable security headers snippet.
+# Tighten the CSP further once you confirm every third-party origin used.
 (security_headers) {
   header {
-    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
     X-Content-Type-Options    "nosniff"
-    X-Frame-Options           "SAMEORIGIN"
+    X-Frame-Options           "DENY"
     Referrer-Policy           "strict-origin-when-cross-origin"
-    Permissions-Policy        "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-    # Loose CSP that still allows Google Fonts + inline styles Tailwind ships.
-    # Tighten once you've audited every third-party origin.
-    Content-Security-Policy   "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://plausible.io; connect-src 'self' https: wss:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+    Permissions-Policy        "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()"
+    Cross-Origin-Opener-Policy "same-origin"
+    Cross-Origin-Resource-Policy "same-origin"
+    X-XSS-Protection          "0"
+    Content-Security-Policy   "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://plausible.io https://*.plausible.io; connect-src 'self' https: wss:; media-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
     -Server
+    -X-Powered-By
   }
 }
 

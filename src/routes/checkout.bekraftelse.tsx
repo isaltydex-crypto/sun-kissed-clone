@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
+import { recordOrder } from "@/lib/orders.functions";
 
 type Order = {
   id: string;
@@ -28,6 +29,8 @@ type Order = {
   total: number;
 };
 
+const PERSIST_KEY = "peptivalab.lastOrder.persisted";
+
 export const Route = createFileRoute("/checkout/bekraftelse")({
   head: () => ({
     meta: [
@@ -40,6 +43,7 @@ export const Route = createFileRoute("/checkout/bekraftelse")({
 
 function ConfirmationPage() {
   const [order, setOrder] = useState<Order | null>(null);
+  const persistedRef = useRef(false);
 
   useEffect(() => {
     try {
@@ -49,6 +53,50 @@ function ConfirmationPage() {
       // ignore
     }
   }, []);
+
+  // Persist order to backend exactly once per order id.
+  useEffect(() => {
+    if (!order || persistedRef.current) return;
+    let already = "";
+    try {
+      already = sessionStorage.getItem(PERSIST_KEY) || "";
+    } catch {
+      // ignore
+    }
+    if (already === order.id) return;
+    persistedRef.current = true;
+    recordOrder({
+      data: {
+        orderNumber: order.id,
+        customer: {
+          email: order.customer.email,
+          name: `${order.customer.firstName} ${order.customer.lastName}`.trim(),
+          phone: order.customer.phone || undefined,
+          address: order.customer.address || undefined,
+          postalCode: order.customer.postalCode || undefined,
+          city: order.customer.city || undefined,
+          notes: order.customer.notes || undefined,
+        },
+        items: order.items.map((i) => ({
+          productId: i.slug,
+          productName: i.name,
+          unitPriceOre: Math.round(i.price * 100),
+          quantity: i.quantity,
+        })),
+        subtotalOre: Math.round(order.subtotal * 100),
+        shippingOre: Math.round(order.shipping * 100),
+        discountOre: Math.round((order.discount?.amount ?? 0) * 100),
+        totalOre: Math.round(order.total * 100),
+        currency: "SEK",
+      },
+    })
+      .then(() => {
+        try { sessionStorage.setItem(PERSIST_KEY, order.id); } catch { /* ignore */ }
+      })
+      .catch((err) => {
+        console.error("recordOrder failed", err);
+      });
+  }, [order]);
 
   if (!order) {
     return (

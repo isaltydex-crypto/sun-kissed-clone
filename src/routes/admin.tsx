@@ -9,11 +9,18 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminLayout() {
-  const { isAuthenticated } = useAdminAuth();
+  const { isAuthenticated, ready } = useAdminAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  // Login page is always accessible
   if (pathname === "/admin/login") return <Outlet />;
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-sm text-muted-foreground">
+        Laddar...
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/admin/login" search={{ redirect: pathname }} />;

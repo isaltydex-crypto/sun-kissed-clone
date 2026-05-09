@@ -232,6 +232,11 @@ services:
       ADMIN_TOTP_SECRET: ${ADMIN_TOTP_SECRET:-}
       ADMIN_TOTP_ISSUER: ${ADMIN_TOTP_ISSUER:-PeptivaLab}
       ADMIN_TOTP_ACCOUNT: ${ADMIN_TOTP_ACCOUNT:-admin}
+      # Signed admin session cookie (REQUIRED in production).
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:-}
+      # Bcrypt hash of admin password (recommended). Falls back to plaintext
+      # ADMIN_CHAT_PASSWORD when empty.
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-}
     networks: [pvl]
 
   # --------------------------------------------------------------------------

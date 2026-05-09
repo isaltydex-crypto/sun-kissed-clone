@@ -143,6 +143,12 @@ function AdminProductsPage() {
               <Plus className="h-4 w-4" /> Ny produkt
             </button>
             <Link
+              to="/admin/ordrar"
+              className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              Ordrar
+            </Link>
+            <Link
               to="/admin/chatt"
               className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
             >
@@ -159,6 +165,12 @@ function AdminProductsPage() {
               className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
             >
               Sidor
+            </Link>
+            <Link
+              to="/admin/logg"
+              className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              Logg
             </Link>
             <Link
               to="/admin/sakerhet"

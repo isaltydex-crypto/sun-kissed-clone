@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          action: string
+          created_at: string
+          detail: Json
+          id: string
+          ip: string | null
+          target: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          detail?: Json
+          id?: string
+          ip?: string | null
+          target?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          detail?: Json
+          id?: string
+          ip?: string | null
+          target?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       chat_channels: {
         Row: {
           created_at: string
@@ -81,6 +111,113 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          line_total_ore: number
+          metadata: Json
+          order_id: string
+          product_id: string
+          product_name: string
+          quantity: number
+          unit_price_ore: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          line_total_ore: number
+          metadata?: Json
+          order_id: string
+          product_id: string
+          product_name: string
+          quantity: number
+          unit_price_ore: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          line_total_ore?: number
+          metadata?: Json
+          order_id?: string
+          product_id?: string
+          product_name?: string
+          quantity?: number
+          unit_price_ore?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          currency: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          discount_ore: number
+          fulfillment_status: string
+          id: string
+          metadata: Json
+          notes: string | null
+          order_number: string
+          payment_method: string | null
+          payment_status: string
+          shipping_address: Json
+          shipping_ore: number
+          subtotal_ore: number
+          total_ore: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          discount_ore?: number
+          fulfillment_status?: string
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          order_number: string
+          payment_method?: string | null
+          payment_status?: string
+          shipping_address?: Json
+          shipping_ore?: number
+          subtotal_ore: number
+          total_ore: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          discount_ore?: number
+          fulfillment_status?: string
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          order_number?: string
+          payment_method?: string | null
+          payment_status?: string
+          shipping_address?: Json
+          shipping_ore?: number
+          subtotal_ore?: number
+          total_ore?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       site_content: {
         Row: {
