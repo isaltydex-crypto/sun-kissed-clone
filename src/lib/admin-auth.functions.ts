@@ -114,7 +114,7 @@ export async function logAdminAction(input: {
     await supabaseAdmin.from("admin_actions").insert({
       action: input.action,
       target: input.target ?? null,
-      detail: input.detail ?? {},
+      detail: (input.detail ?? {}) as never,
       ip: input.ip ?? null,
       user_agent: input.userAgent ?? null,
     });
