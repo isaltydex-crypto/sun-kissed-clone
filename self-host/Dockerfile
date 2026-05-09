@@ -25,7 +25,12 @@ RUN if [ ! -f vite.config.editor.ts ]; then \
       mv vite.config.ts vite.config.editor.ts && \
       cp self-host/vite.config.node.ts vite.config.ts; \
     fi
-RUN bun run build
+RUN bun run build && \
+    test -f .output/server/index.mjs || \
+    (echo "ERROR: Node SSR build did not create .output/server/index.mjs" && \
+     echo "Build output folders found:" && \
+     ls -la && \
+     exit 1)
 
 FROM node:20-alpine AS run
 WORKDIR /app
