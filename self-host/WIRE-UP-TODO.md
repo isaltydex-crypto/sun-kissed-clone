@@ -264,7 +264,7 @@ keeps your API key off the browser.
    wallet, that coin is disabled at checkout.
 3. **Dashboard → Store settings → API keys** — click *Create*. Copy the key.
 4. **Dashboard → Store settings → IPN settings**:
-   - **IPN callback URL:** `https://peptivalab.se/api/crypto/webhook`
+   - **IPN callback URL:** `https://peptivalab.se/api/public/crypto/webhook`
    - Click *Generate* next to **IPN Secret key** and copy it.
 
 **Step 2. Generate the secrets locally.**

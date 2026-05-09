@@ -163,7 +163,7 @@ export const Route = createFileRoute("/api/crypto/create-invoice")({
               pay_currency: parsed.payCurrency,
               order_id: parsed.orderId,
               order_description: `peptivaLab order ${parsed.orderId}`,
-              ipn_callback_url: `${new URL(parsed.successUrl).origin}/api/crypto/webhook`,
+              ipn_callback_url: `${new URL(parsed.successUrl).origin}/api/public/crypto/webhook`,
               success_url: process.env.CRYPTO_SUCCESS_URL || parsed.successUrl,
               cancel_url: process.env.CRYPTO_CANCEL_URL || parsed.cancelUrl,
             }),
