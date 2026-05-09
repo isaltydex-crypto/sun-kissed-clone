@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { validateDiscountForSubtotal } from "@/lib/discounts.functions";
+import { validateDiscountForSubtotal } from "@/lib/discounts.server";
 
 const BodySchema = z.object({
   code: z.string().trim().min(1).max(40),

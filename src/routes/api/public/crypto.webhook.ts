@@ -13,7 +13,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { verifyNowpaymentsSignature } from "@/server/nowpayments.server";
-import { incrementDiscountUsage } from "@/lib/discounts.functions";
+import { incrementDiscountUsage } from "@/lib/discounts.server";
 
 function mapStatus(s: string): "pending" | "paid" | "failed" {
   switch (s) {
