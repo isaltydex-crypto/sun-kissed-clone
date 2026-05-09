@@ -67,6 +67,18 @@ export type SiteDefaults = {
     newsletterBlurb: string;
     copyright: string;
   };
+  emails: {
+    /** Brand line shown at the top of every notification email. */
+    brandHeader: string;
+    /** Footer line shown at the bottom of every notification email. */
+    footer: string;
+    /** Contact form notification (sent to staff when someone submits /kontakt). */
+    contactSubject: string;
+    contactBody: string;
+    /** Backup / verify failure alert (sent from the backup container). */
+    alertSubject: string;
+    alertBody: string;
+  };
 };
 
 export const siteDefaults: SiteDefaults = {
