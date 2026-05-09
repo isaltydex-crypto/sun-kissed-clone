@@ -2,12 +2,14 @@
 # peptivaLab — TanStack Start app (Node SSR build)
 # Built from repo root: `docker compose build app`
 # ----------------------------------------------------------------------------
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --include=dev
+COPY package.json package-lock.json* ./
+# Lockfile may be stale (Lovable regenerates it); fall back to `npm install`
+# if `npm ci` fails so the build still succeeds on a fresh server.
+RUN npm ci --include=dev || npm install --include=dev --no-audit --no-fund
 
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_PUBLISHABLE_KEY
@@ -34,7 +36,7 @@ RUN npm run build && \
      ls -la && \
      exit 1)
 
-FROM node:20-alpine AS run
+FROM node:22-alpine AS run
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/.output ./.output
