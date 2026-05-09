@@ -25,6 +25,7 @@ import { Route as AdminSakerhetRouteImport } from './routes/admin.sakerhet'
 import { Route as AdminProdukterRouteImport } from './routes/admin.produkter'
 import { Route as AdminOrdrarRouteImport } from './routes/admin.ordrar'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminLoggRouteImport } from './routes/admin.logg'
 import { Route as AdminInnehallRouteImport } from './routes/admin.innehall'
 import { Route as AdminChattRouteImport } from './routes/admin.chatt'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
@@ -110,6 +111,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLoggRoute = AdminLoggRouteImport.update({
+  id: '/logg',
+  path: '/logg',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInnehallRoute = AdminInnehallRouteImport.update({
   id: '/innehall',
   path: '/innehall',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
   '/admin/innehall': typeof AdminInnehallRoute
+  '/admin/logg': typeof AdminLoggRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/ordrar': typeof AdminOrdrarRoute
   '/admin/produkter': typeof AdminProdukterRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
   '/admin/innehall': typeof AdminInnehallRoute
+  '/admin/logg': typeof AdminLoggRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/ordrar': typeof AdminOrdrarRoute
   '/admin/produkter': typeof AdminProdukterRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
   '/admin/innehall': typeof AdminInnehallRoute
+  '/admin/logg': typeof AdminLoggRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/ordrar': typeof AdminOrdrarRoute
   '/admin/produkter': typeof AdminProdukterRoute
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/chatt'
     | '/admin/innehall'
+    | '/admin/logg'
     | '/admin/login'
     | '/admin/ordrar'
     | '/admin/produkter'
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/chatt'
     | '/admin/innehall'
+    | '/admin/logg'
     | '/admin/login'
     | '/admin/ordrar'
     | '/admin/produkter'
@@ -256,6 +267,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/chatt'
     | '/admin/innehall'
+    | '/admin/logg'
     | '/admin/login'
     | '/admin/ordrar'
     | '/admin/produkter'
@@ -396,6 +408,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/logg': {
+      id: '/admin/logg'
+      path: '/logg'
+      fullPath: '/admin/logg'
+      preLoaderRoute: typeof AdminLoggRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/innehall': {
       id: '/admin/innehall'
       path: '/innehall'
@@ -430,6 +449,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminChattRoute: typeof AdminChattRoute
   AdminInnehallRoute: typeof AdminInnehallRoute
+  AdminLoggRoute: typeof AdminLoggRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminOrdrarRoute: typeof AdminOrdrarRoute
   AdminProdukterRoute: typeof AdminProdukterRoute
@@ -440,6 +460,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminChattRoute: AdminChattRoute,
   AdminInnehallRoute: AdminInnehallRoute,
+  AdminLoggRoute: AdminLoggRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminOrdrarRoute: AdminOrdrarRoute,
   AdminProdukterRoute: AdminProdukterRoute,
@@ -478,3 +499,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
