@@ -108,6 +108,7 @@ function RootComponent() {
               <SiteFooter />
               <CartDrawer />
               {!isAdmin && <IrcChat />}
+              <Toaster richColors position="top-right" />
             </div>
           </CartProvider>
         </ProductsProvider>
