@@ -108,7 +108,7 @@ export const Route = createFileRoute("/api/public/crypto/webhook")({
         if (becomesPaid) {
           const discount = (row.metadata as { discount?: { code?: string } } | null)?.discount;
           if (discount?.code) {
-            await incrementDiscountUsage(discount.code).catch((err) =>
+            await incrementDiscountUsage(discount.code).catch((err: unknown) =>
               console.error("[crypto.webhook] discount counter failed:", err),
             );
           }
