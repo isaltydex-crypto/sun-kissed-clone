@@ -1,10 +1,12 @@
 # initdb/
 
-Drop a Postgres dump file here named `01-import.sql` (or any `.sql` /
-`.sql.gz`) and it will be auto-loaded on the **first** Postgres startup.
+`zz-app-schema.sql` creates the app's `public` tables. The `zz-` prefix makes
+it run **after** the supabase/postgres image's own init scripts (which create
+`supabase_admin` and other internal roles). Don't rename it back to `00-`
+or it will fail with `role "supabase_admin" does not exist`.
 
-If migrating from a previous host, export the database as SQL and save it to
-`self-host/initdb/01-import.sql`.
+To import data from a previous host, drop a `zz-99-import.sql` next to it —
+files run alphabetically, so this loads after the schema.
 
 Files in this folder are ignored on subsequent boots — Postgres only runs
 them when the data volume is empty.
