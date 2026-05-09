@@ -13,7 +13,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { verifyNowpaymentsSignature } from "@/server/nowpayments.server";
-import { incrementDiscountUsage } from "@/lib/discounts.functions";
+import { incrementDiscountUsage } from "@/lib/discounts.server";
 
 function mapStatus(s: string): "pending" | "paid" | "failed" {
   switch (s) {
@@ -108,7 +108,7 @@ export const Route = createFileRoute("/api/public/crypto/webhook")({
         if (becomesPaid) {
           const discount = (row.metadata as { discount?: { code?: string } } | null)?.discount;
           if (discount?.code) {
-            await incrementDiscountUsage(discount.code).catch((err) =>
+            await incrementDiscountUsage(discount.code).catch((err: unknown) =>
               console.error("[crypto.webhook] discount counter failed:", err),
             );
           }

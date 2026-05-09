@@ -13,7 +13,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { validateDiscountForSubtotal } from "@/lib/discounts.functions";
+import { validateDiscountForSubtotal } from "@/lib/discounts.server";
 
 const SHIPPING_FREE_OVER_ORE = 49900;
 const SHIPPING_COST_ORE = 4900;
