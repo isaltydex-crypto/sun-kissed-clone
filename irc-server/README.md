@@ -25,7 +25,7 @@ That's it. Three things are now listening:
 | ----- | ----------------------------- | -------------------------------------- |
 | 6697  | InspIRCd (TLS)                | You, with HexChat / mIRC / weechat     |
 | 6667  | InspIRCd (plain, internal)    | The `ws-gateway` container             |
-| 8080  | `ws-gateway` (WebSocket)      | The Lovable site (`IRC_GATEWAY_URL`)   |
+| 8080  | `ws-gateway` (WebSocket)      | The peptivaLab site (`IRC_GATEWAY_URL`)|
 
 For production put nginx/Caddy in front of `:8080` to terminate TLS as
 `wss://`. Example Caddyfile snippet:
