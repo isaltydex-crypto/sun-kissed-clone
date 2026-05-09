@@ -1,77 +1,55 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { adminLogin, adminLogout, adminSessionStatus } from "@/lib/admin-auth.functions";
 
 type AdminAuthValue = {
   isAuthenticated: boolean;
-  login: (password: string) => boolean;
-  logout: () => void;
+  ready: boolean;
+  login: (password: string, code?: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  logout: () => Promise<void>;
 };
 
 const AdminAuthContext = createContext<AdminAuthValue | null>(null);
-const STORAGE_KEY = "peptivalab.admin.v1";
-const PASSWORD_KEY = "peptivalab.admin.pw.v1";
-
-// Demo password — change this in src/context/AdminAuthContext.tsx
-// (also set ADMIN_CHAT_PASSWORD in server env to the same value for the chat backend)
-const ADMIN_PASSWORD = "peptiva-admin-2026";
-
-export function getAdminPassword(): string {
-  try {
-    return sessionStorage.getItem(PASSWORD_KEY) || "";
-  } catch {
-    return "";
-  }
-}
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(STORAGE_KEY) === "1") {
-        setIsAuthenticated(true);
-        let pw = sessionStorage.getItem(PASSWORD_KEY) || "";
-        if (!pw) {
-          // Legacy session: backfill with the known admin password.
-          pw = ADMIN_PASSWORD;
-          sessionStorage.setItem(PASSWORD_KEY, pw);
-        }
-        document.cookie = `pvl_admin=${encodeURIComponent(pw)}; path=/; SameSite=Lax; max-age=43200`;
-      }
-    } catch {
-      // ignore
-    }
+    let mounted = true;
+    adminSessionStatus()
+      .then((s) => {
+        if (mounted) setIsAuthenticated(s.authenticated);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (mounted) setReady(true);
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const login = (password: string) => {
-    if (password === ADMIN_PASSWORD) {
-      try {
-        sessionStorage.setItem(STORAGE_KEY, "1");
-        sessionStorage.setItem(PASSWORD_KEY, password);
-        // Cookie so server functions can authorize admin RPC calls.
-        document.cookie = `pvl_admin=${encodeURIComponent(password)}; path=/; SameSite=Lax; max-age=43200`;
-      } catch {
-        // ignore
-      }
+  const login: AdminAuthValue["login"] = async (password, code) => {
+    try {
+      await adminLogin({ data: { password, code } });
       setIsAuthenticated(true);
-      return true;
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : "Inloggning misslyckades." };
     }
-    return false;
   };
 
-  const logout = () => {
+  const logout = async () => {
     try {
-      sessionStorage.removeItem(STORAGE_KEY);
-      sessionStorage.removeItem(PASSWORD_KEY);
-      document.cookie = "pvl_admin=; path=/; max-age=0";
+      await adminLogout();
     } catch {
       // ignore
     }
     setIsAuthenticated(false);
   };
 
-
   return (
-    <AdminAuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AdminAuthContext.Provider value={{ isAuthenticated, ready, login, logout }}>
       {children}
     </AdminAuthContext.Provider>
   );
