@@ -30,6 +30,7 @@ import { Route as AdminInnehallRouteImport } from './routes/admin.innehall'
 import { Route as AdminChattRouteImport } from './routes/admin.chatt'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiInternalNotifyRouteImport } from './routes/api/internal/notify'
+import { Route as ApiDiscountValidateRouteImport } from './routes/api/discount.validate'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -136,6 +137,11 @@ const ApiInternalNotifyRoute = ApiInternalNotifyRouteImport.update({
   path: '/api/internal/notify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDiscountValidateRoute = ApiDiscountValidateRouteImport.update({
+  id: '/api/discount/validate',
+  path: '/api/discount/validate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
 }
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
 }
@@ -204,6 +212,7 @@ export interface FileRoutesById {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
 }
@@ -229,6 +238,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/discount/validate'
     | '/api/internal/notify'
     | '/api/public/health'
   fileRoutesByTo: FileRoutesByTo
@@ -252,6 +262,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/discount/validate'
     | '/api/internal/notify'
     | '/api/public/health'
   id:
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/discount/validate'
     | '/api/internal/notify'
     | '/api/public/health'
   fileRoutesById: FileRoutesById
@@ -290,6 +302,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SidaSlugRoute: typeof SidaSlugRoute
+  ApiDiscountValidateRoute: typeof ApiDiscountValidateRoute
   ApiInternalNotifyRoute: typeof ApiInternalNotifyRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
 }
@@ -443,6 +456,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInternalNotifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/discount/validate': {
+      id: '/api/discount/validate'
+      path: '/api/discount/validate'
+      fullPath: '/api/discount/validate'
+      preLoaderRoute: typeof ApiDiscountValidateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -493,9 +513,19 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SidaSlugRoute: SidaSlugRoute,
+  ApiDiscountValidateRoute: ApiDiscountValidateRoute,
   ApiInternalNotifyRoute: ApiInternalNotifyRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
