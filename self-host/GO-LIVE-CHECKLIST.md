@@ -192,7 +192,7 @@ chmod 600 .env
 
 Skip if starting fresh.
 
-1. In Lovable: **Cloud → Database → Export** → download `dump.sql`
+1. Export the previous database as `dump.sql`
 2. SCP it up:
    ```bash
    scp dump.sql deploy@<VPS_IP>:~/peptivalab/self-host/initdb/01-import.sql
