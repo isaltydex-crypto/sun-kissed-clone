@@ -3,6 +3,7 @@ import { getRequestHeader, getCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { forwardToIrc, ircChannelName, provisionChannel } from "./irc-bridge.server";
+import { verifyAdminSession } from "@/lib/admin-auth.functions";
 
 // ---------- helpers ----------
 
@@ -12,13 +13,16 @@ function makeSlug(): string {
 }
 
 function requireAdmin() {
+  // Preferred: signed HttpOnly session cookie
+  const session = getCookie("pvl_admin_session");
+  if (verifyAdminSession(session)) return;
+  // Legacy fallback (will be removed in a future version)
   const fromHeader = getRequestHeader("x-admin-password") || "";
   const fromCookie = getCookie("pvl_admin") || "";
   const provided = fromHeader || fromCookie;
   const expected = process.env.ADMIN_CHAT_PASSWORD || "peptiva-admin-2026";
-  if (!provided || provided !== expected) {
-    throw new Response("Unauthorized", { status: 401 });
-  }
+  if (provided && provided === expected) return;
+  throw new Response("Unauthorized", { status: 401 });
 }
 
 async function loadChannelByToken(visitorToken: string) {
