@@ -1,246 +1,374 @@
-# peptivaLab — VPS Wire-Up TODO
+# peptivaLab — Wire-Up Checklist
 
-Point-by-point list of every secret, service, and integration that must be
-wired up on your private VPS. Work top-to-bottom. Each item has **what**,
-**where to put it**, and **how to generate / get it**.
+Everything you need to plug in to make the site run on your own server.
+Work through it from top to bottom, **one section at a time**.
 
-Companion to `GO-LIVE-CHECKLIST.md` (which covers the *order of operations*).
-This file is the *what plugs into what*.
+This file answers: **"What do I need to fill in, and where do I get it?"**
+Its sister file `GO-LIVE-CHECKLIST.md` answers: **"In what order do I do things?"**
+Use them together.
 
-Legend: 🔴 required to boot · 🟡 strongly recommended · 🟢 optional
+**Symbols**
+- 🔴 **Required** — site won't start without it
+- 🟡 **Recommended** — site works, but you really should set this
+- 🟢 **Optional** — nice to have
 
----
-
-## 1. DNS — 4 A-records 🔴
-
-**Where:** your domain registrar (Loopia / Cloudflare / Namecheap).
-**How:** point each at your VPS public IPv4 (`curl -4 ifconfig.me` on VPS).
-
-| Host                   | Value      |
-| ---------------------- | ---------- |
-| `peptivalab.se`        | `<VPS_IP>` |
-| `www.peptivalab.se`    | `<VPS_IP>` |
-| `chat.peptivalab.se`   | `<VPS_IP>` |
-| `db.peptivalab.se`     | `<VPS_IP>` |
-
-If on Cloudflare → **DNS-only (grey cloud)** until Let's Encrypt issues certs.
+> **Tip:** Open a fresh terminal on your computer and a password manager
+> note. Every secret you generate, paste into the password manager BEFORE
+> putting it in the file. If you lose them, some are unrecoverable.
 
 ---
 
-## 2. Postgres / Supabase core 🔴
+## 1. DNS — point your domain at the server 🔴
 
-In `self-host/.env`:
+Your domain (peptivalab.se) needs to know where the server lives.
 
-| Var | How to generate / get |
-| --- | --- |
-| `POSTGRES_PASSWORD` | `openssl rand -base64 24` |
-| `JWT_SECRET` | `openssl rand -hex 32` (≥32 chars) |
-| `ANON_KEY` | https://supabase.com/docs/guides/self-hosting/docker#generate-api-keys — paste `JWT_SECRET`, copy the `anon` JWT |
-| `SERVICE_ROLE_KEY` | same page, copy the `service_role` JWT |
-| `DASHBOARD_USERNAME` | free choice, e.g. `supabase` |
-| `DASHBOARD_PASSWORD` | `openssl rand -base64 18` |
-| `PUBLIC_SUPABASE_URL` | `https://db.peptivalab.se` (must match `STUDIO_DOMAIN`) |
+**Step 1.** On your VPS, find its public IP address:
+```bash
+curl -4 ifconfig.me
+```
+Write down the number it prints (e.g. `203.0.113.42`).
 
-**Verify:** `JWT_SECRET` is the *exact* value you pasted into the JWT
-generator — Auth, PostgREST, Realtime, Storage all reject mismatches.
+**Step 2.** Log into your domain registrar (Loopia, Cloudflare, Namecheap, etc.)
+and add **four A-records**, all pointing to that IP:
 
----
+| Subdomain                 | Type | Points to    |
+| ------------------------- | ---- | ------------ |
+| `peptivalab.se`           | A    | your VPS IP  |
+| `www.peptivalab.se`       | A    | your VPS IP  |
+| `chat.peptivalab.se`      | A    | your VPS IP  |
+| `db.peptivalab.se`        | A    | your VPS IP  |
 
-## 3. Admin authentication 🔴
+**Step 3.** Wait 5–30 minutes, then check from your computer:
+```bash
+dig +short peptivalab.se
+```
+It should print your VPS IP. Repeat for the other three. Don't continue
+until all four work.
 
-| Var | How |
-| --- | --- |
-| `ADMIN_SESSION_SECRET` | `openssl rand -hex 32` — signs HttpOnly session cookies. **Required** or login is insecure. |
-| `ADMIN_PASSWORD_HASH` | 🟡 Log in once with `ADMIN_CHAT_PASSWORD`, go to `/admin/sakerhet` → "Generera lösenordshash", paste a strong password, copy the resulting `$2b$…` hash here. After this you can delete `ADMIN_CHAT_PASSWORD`. |
-| `ADMIN_CHAT_PASSWORD` | `openssl rand -base64 18` — legacy plaintext fallback, used until you set `ADMIN_PASSWORD_HASH`. |
-
-### Admin 2FA (TOTP) 🟡
-
-| Var | How |
-| --- | --- |
-| `ADMIN_TOTP_SECRET` | Log in, open `/admin/sakerhet` → "Generera 2FA". Scan the QR with Aegis / 1Password / Google Authenticator. Paste the Base32 secret here, restart `app`. |
-| `ADMIN_TOTP_ISSUER` | Display name in the authenticator app (default `PeptivaLab`). |
-| `ADMIN_TOTP_ACCOUNT` | Account label (default `admin`). |
+> **Cloudflare users:** Set the proxy to **DNS-only (grey cloud)** for now.
+> You can switch it on (orange cloud) later, after Let's Encrypt has issued
+> certificates.
 
 ---
 
-## 4. IRC / chat stack 🔴
+## 2. Database & Supabase keys 🔴
 
-| Var | How |
-| --- | --- |
-| `IRC_OPER_PASSWORD` | `openssl rand -hex 24` |
-| `IRC_SERVER_PASSWORD` | `openssl rand -hex 24` |
-| `GATEWAY_TOKEN` | `openssl rand -hex 24` — shared secret between app ↔ ws-gateway |
-| `IRC_BOT_NICK` | free, default `pvl-bot` |
-| `IRC_CHANNEL_PREFIX` | free, default `#pvl-` |
+These all go into `self-host/.env`.
 
-Open port **6697/tcp** in UFW only if you want HexChat / mIRC clients to
-connect. The in-browser widget works without it.
+**Step 1.** Generate the basics. Run each line, copy the output into your
+password manager:
+```bash
+openssl rand -base64 24    # → POSTGRES_PASSWORD
+openssl rand -hex 32       # → JWT_SECRET (≥32 chars)
+openssl rand -base64 18    # → DASHBOARD_PASSWORD
+```
 
----
+**Step 2.** Generate the two API keys.
+1. Open <https://supabase.com/docs/guides/self-hosting/docker#generate-api-keys>
+2. Paste your `JWT_SECRET` (from step 1) into both fields on that page.
+3. Copy the **anon** JWT it produces → that's your `ANON_KEY`.
+4. Copy the **service_role** JWT → that's your `SERVICE_ROLE_KEY`.
 
-## 5. Email (contact form + backup alerts) 🟡
+> **Why this matters:** Auth, the database API, Realtime, and Storage all
+> share `JWT_SECRET`. If they don't all use the same value, nothing logs in.
 
-Leave `SMTP_HOST` empty to disable email entirely (contact form still saves;
-backup failures only log). To enable, pick **one** SMTP provider:
+**Step 3.** Fill these into `self-host/.env`:
 
-| Provider | `SMTP_HOST` | `SMTP_PORT` | Where to get user/pass |
-| --- | --- | --- | --- |
-| **Brevo** (recommended, free tier) | `smtp-relay.brevo.com` | `587` | brevo.com → SMTP & API → SMTP key |
-| **Postmark** | `smtp.postmarkapp.com` | `587` | server → API tokens |
-| **Mailgun** | `smtp.eu.mailgun.org` | `587` | domain → SMTP credentials |
-| **Gmail** (low volume only) | `smtp.gmail.com` | `587` | Google account → App Passwords |
-| **Fastmail** | `smtp.fastmail.com` | `465` | settings → app passwords |
-
-Then fill:
-
-| Var | Value |
-| --- | --- |
-| `SMTP_HOST` | from table above |
-| `SMTP_PORT` | from table above |
-| `SMTP_SECURE` | leave empty (auto: `true` for 465, STARTTLS for 587) |
-| `SMTP_USER` | provider username / API key id |
-| `SMTP_PASS` | provider password / API secret |
-| `NOTIFY_EMAIL_FROM` | `PeptivaLab <noreply@peptivalab.se>` — must be a domain you've verified at the SMTP provider, otherwise SPF/DKIM fail and mail goes to spam |
-| `NOTIFY_EMAIL_TO` | **your real address.** Comma-separate for multiple. Read fresh each send — change any time, just `docker compose up -d app backup`. |
-| `INTERNAL_NOTIFY_TOKEN` | `openssl rand -hex 32` — lets the backup container POST to `/api/internal/notify` |
-
-Email subjects/bodies are editable at `/admin/innehall → Mailmallar` — no
-env vars, no redeploy.
-
-### DNS for deliverability 🟡
-
-At your registrar (or your SMTP provider's DNS wizard), add:
-
-- **SPF** TXT on `peptivalab.se`: `v=spf1 include:<provider's spf domain> ~all`
-- **DKIM** CNAME(s) the provider gives you
-- **DMARC** TXT on `_dmarc.peptivalab.se`: `v=DMARC1; p=none; rua=mailto:admin@peptivalab.se`
-
-Without these, expect ~50 % of mail to land in spam.
+| Variable              | Value                                       |
+| --------------------- | ------------------------------------------- |
+| `POSTGRES_PASSWORD`   | from step 1                                 |
+| `JWT_SECRET`          | from step 1                                 |
+| `ANON_KEY`            | from step 2 (anon JWT)                      |
+| `SERVICE_ROLE_KEY`    | from step 2 (service_role JWT)              |
+| `DASHBOARD_USERNAME`  | anything you like, e.g. `supabase`          |
+| `DASHBOARD_PASSWORD`  | from step 1                                 |
+| `PUBLIC_SUPABASE_URL` | `https://db.peptivalab.se`                  |
 
 ---
 
-## 6. Backups 🔴 (encrypted) + 🟡 (off-site)
+## 3. Admin login 🔴
 
-| Var | How |
-| --- | --- |
-| `BACKUP_CRON` | default `17 3 * * *` (daily 03:17 UTC). |
-| `BACKUP_RETENTION_DAYS` | default `14`. |
-| `BACKUP_ENCRYPTION_KEY_ID` | short label, start with `k1`. |
-| `BACKUP_ENCRYPTION_PASSPHRASE` | `openssl rand -base64 48` — **store in password manager off the server**, otherwise dumps are unrecoverable. |
-| `BACKUP_OLD_KEYS` | empty initially. After a key rotation: `k0:old_passphrase`. |
-| `BACKUP_VERIFY_CRON` | default `43 4 * * 0` (Sundays 04:43 UTC). Restores latest dump into a throwaway DB. |
-| `OFFSITE_REMOTE` | 🟡 e.g. `b2:peptivalab-backups`. **Without this a fire / disk loss = total data loss.** |
-| `RCLONE_CONFIG` | run `rclone config` locally, paste the resulting INI block (multiline). |
+Lets you sign into the `/admin` panel on the live site.
 
-**Recommended off-site target: Backblaze B2** (cheap, S3-compatible, EU
-region available).
-1. backblaze.com → sign up → create bucket `peptivalab-backups` (private).
-2. App keys → "Add a New Application Key" scoped to that bucket.
-3. Locally: `rclone config` → new remote `b2` → paste keyID + applicationKey.
-4. Copy the `[b2]` block from `~/.config/rclone/rclone.conf` into `RCLONE_CONFIG`.
+**Step 1.** Generate a session secret (signs your login cookie):
+```bash
+openssl rand -hex 32       # → ADMIN_SESSION_SECRET
+```
+
+**Step 2.** Set a temporary password (you'll replace it in step 3):
+```bash
+openssl rand -base64 18    # → ADMIN_CHAT_PASSWORD
+```
+
+**Step 3.** After the site is running, log in once with that password,
+then go to `/admin/sakerhet` → click **"Generera lösenordshash"**, type a
+strong password you'll remember, copy the long `$2b$…` string into
+`ADMIN_PASSWORD_HASH`. Restart the app, then **delete `ADMIN_CHAT_PASSWORD`**
+from `.env`.
+
+### Two-factor authentication (2FA) 🟡
+
+Highly recommended.
+
+1. Log into `/admin/sakerhet` → click **"Generera 2FA"**.
+2. Scan the QR code with your authenticator app (Aegis, 1Password, Google Authenticator, etc.).
+3. Copy the Base32 secret shown below the QR → paste into `ADMIN_TOTP_SECRET`.
+4. Restart the app: `docker compose up -d app`.
+5. Next login will ask for the 6-digit code from your phone.
+
+`ADMIN_TOTP_ISSUER` and `ADMIN_TOTP_ACCOUNT` are just the labels shown in
+your authenticator app — leave the defaults unless you care.
 
 ---
 
-## 7. Caddy / TLS 🔴
+## 4. Live chat 🔴
 
-| Var | How |
-| --- | --- |
-| `LETSENCRYPT_EMAIL` | a real address — Let's Encrypt sends expiry warnings here |
-| `SITE_DOMAIN`, `WWW_DOMAIN`, `CHAT_DOMAIN`, `STUDIO_DOMAIN` | match the four A-records in section 1 |
+The IRC-based chat widget needs three shared secrets:
 
-UFW: open `22, 80, 443, 6697`. Block everything else (Postgres, Kong,
-Realtime, Auth, app, ws-gateway are all internal to the docker network).
+```bash
+openssl rand -hex 24       # → IRC_OPER_PASSWORD
+openssl rand -hex 24       # → IRC_SERVER_PASSWORD
+openssl rand -hex 24       # → GATEWAY_TOKEN
+```
+
+`GATEWAY_TOKEN` is the password the website uses to talk to the chat
+gateway. Make sure it appears in **both** the app's env and the
+ws-gateway's env (the docker-compose file already does this for you).
+
+`IRC_BOT_NICK` and `IRC_CHANNEL_PREFIX` are display-only — defaults
+(`pvl-bot`, `#pvl-`) are fine.
+
+> Want to use HexChat or mIRC from your laptop? Open port `6697/tcp`
+> in the firewall (see section 7). The in-browser widget works
+> without it.
+
+---
+
+## 5. Email — contact form & alerts 🟡
+
+Without this: contact form submissions are still saved in the database,
+but no one gets emailed about them, and backup failures are only logged.
+
+**Step 1.** Pick a provider and sign up (one is enough):
+
+| Provider                          | Host                  | Port  | Where to find credentials                  |
+| --------------------------------- | --------------------- | ----- | ------------------------------------------ |
+| **Brevo** (free, recommended)     | `smtp-relay.brevo.com`| `587` | brevo.com → SMTP & API → SMTP key          |
+| Postmark                          | `smtp.postmarkapp.com`| `587` | server → API tokens                        |
+| Mailgun                           | `smtp.eu.mailgun.org` | `587` | domain → SMTP credentials                  |
+| Gmail (low volume only)           | `smtp.gmail.com`      | `587` | Google account → App Passwords             |
+| Fastmail                          | `smtp.fastmail.com`   | `465` | settings → app passwords                   |
+
+**Step 2.** Verify your sending domain (`peptivalab.se`) inside the
+provider. They'll give you DNS records to add — do that in your registrar.
+
+**Step 3.** Fill into `self-host/.env`:
+
+| Variable                | Value                                                    |
+| ----------------------- | -------------------------------------------------------- |
+| `SMTP_HOST`             | from table above                                         |
+| `SMTP_PORT`             | from table above                                         |
+| `SMTP_SECURE`           | leave empty                                              |
+| `SMTP_USER`             | provider username / API key id                           |
+| `SMTP_PASS`             | provider password / API secret                           |
+| `NOTIFY_EMAIL_FROM`     | `PeptivaLab <noreply@peptivalab.se>`                     |
+| `NOTIFY_EMAIL_TO`       | your real address (comma-separate for multiple)          |
+| `INTERNAL_NOTIFY_TOKEN` | `openssl rand -hex 32` (lets backups send alerts)        |
+
+**Step 4. (Recommended)** Add three DNS records so your mail doesn't go
+to spam. Your provider's setup wizard generates the exact values:
+- **SPF** (TXT record)
+- **DKIM** (CNAME records)
+- **DMARC** (TXT record on `_dmarc.peptivalab.se`)
+
+> **Email templates** (subject lines and body text) are editable in the
+> admin panel at `/admin/innehall → Mailmallar` — no need to touch any files.
+
+---
+
+## 6. Backups 🔴
+
+**Step 1.** Generate an encryption passphrase:
+```bash
+openssl rand -base64 48
+```
+**Save this in your password manager.** Without it, backups are unreadable.
+
+**Step 2.** Fill in:
+
+| Variable                       | Value                                       |
+| ------------------------------ | ------------------------------------------- |
+| `BACKUP_ENCRYPTION_KEY_ID`     | `k1` (just a label)                         |
+| `BACKUP_ENCRYPTION_PASSPHRASE` | from step 1                                 |
+| `BACKUP_CRON`                  | `17 3 * * *` (daily 03:17 UTC) — default ok |
+| `BACKUP_RETENTION_DAYS`        | `14` — default ok                           |
+
+### Off-site copy 🟡 (strongly recommended)
+
+If your VPS dies, on-server backups die with it. Set up Backblaze B2
+(cheap, ~$0.005/GB/month):
+
+1. Sign up at backblaze.com → create a **private** bucket called
+   `peptivalab-backups`.
+2. **App keys** → "Add a New Application Key" scoped to that bucket.
+   Copy keyID and applicationKey.
+3. On your laptop: `rclone config` → "n" (new remote) → name it `b2` →
+   choose Backblaze B2 → paste the credentials.
+4. Open `~/.config/rclone/rclone.conf`. Copy the entire `[b2]` block.
+5. Paste it into `RCLONE_CONFIG` in `.env` (multiline value is fine).
+6. Set `OFFSITE_REMOTE=b2:peptivalab-backups`.
+
+Test that it works:
+```bash
+docker compose exec backup rclone ls b2:peptivalab-backups
+```
+
+---
+
+## 7. HTTPS & firewall 🔴
+
+| Variable           | Value                                |
+| ------------------ | ------------------------------------ |
+| `LETSENCRYPT_EMAIL`| your real address (cert expiry warnings) |
+| `SITE_DOMAIN`      | `peptivalab.se`                      |
+| `WWW_DOMAIN`       | `www.peptivalab.se`                  |
+| `CHAT_DOMAIN`      | `chat.peptivalab.se`                 |
+| `STUDIO_DOMAIN`    | `db.peptivalab.se`                   |
+
+**Firewall (UFW):** open only what you need.
+```bash
+sudo ufw allow 22/tcp     # SSH
+sudo ufw allow 80/tcp     # HTTP (Let's Encrypt)
+sudo ufw allow 443/tcp    # HTTPS (the website)
+sudo ufw allow 6697/tcp   # IRC (only if you want desktop chat clients)
+sudo ufw enable
+```
+Everything else stays internal to Docker — never expose Postgres or Auth
+directly to the internet.
 
 ---
 
 ## 8. Analytics 🟢
 
-| Var | How |
-| --- | --- |
-| `VITE_PLAUSIBLE_DOMAIN` | your Plausible site domain, e.g. `peptivalab.se`. Empty = no analytics. **Build-time** — rebuild app container after change: `docker compose build app && docker compose up -d app`. |
-| `VITE_PLAUSIBLE_SRC` | only if you self-host Plausible. |
+Optional Plausible Analytics. Empty = no tracking.
+
+| Variable                | Value                                            |
+| ----------------------- | ------------------------------------------------ |
+| `VITE_PLAUSIBLE_DOMAIN` | `peptivalab.se` (your domain in Plausible)       |
+| `VITE_PLAUSIBLE_SRC`    | only set if you self-host Plausible              |
+
+> Changes to these need an app rebuild:
+> `docker compose build app && docker compose up -d app`
 
 ---
 
-## 9. Sitemap / SEO 🟡
+## 9. SEO 🟡
 
-| Var | Value |
-| --- | --- |
-| `PUBLIC_SITE_URL` | `https://peptivalab.se` — used by `/sitemap.xml` and `/robots.txt`. |
+| Variable          | Value                  |
+| ----------------- | ---------------------- |
+| `PUBLIC_SITE_URL` | `https://peptivalab.se` |
 
-After cutover, submit the sitemap to Google Search Console (one-time).
+Used for `/sitemap.xml` and `/robots.txt`. After go-live, submit the
+sitemap to Google Search Console (one-time).
 
 ---
 
 ## 10. Uptime monitoring 🟡
 
-Free, no env vars to set:
+Get an email/SMS if the site goes down. Free, no env vars.
 
-1. Sign up at **uptimerobot.com** (or self-host **Uptime Kuma** on a second
-   tiny VPS).
-2. Add HTTP(s) monitor:
-   - URL: `https://peptivalab.se/api/public/health`
-   - Interval: 5 min
-   - Alert contact: your email / SMS
-3. Add a second monitor for `https://db.peptivalab.se` (Studio reachability).
+1. Sign up at <https://uptimerobot.com> (or self-host Uptime Kuma).
+2. Add an HTTP monitor:
+   - **URL:** `https://peptivalab.se/api/public/health`
+   - **Interval:** 5 min
+   - **Alert contact:** your email or phone
+3. Add a second monitor for `https://db.peptivalab.se`.
 
-See `UPTIME-MONITORING.md` for details.
-
----
-
-## 11. Auto-deploy (GitHub → VPS) 🟢
-
-In **GitHub repo → Settings → Secrets and variables → Actions**:
-
-| Secret | Value |
-| --- | --- |
-| `VPS_HOST` | your IP or `peptivalab.se` |
-| `VPS_USER` | `deploy` |
-| `VPS_SSH_KEY` | private key from `/home/deploy/.ssh/id_ed25519` (generate with `ssh-keygen -t ed25519`) |
-| `VPS_PATH` | `/home/deploy/peptivalab` |
-
-Then: `cp self-host/deploy.example.yml .github/workflows/deploy.yml`, push.
+See `UPTIME-MONITORING.md` for screenshots and Uptime Kuma instructions.
 
 ---
 
-## 12. Cutover from previous host 🟡 (only if migrating)
+## 11. Auto-deploy on git push 🟢
 
-1. Export the previous database as `dump.sql`.
-2. SCP up: `scp dump.sql deploy@<VPS_IP>:~/peptivalab/self-host/initdb/01-import.sql`.
-3. First boot auto-imports it after `00-schema.sql`.
-4. After smoke tests pass: decommission the previous deployment.
+Push to GitHub and have the VPS pull and rebuild automatically.
+
+**Step 1.** On the VPS, generate a deploy SSH key:
+```bash
+sudo -u deploy ssh-keygen -t ed25519 -f /home/deploy/.ssh/id_ed25519 -N ""
+sudo -u deploy bash -c "cat /home/deploy/.ssh/id_ed25519.pub >> /home/deploy/.ssh/authorized_keys"
+sudo cat /home/deploy/.ssh/id_ed25519     # copy this private key
+```
+
+**Step 2.** In **GitHub → repo → Settings → Secrets and variables → Actions**,
+add four secrets:
+
+| Secret        | Value                                    |
+| ------------- | ---------------------------------------- |
+| `VPS_HOST`    | your VPS IP, or `peptivalab.se`          |
+| `VPS_USER`    | `deploy`                                 |
+| `VPS_SSH_KEY` | the private key from step 1 (whole thing)|
+| `VPS_PATH`    | `/home/deploy/peptivalab`                |
+
+**Step 3.** Activate the workflow:
+```bash
+mkdir -p .github/workflows
+cp self-host/deploy.example.yml .github/workflows/deploy.yml
+git add .github && git commit -m "ci: auto-deploy" && git push
+```
 
 ---
 
-## Final pre-flight
+## 12. Migrating data from a previous host 🟡
+
+Skip if starting fresh.
+
+1. Export the old database to a single SQL file called `dump.sql`.
+2. Upload it to the VPS:
+   ```bash
+   scp dump.sql deploy@<VPS_IP>:~/peptivalab/self-host/initdb/01-import.sql
+   ```
+3. On the **first** boot of Postgres, the file is auto-imported after the
+   schema. (If Postgres has already booted once, you'll need to wipe its
+   volume — `docker compose down -v` — first. **This deletes everything.**)
+
+---
+
+## Final pre-flight check
+
+Before you start the stack, run:
 
 ```bash
 cd ~/peptivalab/self-host
-chmod 600 .env
-grep CHANGEME .env        # must return nothing
-docker compose config -q  # must exit 0
+chmod 600 .env                 # tighten permissions
+grep CHANGEME .env             # MUST return nothing
+docker compose config -q       # MUST exit 0 (validates the compose file)
 docker compose up -d
-docker compose ps         # everything Up / healthy within ~2 min
+docker compose ps              # everything Up / healthy within ~2 min
 ```
 
-Then run the 5 smoke tests in `GO-LIVE-CHECKLIST.md → §10`.
+If anything is "Restarting" or "Exited", check its logs:
+```bash
+docker compose logs -f <service-name>
+```
+
+Then run the 5 smoke tests in **`GO-LIVE-CHECKLIST.md → §10`**.
 
 ---
 
-## Quick "is X wired up?" checklist
+## Quick "is everything wired up?" checklist
 
-- [ ] DNS resolves for all 4 hosts
-- [ ] `JWT_SECRET` matches the keys it generated
+Tick these off as you go:
+
+- [ ] All 4 DNS A-records resolve (`dig +short ...`)
+- [ ] `JWT_SECRET` matches the value used to generate `ANON_KEY` / `SERVICE_ROLE_KEY`
 - [ ] `ADMIN_SESSION_SECRET` set (≥32 chars)
-- [ ] `ADMIN_PASSWORD_HASH` set (delete `ADMIN_CHAT_PASSWORD` after)
-- [ ] `ADMIN_TOTP_SECRET` set + tested with authenticator app
-- [ ] `GATEWAY_TOKEN` identical in app + ws-gateway env
-- [ ] SMTP test: submit `/kontakt` form → email arrives at `NOTIFY_EMAIL_TO`
-- [ ] `BACKUP_ENCRYPTION_PASSPHRASE` saved off-server
-- [ ] `OFFSITE_REMOTE` configured + first sync verified (`docker compose exec backup ls /backups`)
+- [ ] `ADMIN_PASSWORD_HASH` set, `ADMIN_CHAT_PASSWORD` deleted
+- [ ] `ADMIN_TOTP_SECRET` set, tested with authenticator app
+- [ ] `GATEWAY_TOKEN` identical in app and ws-gateway env
+- [ ] SMTP test: submit `/kontakt` form → email arrives
+- [ ] `BACKUP_ENCRYPTION_PASSPHRASE` saved off-server in password manager
+- [ ] `OFFSITE_REMOTE` configured + first sync verified
 - [ ] UptimeRobot monitor green
-- [ ] Caddy issued certs for all 4 domains
-- [ ] UFW: only 22/80/443/6697 open
-- [ ] Cron: `crontab -l` (or `/etc/cron.d/`) shows the backup job
-- [ ] Restore drill: `docker compose exec backup verify-latest.sh` passes
+- [ ] Caddy issued certs for all 4 domains (`docker compose logs caddy`)
+- [ ] UFW: only 22 / 80 / 443 / 6697 open (`sudo ufw status`)
+- [ ] Restore drill passed: `docker compose exec backup verify-latest.sh`
