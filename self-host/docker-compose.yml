@@ -263,6 +263,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       BACKUP_CRON: ${BACKUP_CRON:-17 3 * * *}
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      # Leave empty to disable encryption (NOT recommended).
+      BACKUP_ENCRYPTION_PASSPHRASE: ${BACKUP_ENCRYPTION_PASSPHRASE:-}
       TZ: UTC
     volumes:
       - backups:/backups
