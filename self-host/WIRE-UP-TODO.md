@@ -319,7 +319,7 @@ Optional Plausible Analytics. Empty = no tracking.
 
 ---
 
-## 9. SEO 🟡
+## 10. SEO 🟡
 
 | Variable          | Value                  |
 | ----------------- | ---------------------- |
