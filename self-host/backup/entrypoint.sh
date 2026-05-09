@@ -43,14 +43,20 @@ VERIFY_CRON="${BACKUP_VERIFY_CRON:-43 4 * * 0}"   # Sundays 04:43 UTC
   echo "BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-14}"
   echo "BACKUP_ENCRYPTION_KEY_ID=${BACKUP_ENCRYPTION_KEY_ID:-}"
   echo "OFFSITE_REMOTE=${OFFSITE_REMOTE:-}"
+  echo "SMTP_HOST=${SMTP_HOST:-}"
+  echo "SMTP_PORT=${SMTP_PORT:-587}"
+  echo "SMTP_USER=${SMTP_USER:-}"
+  echo "SMTP_PASS=${SMTP_PASS:-}"
+  echo "NOTIFY_EMAIL_FROM=${NOTIFY_EMAIL_FROM:-}"
+  echo "NOTIFY_EMAIL_TO=${NOTIFY_EMAIL_TO:-}"
   echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 } > /etc/environment
 chmod 600 /etc/environment
 
 mkdir -p /etc/crontabs /backups
 {
-  echo "${CRON_EXPR} . /etc/environment; /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1"
-  echo "${VERIFY_CRON} . /etc/environment; /usr/local/bin/verify-backup.sh >> /var/log/backup.log 2>&1"
+  echo "${CRON_EXPR} . /etc/environment; /usr/local/bin/run-with-alert.sh backup /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1"
+  echo "${VERIFY_CRON} . /etc/environment; /usr/local/bin/run-with-alert.sh verify-backup /usr/local/bin/verify-backup.sh >> /var/log/backup.log 2>&1"
 } > /etc/crontabs/root
 touch /var/log/backup.log
 
