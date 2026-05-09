@@ -164,6 +164,16 @@ export const siteDefaults: SiteDefaults = {
     newsletterBlurb: "10% rabatt på din första order.",
     copyright: "© {year} peptivaLab Group. Alla rättigheter förbehållna.",
   },
+  emails: {
+    brandHeader: "peptivaLab Group",
+    footer: "Detta är ett automatiskt mejl från peptivalab.se — svara inte direkt.",
+    contactSubject: "Nytt kontaktmeddelande från {{name}}",
+    contactBody:
+      "Hej!\n\nDu har fått ett nytt meddelande via kontaktformuläret på peptivalab.se.\n\nNamn:    {{name}}\nE-post:  {{email}}\nTid:     {{timestamp}}\n\nMeddelande:\n{{message}}\n\nSvara direkt på detta mejl för att svara kunden.",
+    alertSubject: "[peptivaLab] {{job}} misslyckades på {{host}}",
+    alertBody:
+      "Ett schemalagt jobb har misslyckats.\n\nJobb:      {{job}}\nServer:    {{host}}\nStartade:  {{startedAt}}\nFelade:    {{failedAt}}\nExit-kod:  {{exitCode}}\n\nSista raderna ur loggen:\n{{log}}\n\nKontrollera servern och åtgärda problemet så snart som möjligt.",
+  },
 };
 
 export type SiteContentMap = Partial<{
