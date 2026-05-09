@@ -178,3 +178,90 @@ docker compose up -d app
 | Admin login fails                        | `ADMIN_CHAT_PASSWORD` not loaded — `docker compose restart app` |
 
 Full Supabase self-host docs: <https://supabase.com/docs/guides/self-hosting/docker>
+
+---
+
+## Hosting requirements (read before you buy a server)
+
+This stack does **not** run on shared/cPanel/Plesk hosting. You need a Linux
+box where you have **root** and can run **Docker**.
+
+### Minimum specs
+
+| Resource | Minimum    | Recommended |
+| -------- | ---------- | ----------- |
+| CPU      | 2 vCPU     | 2–4 vCPU    |
+| RAM      | 4 GB       | 8 GB        |
+| Disk     | 40 GB SSD  | 80 GB SSD   |
+| Network  | public IPv4, ports 80/443/6697 open |
+| OS       | Ubuntu 22.04 / 24.04 LTS (Debian 12 also fine) |
+
+The full stack (Postgres + 6 Supabase services + app + ircd + Caddy) idles at
+~1.3 GB RAM. 4 GB leaves headroom for a small site; bump to 8 GB if you
+expect real traffic or want to run backups concurrently.
+
+### Tested providers (any will do)
+
+| Provider     | Plan that fits          | ~Price/mo |
+| ------------ | ----------------------- | --------- |
+| Hetzner      | CX22 (2 vCPU / 4 GB)    | €4        |
+| Hetzner      | CX32 (2 vCPU / 8 GB)    | €7        |
+| Contabo      | VPS S                   | €5        |
+| DigitalOcean | Basic 2 GB (tight)      | $12       |
+| OVH          | VLE-2                   | €6        |
+| Scaleway     | DEV1-S                  | €6        |
+
+Pick one in the same region as your audience for lower latency.
+
+### What WON'T work
+
+- ❌ **cPanel / Plesk shared hosting** — no Docker, no root, no Postgres,
+  no long-running Node, no port 6697.
+- ❌ **"Node.js hosting"** plans on shared cPanel (Passenger) — kills
+  WebSockets and restarts on idle.
+- ❌ **Vercel / Netlify / Cloudflare Pages alone** — they host the frontend
+  fine but can't run Postgres, GoTrue, IRC, etc. (You could split: frontend
+  on Vercel + this stack on a VPS for the backend, but that's a different
+  architecture than what's in this folder.)
+- ❌ **Raspberry Pi at home** — works technically but Let's Encrypt + dynamic
+  IP + residential ISPs blocking port 25/80 make it painful. Use a VPS.
+
+### What DOES work
+
+- ✅ Any KVM/cloud VPS with Ubuntu 22.04+ and root access.
+- ✅ Bare-metal dedicated servers.
+- ✅ Hetzner / Contabo / OVH / Scaleway / DigitalOcean / Linode / Vultr.
+- ✅ Self-hosted Proxmox VM, as long as it has a public IP and the listed ports.
+
+---
+
+## Auto-deploy on `git push` (optional)
+
+`self-host/deploy.example.yml` is a ready-to-use GitHub Actions workflow.
+
+1. On the VPS:
+   ```bash
+   sudo adduser deploy
+   sudo usermod -aG docker deploy
+   sudo -u deploy ssh-keygen -t ed25519 -f /home/deploy/.ssh/id_ed25519 -N ""
+   sudo -u deploy bash -c "cat /home/deploy/.ssh/id_ed25519.pub >> /home/deploy/.ssh/authorized_keys"
+   ```
+   Print the **private** key — you'll paste it into GitHub:
+   ```bash
+   sudo cat /home/deploy/.ssh/id_ed25519
+   ```
+2. Make sure the repo is checked out as the `deploy` user (e.g. in `/home/deploy/peptivalab`).
+3. In GitHub → Repo → **Settings → Secrets and variables → Actions**, add:
+   - `VPS_HOST` — server IP or hostname
+   - `VPS_USER` — `deploy`
+   - `VPS_SSH_KEY` — contents of the private key above
+   - `VPS_PATH` — `/home/deploy/peptivalab`
+4. Move the workflow into place:
+   ```bash
+   mkdir -p .github/workflows
+   cp self-host/deploy.example.yml .github/workflows/deploy.yml
+   git add .github && git commit -m "ci: auto-deploy to VPS" && git push
+   ```
+
+Every push to `main` will now SSH in, `git pull`, rebuild the `app` container,
+and restart it. DB and IRC containers are left running.
