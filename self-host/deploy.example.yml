@@ -1,0 +1,48 @@
+# ============================================================================
+# .github/workflows/deploy.yml  (copy this file there to enable)
+#
+# On push to `main`, SSH into the VPS and rebuild the app container.
+# Postgres / Supabase / IRC containers are NOT touched — only the app.
+#
+# Required GitHub repo secrets:
+#   VPS_HOST       e.g. 198.51.100.10  or  vps.peptivalab.se
+#   VPS_USER       e.g. deploy
+#   VPS_SSH_KEY    private key (the matching public key is in ~/.ssh/authorized_keys on the VPS)
+#   VPS_PATH       absolute path to the repo on the VPS, e.g. /home/deploy/peptivalab
+# ============================================================================
+
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.VPS_PATH }}"
+            echo "→ pulling latest"
+            git fetch --all
+            git reset --hard origin/main
+            echo "→ rebuilding app container"
+            cd self-host
+            docker compose build app
+            docker compose up -d app
+            echo "→ pruning old images"
+            docker image prune -f
+            echo "✔ deployed $(git rev-parse --short HEAD)"

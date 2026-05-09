@@ -4,20 +4,41 @@
 set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
+# 1. Swap vite.config.ts ------------------------------------------------------
 if [ -f "$ROOT/vite.config.lovable.ts" ]; then
-  echo "Patch already applied. Skipping."
-  exit 0
+  echo "✔ vite.config already patched (vite.config.lovable.ts exists). Skipping swap."
+else
+  echo "→ backing up vite.config.ts → vite.config.lovable.ts"
+  mv "$ROOT/vite.config.ts" "$ROOT/vite.config.lovable.ts"
+  echo "→ installing Node-target vite.config.ts"
+  cp "$ROOT/self-host/vite.config.node.ts" "$ROOT/vite.config.ts"
 fi
 
-echo "→ backing up vite.config.ts → vite.config.lovable.ts"
-mv "$ROOT/vite.config.ts" "$ROOT/vite.config.lovable.ts"
+# 2. Add a `start` script to package.json (used by `npm start` / bare node) ---
+if ! grep -q '"start"' "$ROOT/package.json"; then
+  echo "→ adding \"start\" script to package.json"
+  # Portable in-place edit (works on macOS + GNU sed). Inserts after "dev":
+  node - <<'NODE'
+const fs = require('fs');
+const path = require('path');
+const pkgPath = path.join(process.cwd(), 'package.json');
+const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+pkg.scripts = pkg.scripts || {};
+if (!pkg.scripts.start) {
+  pkg.scripts.start = 'node .output/server/index.mjs';
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+}
+NODE
+fi
 
-echo "→ installing Node-target vite.config.ts"
-cp "$ROOT/self-host/vite.config.node.ts" "$ROOT/vite.config.ts"
-
-echo "→ installing Node build dependencies (if missing)"
+# 3. Install Node-target build deps if missing -------------------------------
+echo "→ ensuring Node build deps present"
 cd "$ROOT"
-# These may already be in package.json; bun add is idempotent.
-bun add -d @tanstack/react-start vite-tsconfig-paths @vitejs/plugin-react @tailwindcss/vite vite >/dev/null 2>&1 || true
+bun add -d @tanstack/react-start vite-tsconfig-paths @vitejs/plugin-react @tailwindcss/vite vite >/dev/null 2>&1 || \
+  npm install --save-dev @tanstack/react-start vite-tsconfig-paths @vitejs/plugin-react @tailwindcss/vite vite >/dev/null 2>&1 || true
+
+# 4. Remove Cloudflare-only deps that break Node build (kept commented; safe to keep installed)
+# We don't uninstall — the Node vite config simply doesn't reference them.
 
 echo "✔ self-host build patch applied."
+echo "  Next: bun install && bun run build"
