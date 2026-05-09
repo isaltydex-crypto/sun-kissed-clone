@@ -22,6 +22,7 @@ import { Route as SidaSlugRouteImport } from './routes/sida.$slug'
 import { Route as CheckoutBekraftelseRouteImport } from './routes/checkout.bekraftelse'
 import { Route as AdminSidorRouteImport } from './routes/admin.sidor'
 import { Route as AdminSakerhetRouteImport } from './routes/admin.sakerhet'
+import { Route as AdminRabattkoderRouteImport } from './routes/admin.rabattkoder'
 import { Route as AdminProdukterRouteImport } from './routes/admin.produkter'
 import { Route as AdminOrdrarRouteImport } from './routes/admin.ordrar'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
@@ -30,6 +31,10 @@ import { Route as AdminInnehallRouteImport } from './routes/admin.innehall'
 import { Route as AdminChattRouteImport } from './routes/admin.chatt'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiInternalNotifyRouteImport } from './routes/api/internal/notify'
+import { Route as ApiDiscountValidateRouteImport } from './routes/api/discount.validate'
+import { Route as ApiCryptoCreateInvoiceRouteImport } from './routes/api/crypto.create-invoice'
+import { Route as ApiPublicCryptoWebhookRouteImport } from './routes/api/public/crypto.webhook'
+import { Route as ApiCryptoOrderOrderIdRouteImport } from './routes/api/crypto.order.$orderId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -96,6 +101,11 @@ const AdminSakerhetRoute = AdminSakerhetRouteImport.update({
   path: '/sakerhet',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRabattkoderRoute = AdminRabattkoderRouteImport.update({
+  id: '/rabattkoder',
+  path: '/rabattkoder',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminProdukterRoute = AdminProdukterRouteImport.update({
   id: '/produkter',
   path: '/produkter',
@@ -136,6 +146,26 @@ const ApiInternalNotifyRoute = ApiInternalNotifyRouteImport.update({
   path: '/api/internal/notify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDiscountValidateRoute = ApiDiscountValidateRouteImport.update({
+  id: '/api/discount/validate',
+  path: '/api/discount/validate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCryptoCreateInvoiceRoute = ApiCryptoCreateInvoiceRouteImport.update({
+  id: '/api/crypto/create-invoice',
+  path: '/api/crypto/create-invoice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCryptoWebhookRoute = ApiPublicCryptoWebhookRouteImport.update({
+  id: '/api/public/crypto/webhook',
+  path: '/api/public/crypto/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCryptoOrderOrderIdRoute = ApiCryptoOrderOrderIdRouteImport.update({
+  id: '/api/crypto/order/$orderId',
+  path: '/api/crypto/order/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -153,12 +183,17 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/admin/ordrar': typeof AdminOrdrarRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/rabattkoder': typeof AdminRabattkoderRoute
   '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
+  '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
+  '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -176,12 +211,17 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/admin/ordrar': typeof AdminOrdrarRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/rabattkoder': typeof AdminRabattkoderRoute
   '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
+  '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
+  '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -200,12 +240,17 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/admin/ordrar': typeof AdminOrdrarRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/rabattkoder': typeof AdminRabattkoderRoute
   '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
+  '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
+  '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -225,12 +270,17 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/ordrar'
     | '/admin/produkter'
+    | '/admin/rabattkoder'
     | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/crypto/create-invoice'
+    | '/api/discount/validate'
     | '/api/internal/notify'
     | '/api/public/health'
+    | '/api/crypto/order/$orderId'
+    | '/api/public/crypto/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -248,12 +298,17 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/ordrar'
     | '/admin/produkter'
+    | '/admin/rabattkoder'
     | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/crypto/create-invoice'
+    | '/api/discount/validate'
     | '/api/internal/notify'
     | '/api/public/health'
+    | '/api/crypto/order/$orderId'
+    | '/api/public/crypto/webhook'
   id:
     | '__root__'
     | '/'
@@ -271,12 +326,17 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/ordrar'
     | '/admin/produkter'
+    | '/admin/rabattkoder'
     | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/crypto/create-invoice'
+    | '/api/discount/validate'
     | '/api/internal/notify'
     | '/api/public/health'
+    | '/api/crypto/order/$orderId'
+    | '/api/public/crypto/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -290,8 +350,12 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SidaSlugRoute: typeof SidaSlugRoute
+  ApiCryptoCreateInvoiceRoute: typeof ApiCryptoCreateInvoiceRoute
+  ApiDiscountValidateRoute: typeof ApiDiscountValidateRoute
   ApiInternalNotifyRoute: typeof ApiInternalNotifyRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiCryptoOrderOrderIdRoute: typeof ApiCryptoOrderOrderIdRoute
+  ApiPublicCryptoWebhookRoute: typeof ApiPublicCryptoWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -387,6 +451,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSakerhetRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/rabattkoder': {
+      id: '/admin/rabattkoder'
+      path: '/rabattkoder'
+      fullPath: '/admin/rabattkoder'
+      preLoaderRoute: typeof AdminRabattkoderRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/produkter': {
       id: '/admin/produkter'
       path: '/produkter'
@@ -443,6 +514,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInternalNotifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/discount/validate': {
+      id: '/api/discount/validate'
+      path: '/api/discount/validate'
+      fullPath: '/api/discount/validate'
+      preLoaderRoute: typeof ApiDiscountValidateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/crypto/create-invoice': {
+      id: '/api/crypto/create-invoice'
+      path: '/api/crypto/create-invoice'
+      fullPath: '/api/crypto/create-invoice'
+      preLoaderRoute: typeof ApiCryptoCreateInvoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/crypto/webhook': {
+      id: '/api/public/crypto/webhook'
+      path: '/api/public/crypto/webhook'
+      fullPath: '/api/public/crypto/webhook'
+      preLoaderRoute: typeof ApiPublicCryptoWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/crypto/order/$orderId': {
+      id: '/api/crypto/order/$orderId'
+      path: '/api/crypto/order/$orderId'
+      fullPath: '/api/crypto/order/$orderId'
+      preLoaderRoute: typeof ApiCryptoOrderOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -453,6 +552,7 @@ interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminOrdrarRoute: typeof AdminOrdrarRoute
   AdminProdukterRoute: typeof AdminProdukterRoute
+  AdminRabattkoderRoute: typeof AdminRabattkoderRoute
   AdminSakerhetRoute: typeof AdminSakerhetRoute
   AdminSidorRoute: typeof AdminSidorRoute
 }
@@ -464,6 +564,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminOrdrarRoute: AdminOrdrarRoute,
   AdminProdukterRoute: AdminProdukterRoute,
+  AdminRabattkoderRoute: AdminRabattkoderRoute,
   AdminSakerhetRoute: AdminSakerhetRoute,
   AdminSidorRoute: AdminSidorRoute,
 }
@@ -493,8 +594,12 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SidaSlugRoute: SidaSlugRoute,
+  ApiCryptoCreateInvoiceRoute: ApiCryptoCreateInvoiceRoute,
+  ApiDiscountValidateRoute: ApiDiscountValidateRoute,
   ApiInternalNotifyRoute: ApiInternalNotifyRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiCryptoOrderOrderIdRoute: ApiCryptoOrderOrderIdRoute,
+  ApiPublicCryptoWebhookRoute: ApiPublicCryptoWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
