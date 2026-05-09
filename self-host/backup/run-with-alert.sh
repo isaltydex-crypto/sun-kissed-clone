@@ -1,6 +1,8 @@
 #!/bin/sh
 # ============================================================================
-# Run a command; if it exits non-zero, capture output and email an alert.
+# Run a command; if it exits non-zero, send an alert via the app's internal
+# notify endpoint (which uses the editable templates from /admin/innehall).
+#
 # Usage: run-with-alert.sh "<job label>" /path/to/command [args...]
 # ============================================================================
 set -u
@@ -20,16 +22,10 @@ RC=$?
 cat "${LOG}"
 
 HOST="$(hostname 2>/dev/null || echo unknown)"
-{
-  echo "Job:     ${LABEL}"
-  echo "Host:    ${HOST}"
-  echo "Started: ${START}"
-  echo "Failed:  $(date -u +%FT%TZ)"
-  echo "Exit:    ${RC}"
-  echo ""
-  echo "--- last 100 lines of output ---"
-  tail -n 100 "${LOG}"
-} | /usr/local/bin/notify.sh "[peptivalab] ${LABEL} FAILED on ${HOST}"
+FAILED="$(date -u +%FT%TZ)"
+
+/usr/local/bin/notify.sh "${LABEL}" "${HOST}" "${START}" "${FAILED}" "${RC}" "${LOG}" \
+  || echo "[run-with-alert] notify wrapper failed (non-fatal)"
 
 rm -f "${LOG}"
 exit "${RC}"

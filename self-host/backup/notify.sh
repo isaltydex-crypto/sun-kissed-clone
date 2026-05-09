@@ -1,50 +1,64 @@
 #!/bin/sh
 # ============================================================================
-# Send an email via msmtp using SMTP_* env vars. Best-effort: swallows errors
-# so a broken SMTP config never crashes a backup job.
+# Send an alert email by POSTing to the app's internal notify endpoint.
+# Templates are stored in the database (site_content.emails) and edited from
+# /admin/innehall — this script only forwards variables.
 #
-# Usage:  notify.sh "<subject>" <<EOF
-#         body line 1
-#         body line 2
-#         EOF
+# Required env: APP_INTERNAL_URL, INTERNAL_NOTIFY_TOKEN
+# Best-effort: failures are logged but never crash the calling job.
+#
+# Usage: notify.sh <job> <host> <startedAt> <failedAt> <exitCode> <log-file>
 # ============================================================================
 set -u
 
-SUBJECT="${1:-(no subject)}"
+JOB="${1:-unknown-job}"
+HOST="${2:-$(hostname 2>/dev/null || echo unknown)}"
+STARTED_AT="${3:-}"
+FAILED_AT="${4:-$(date -u +%FT%TZ)}"
+EXIT_CODE="${5:-?}"
+LOG_FILE="${6:-}"
 
-if [ -z "${SMTP_HOST:-}" ] || [ -z "${NOTIFY_EMAIL_TO:-}" ]; then
-  echo "[notify] SMTP_HOST or NOTIFY_EMAIL_TO not set — skipping email: ${SUBJECT}"
-  cat >/dev/null
+if [ -z "${APP_INTERNAL_URL:-}" ] || [ -z "${INTERNAL_NOTIFY_TOKEN:-}" ]; then
+  echo "[notify] APP_INTERNAL_URL or INTERNAL_NOTIFY_TOKEN not set — skipping alert for ${JOB}"
   exit 0
 fi
 
-PORT="${SMTP_PORT:-587}"
-FROM="${NOTIFY_EMAIL_FROM:-${SMTP_USER:-noreply@localhost}}"
-# strip display name, keep bare addr for envelope
-FROM_ADDR="$(echo "${FROM}" | sed -E 's/.*<([^>]+)>.*/\1/')"
-
-if [ "${PORT}" = "465" ]; then
-  TLS="tls on\ntls_starttls off"
-else
-  TLS="tls on\ntls_starttls on"
+LOG_TAIL=""
+if [ -n "${LOG_FILE}" ] && [ -f "${LOG_FILE}" ]; then
+  LOG_TAIL="$(tail -n 100 "${LOG_FILE}")"
 fi
 
-CONF="$(mktemp)"
-printf 'account default\nhost %s\nport %s\n%b\nauth on\nuser %s\npassword %s\nfrom %s\nlogfile -\n' \
-  "${SMTP_HOST}" "${PORT}" "${TLS}" \
-  "${SMTP_USER:-}" "${SMTP_PASS:-}" "${FROM_ADDR}" > "${CONF}"
-chmod 600 "${CONF}"
+# JSON-escape arbitrary text using awk (POSIX, no jq dependency).
+json_escape() {
+  awk 'BEGIN { ORS=""; first=1 }
+       { if (!first) print "\\n"; first=0;
+         gsub(/\\/, "\\\\");
+         gsub(/"/,  "\\\"");
+         gsub(/\t/, "\\t");
+         gsub(/\r/, "");
+         print }' <<EOF
+${1}
+EOF
+}
 
-BODY="$(cat)"
+J_JOB="$(json_escape "${JOB}")"
+J_HOST="$(json_escape "${HOST}")"
+J_START="$(json_escape "${STARTED_AT}")"
+J_FAIL="$(json_escape "${FAILED_AT}")"
+J_EXIT="$(json_escape "${EXIT_CODE}")"
+J_LOG="$(json_escape "${LOG_TAIL}")"
 
-{
-  printf 'From: %s\n' "${FROM}"
-  printf 'To: %s\n' "${NOTIFY_EMAIL_TO}"
-  printf 'Subject: %s\n' "${SUBJECT}"
-  printf 'Content-Type: text/plain; charset=UTF-8\n'
-  printf '\n'
-  printf '%s\n' "${BODY}"
-} | msmtp --file="${CONF}" -- "${NOTIFY_EMAIL_TO}" \
-  || echo "[notify] msmtp failed (non-fatal)"
+PAYLOAD="{\"kind\":\"alert\",\"vars\":{\"job\":\"${J_JOB}\",\"host\":\"${J_HOST}\",\"startedAt\":\"${J_START}\",\"failedAt\":\"${J_FAIL}\",\"exitCode\":\"${J_EXIT}\",\"log\":\"${J_LOG}\"}}"
 
-rm -f "${CONF}"
+HTTP_CODE="$(printf '%s' "${PAYLOAD}" | wget -qO- \
+  --header="Content-Type: application/json" \
+  --header="Authorization: Bearer ${INTERNAL_NOTIFY_TOKEN}" \
+  --post-data="${PAYLOAD}" \
+  --server-response \
+  "${APP_INTERNAL_URL%/}/api/internal/notify" 2>&1 | awk '/HTTP\// {code=$2} END {print code}')"
+
+if [ "${HTTP_CODE}" = "200" ]; then
+  echo "[notify] alert sent for ${JOB}"
+else
+  echo "[notify] alert delivery failed (HTTP ${HTTP_CODE:-?}) for ${JOB}"
+fi
