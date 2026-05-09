@@ -216,6 +216,15 @@ services:
       IRC_BOT_NICK: ${IRC_BOT_NICK}
       IRC_BOT_PASSWORD: ${GATEWAY_TOKEN}
       IRC_CHANNEL_PREFIX: ${IRC_CHANNEL_PREFIX}
+      # Email notifications (contact form, alerts). Leave SMTP_HOST empty to
+      # disable — submissions still succeed but no email is sent.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      NOTIFY_EMAIL_FROM: ${NOTIFY_EMAIL_FROM:-}
+      NOTIFY_EMAIL_TO: ${NOTIFY_EMAIL_TO:-}
     networks: [pvl]
 
   # --------------------------------------------------------------------------
@@ -297,6 +306,13 @@ services:
       # Off-site upload (rclone). Set both to enable.
       OFFSITE_REMOTE: ${OFFSITE_REMOTE:-}
       RCLONE_CONFIG: ${RCLONE_CONFIG:-}
+      # Email alerts on backup / verify failures (optional but recommended)
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      NOTIFY_EMAIL_FROM: ${NOTIFY_EMAIL_FROM:-}
+      NOTIFY_EMAIL_TO: ${NOTIFY_EMAIL_TO:-}
       TZ: UTC
     volumes:
       - backups:/backups
