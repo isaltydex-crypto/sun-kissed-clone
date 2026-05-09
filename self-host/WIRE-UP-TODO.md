@@ -375,7 +375,7 @@ git add .github && git commit -m "ci: auto-deploy" && git push
 
 ---
 
-## 12. Migrating data from a previous host 🟡
+## 13. Migrating data from a previous host 🟡
 
 Skip if starting fresh.
 
