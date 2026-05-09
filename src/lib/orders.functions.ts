@@ -115,7 +115,7 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     if (data.paymentStatus) patch.payment_status = data.paymentStatus;
     if (data.fulfillmentStatus) patch.fulfillment_status = data.fulfillmentStatus;
     if (typeof data.notes === "string") patch.notes = data.notes;
-    const { error } = await supabaseAdmin.from("orders").update(patch).eq("id", data.id);
+    const { error } = await supabaseAdmin.from("orders").update(patch as never).eq("id", data.id);
     if (error) throw new Error(error.message);
     await logAdminAction({
       action: "order.update",
