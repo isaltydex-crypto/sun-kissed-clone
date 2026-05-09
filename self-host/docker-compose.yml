@@ -228,6 +228,10 @@ services:
       # Shared bearer token used by sibling containers (e.g. backup) to POST
       # alerts to /api/internal/notify. Generate with: openssl rand -hex 32
       INTERNAL_NOTIFY_TOKEN: ${INTERNAL_NOTIFY_TOKEN:-}
+      # Optional admin 2FA (TOTP). Leave ADMIN_TOTP_SECRET empty to disable.
+      ADMIN_TOTP_SECRET: ${ADMIN_TOTP_SECRET:-}
+      ADMIN_TOTP_ISSUER: ${ADMIN_TOTP_ISSUER:-PeptivaLab}
+      ADMIN_TOTP_ACCOUNT: ${ADMIN_TOTP_ACCOUNT:-admin}
     networks: [pvl]
 
   # --------------------------------------------------------------------------
