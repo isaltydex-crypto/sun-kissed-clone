@@ -30,20 +30,26 @@ RUN if [ ! -f vite.config.editor.ts ]; then \
       cp self-host/vite.config.node.ts vite.config.ts; \
     fi
 RUN npm run build && \
-    SERVER_ENTRY="$(find .output/server -maxdepth 3 -type f \( -name 'index.mjs' -o -name 'index.js' -o -name 'server.mjs' -o -name 'server.js' \) | sort | head -n 1)" && \
+    OUTPUT_ROOT="" && \
+    for dir in .output dist; do \
+      if [ -d "$dir" ]; then OUTPUT_ROOT="$dir"; break; fi; \
+    done && \
+    test -n "$OUTPUT_ROOT" && \
+    SERVER_ENTRY="$(find "$OUTPUT_ROOT" -maxdepth 4 -type f \( -name 'index.mjs' -o -name 'index.js' -o -name 'server.mjs' -o -name 'server.js' \) | sort | head -n 1)" && \
     test -n "$SERVER_ENTRY" && \
-    printf '#!/bin/sh\nset -e\nexec node "%s"\n' "$SERVER_ENTRY" > /app/start-server.sh && \
-    chmod +x /app/start-server.sh || \
+    mkdir -p /app/runtime && \
+    cp -R "$OUTPUT_ROOT" /app/runtime/ && \
+    printf '#!/bin/sh\nset -e\nexec node "%s"\n' "$SERVER_ENTRY" > /app/runtime/start-server.sh && \
+    chmod +x /app/runtime/start-server.sh || \
     (echo "ERROR: Node SSR build did not create a runnable server entry" && \
      echo "Build output folders found:" && \
-     find .output -maxdepth 4 -type f -print 2>/dev/null || true && \
+     find .output dist -maxdepth 4 -type f -print 2>/dev/null || true && \
      exit 1)
 
 FROM node:22-alpine AS run
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=build /app/.output ./.output
+COPY --from=build /app/runtime ./
 COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/start-server.sh ./start-server.sh
 EXPOSE 3000
 CMD ["./start-server.sh"]
