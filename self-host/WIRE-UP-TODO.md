@@ -423,6 +423,7 @@ Tick these off as you go:
 - [ ] `ADMIN_TOTP_SECRET` set, tested with authenticator app
 - [ ] `GATEWAY_TOKEN` identical in app and ws-gateway env
 - [ ] SMTP test: submit `/kontakt` form → email arrives
+- [ ] NOWPayments sandbox test order flips to `paid` (skip if no crypto)
 - [ ] `BACKUP_ENCRYPTION_PASSPHRASE` saved off-server in password manager
 - [ ] `OFFSITE_REMOTE` configured + first sync verified
 - [ ] UptimeRobot monitor green
