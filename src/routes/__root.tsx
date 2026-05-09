@@ -25,6 +25,26 @@ function NotFoundComponent() {
   );
 }
 
+const ORG_JSON_LD = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "PeptivaLab Group",
+  url: "https://peptivalab.se",
+  logo: "https://peptivalab.se/favicon.ico",
+  sameAs: [] as string[],
+  contactPoint: [{
+    "@type": "ContactPoint",
+    contactType: "customer support",
+    availableLanguage: ["sv", "en"],
+  }],
+});
+
+const PLAUSIBLE_DOMAIN =
+  (import.meta.env.VITE_PLAUSIBLE_DOMAIN as string | undefined) ?? "";
+const PLAUSIBLE_SRC =
+  (import.meta.env.VITE_PLAUSIBLE_SRC as string | undefined) ??
+  "https://plausible.io/js/script.js";
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -35,13 +55,22 @@ export const Route = createRootRoute({
       { property: "og:title", content: "PeptivaLab Group — Premium peptidhudvård" },
       { property: "og:description", content: "Klinisk peptidhudvård för fastare, slätare hud." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { property: "og:locale", content: "sv_SE" },
+      { property: "og:site_name", content: "PeptivaLab Group" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#0c2340" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" },
+    ],
+    scripts: [
+      { type: "application/ld+json", children: ORG_JSON_LD },
+      ...(PLAUSIBLE_DOMAIN
+        ? [{ src: PLAUSIBLE_SRC, defer: true, "data-domain": PLAUSIBLE_DOMAIN }]
+        : []),
     ],
   }),
   shellComponent: RootShell,

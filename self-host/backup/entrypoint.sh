@@ -1,24 +1,8 @@
 #!/bin/sh
-# ============================================================================
-# Materialize the GPG keyring from env vars into /run/secrets/keys/.
-#
-# Two ways to provide keys (you can mix them):
-#
-#   1. Single current key:
-#        BACKUP_ENCRYPTION_KEY_ID=k2
-#        BACKUP_ENCRYPTION_PASSPHRASE=<passphrase for k2>
-#
-#   2. Old keys, kept ONLY for decrypting historical dumps:
-#        BACKUP_OLD_KEYS=k0:oldpass0,k1:oldpass1
-#        (comma-separated <id>:<passphrase> pairs; passphrase must not contain ',' or ':')
-#
-# All keys land in /run/secrets/keys/<id>, mode 600.
-# Only the key named BACKUP_ENCRYPTION_KEY_ID is used to ENCRYPT new dumps.
-# ============================================================================
 set -eu
 
 KEYS_DIR="/run/secrets/keys"
-mkdir -p "${KEYS_DIR}"
+mkdir -p "${KEYS_DIR}" /run/secrets
 chmod 700 "${KEYS_DIR}"
 
 write_key() {
@@ -34,7 +18,7 @@ if [ -n "${BACKUP_ENCRYPTION_KEY_ID:-}" ] && [ -n "${BACKUP_ENCRYPTION_PASSPHRAS
   write_key "${BACKUP_ENCRYPTION_KEY_ID}" "${BACKUP_ENCRYPTION_PASSPHRASE}"
 fi
 
-# Old keys (decrypt-only)
+# Old keys (decrypt-only): id1:pass1,id2:pass2
 if [ -n "${BACKUP_OLD_KEYS:-}" ]; then
   echo "${BACKUP_OLD_KEYS}" | tr ',' '\n' | while IFS= read -r pair; do
     [ -z "${pair}" ] && continue
@@ -44,26 +28,38 @@ if [ -n "${BACKUP_OLD_KEYS:-}" ]; then
   done
 fi
 
-CRON_EXPR="${BACKUP_CRON:-17 3 * * *}"
+# rclone config for off-site uploads (optional). Provide via RCLONE_CONFIG env
+# as a literal INI string.
+if [ -n "${RCLONE_CONFIG:-}" ]; then
+  printf '%s' "${RCLONE_CONFIG}" > /run/secrets/rclone.conf
+  chmod 600 /run/secrets/rclone.conf
+fi
 
-# Pass only the safe vars to cron; passphrases live in /run/secrets/keys.
+CRON_EXPR="${BACKUP_CRON:-17 3 * * *}"
+VERIFY_CRON="${BACKUP_VERIFY_CRON:-43 4 * * 0}"   # Sundays 04:43 UTC
+
 {
   echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
   echo "BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-14}"
   echo "BACKUP_ENCRYPTION_KEY_ID=${BACKUP_ENCRYPTION_KEY_ID:-}"
+  echo "OFFSITE_REMOTE=${OFFSITE_REMOTE:-}"
   echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 } > /etc/environment
 chmod 600 /etc/environment
 
 mkdir -p /etc/crontabs /backups
-echo "${CRON_EXPR} . /etc/environment; /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1" \
-  > /etc/crontabs/root
+{
+  echo "${CRON_EXPR} . /etc/environment; /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1"
+  echo "${VERIFY_CRON} . /etc/environment; /usr/local/bin/verify-backup.sh >> /var/log/backup.log 2>&1"
+} > /etc/crontabs/root
 touch /var/log/backup.log
 
-echo "[entrypoint] cron schedule:    ${CRON_EXPR}"
-echo "[entrypoint] retention:        ${BACKUP_RETENTION_DAYS:-14} days"
-echo "[entrypoint] current key:      ${BACKUP_ENCRYPTION_KEY_ID:-<none — PLAINTEXT>}"
-echo "[entrypoint] available keys:   $(ls "${KEYS_DIR}" 2>/dev/null | tr '\n' ' ')"
+echo "[entrypoint] backup cron:     ${CRON_EXPR}"
+echo "[entrypoint] verify cron:     ${VERIFY_CRON}"
+echo "[entrypoint] retention:       ${BACKUP_RETENTION_DAYS:-14} days"
+echo "[entrypoint] current key:     ${BACKUP_ENCRYPTION_KEY_ID:-<none — PLAINTEXT>}"
+echo "[entrypoint] off-site remote: ${OFFSITE_REMOTE:-<disabled>}"
+echo "[entrypoint] available keys:  $(ls "${KEYS_DIR}" 2>/dev/null | tr '\n' ' ')"
 
 if [ -z "$(ls -A /backups 2>/dev/null | grep -E '\.sql\.gz(\.gpg)?$' || true)" ]; then
   echo "[entrypoint] no existing backups — running one now"
