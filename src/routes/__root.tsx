@@ -7,6 +7,7 @@ import { AdminAuthProvider } from "@/context/AdminAuthContext";
 import { SiteContentProvider } from "@/context/SiteContentContext";
 import { CartDrawer } from "@/components/CartDrawer";
 import { IrcChat } from "@/components/IrcChat";
+import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
 
@@ -108,6 +109,7 @@ function RootComponent() {
               <SiteFooter />
               <CartDrawer />
               {!isAdmin && <IrcChat />}
+              <Toaster richColors position="top-right" />
             </div>
           </CartProvider>
         </ProductsProvider>

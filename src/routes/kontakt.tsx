@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { Mail, MapPin, Clock } from "lucide-react";
+import { useState } from "react";
 import { useSiteContent } from "@/context/SiteContentContext";
+import { submitContact } from "@/lib/contact.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/kontakt")({
   head: () => ({
@@ -14,6 +18,25 @@ export const Route = createFileRoute("/kontakt")({
 
 function ContactPage() {
   const c = useSiteContent().contact;
+  const submit = useServerFn(submitContact);
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", message: "" });
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await submit({ data: form });
+      toast.success("Tack! Vi hör av oss snart.");
+      setForm({ name: "", email: "", message: "" });
+    } catch (err) {
+      console.error(err);
+      toast.error("Kunde inte skicka meddelandet. Försök igen senare.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <>
       <section className="bg-ocean py-16 text-primary-foreground md:py-20">
@@ -47,21 +70,21 @@ function ContactPage() {
               </div>
             </div>
           </div>
-          <form className="space-y-4 rounded-2xl bg-card p-6 shadow-[var(--shadow-card)]" onSubmit={(e) => { e.preventDefault(); alert("Tack! Vi hör av oss snart."); }}>
+          <form className="space-y-4 rounded-2xl bg-card p-6 shadow-[var(--shadow-card)]" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-sm font-medium text-foreground">Namn</label>
-              <input required className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean" />
+              <label className="block text-sm font-medium text-foreground" htmlFor="contact-name">Namn</label>
+              <input id="contact-name" required maxLength={100} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground">E-post</label>
-              <input type="email" required className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean" />
+              <label className="block text-sm font-medium text-foreground" htmlFor="contact-email">E-post</label>
+              <input id="contact-email" type="email" required maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground">Meddelande</label>
-              <textarea required rows={5} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean" />
+              <label className="block text-sm font-medium text-foreground" htmlFor="contact-message">Meddelande</label>
+              <textarea id="contact-message" required rows={5} maxLength={2000} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean" />
             </div>
-            <button type="submit" className="w-full rounded-lg bg-ocean py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean-deep">
-              Skicka meddelande
+            <button type="submit" disabled={submitting} className="w-full rounded-lg bg-ocean py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean-deep disabled:opacity-60">
+              {submitting ? "Skickar…" : "Skicka meddelande"}
             </button>
           </form>
         </div>
