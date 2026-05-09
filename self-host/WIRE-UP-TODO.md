@@ -330,7 +330,7 @@ sitemap to Google Search Console (one-time).
 
 ---
 
-## 10. Uptime monitoring 🟡
+## 11. Uptime monitoring 🟡
 
 Get an email/SMS if the site goes down. Free, no env vars.
 
