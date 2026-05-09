@@ -1,6 +1,5 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
-import { verifyAdminSession } from "@/lib/admin-auth.functions";
 
 const SESSION_COOKIE = "pvl_admin_session";
 const LEGACY_COOKIE = "pvl_admin";
@@ -24,6 +23,7 @@ export const adminAuthMiddleware = createMiddleware({ type: "function" })
     }
   })
   .server(async ({ next }) => {
+    const { verifyAdminSession } = await import("@/lib/admin-auth.server");
     const sessionToken = getCookie(SESSION_COOKIE);
     if (verifyAdminSession(sessionToken)) {
       return next();

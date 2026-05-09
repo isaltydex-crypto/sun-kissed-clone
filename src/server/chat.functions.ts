@@ -3,7 +3,6 @@ import { getRequestHeader, getCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { forwardToIrc, ircChannelName, provisionChannel } from "./irc-bridge.server";
-import { verifyAdminSession } from "@/lib/admin-auth.functions";
 
 // ---------- helpers ----------
 
@@ -12,7 +11,8 @@ function makeSlug(): string {
   return Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
 }
 
-function requireAdmin() {
+async function requireAdmin() {
+  const { verifyAdminSession } = await import("@/lib/admin-auth.server");
   // Preferred: signed HttpOnly session cookie
   const session = getCookie("pvl_admin_session");
   if (verifyAdminSession(session)) return;

@@ -5,7 +5,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { adminAuthMiddleware } from "@/server/admin-middleware";
-import { logAdminAction } from "./admin-auth.functions";
 
 const ItemSchema = z.object({
   productId: z.string().min(1).max(200),
@@ -117,6 +116,7 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     if (typeof data.notes === "string") patch.notes = data.notes;
     const { error } = await supabaseAdmin.from("orders").update(patch as never).eq("id", data.id);
     if (error) throw new Error(error.message);
+    const { logAdminAction } = await import("./admin-auth.server");
     await logAdminAction({
       action: "order.update",
       target: data.id,
