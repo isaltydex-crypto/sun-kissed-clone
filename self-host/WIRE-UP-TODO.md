@@ -345,7 +345,7 @@ See `UPTIME-MONITORING.md` for screenshots and Uptime Kuma instructions.
 
 ---
 
-## 11. Auto-deploy on git push 🟢
+## 12. Auto-deploy on git push 🟢
 
 Push to GitHub and have the VPS pull and rebuild automatically.
 
