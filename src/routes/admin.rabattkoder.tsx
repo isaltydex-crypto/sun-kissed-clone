@@ -298,7 +298,7 @@ function AdminDiscountsPage() {
             </tr>
           </thead>
           <tbody>
-            {data.codes.map((r) => (
+            {data.codes.map((r: DbDiscountCode) => (
               <tr key={r.id} className="border-t border-border/60">
                 <td className="px-4 py-3 font-mono font-semibold text-ocean-deep">{r.code}</td>
                 <td className="px-4 py-3">{r.type === "percent" ? "Procent" : "Fast"}</td>

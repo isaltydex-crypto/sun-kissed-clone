@@ -22,6 +22,7 @@ import { Route as SidaSlugRouteImport } from './routes/sida.$slug'
 import { Route as CheckoutBekraftelseRouteImport } from './routes/checkout.bekraftelse'
 import { Route as AdminSidorRouteImport } from './routes/admin.sidor'
 import { Route as AdminSakerhetRouteImport } from './routes/admin.sakerhet'
+import { Route as AdminRabattkoderRouteImport } from './routes/admin.rabattkoder'
 import { Route as AdminProdukterRouteImport } from './routes/admin.produkter'
 import { Route as AdminOrdrarRouteImport } from './routes/admin.ordrar'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
@@ -98,6 +99,11 @@ const AdminSidorRoute = AdminSidorRouteImport.update({
 const AdminSakerhetRoute = AdminSakerhetRouteImport.update({
   id: '/sakerhet',
   path: '/sakerhet',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRabattkoderRoute = AdminRabattkoderRouteImport.update({
+  id: '/rabattkoder',
+  path: '/rabattkoder',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminProdukterRoute = AdminProdukterRouteImport.update({
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/admin/ordrar': typeof AdminOrdrarRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/rabattkoder': typeof AdminRabattkoderRoute
   '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/admin/ordrar': typeof AdminOrdrarRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/rabattkoder': typeof AdminRabattkoderRoute
   '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/admin/ordrar': typeof AdminOrdrarRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/rabattkoder': typeof AdminRabattkoderRoute
   '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/ordrar'
     | '/admin/produkter'
+    | '/admin/rabattkoder'
     | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
@@ -288,6 +298,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/ordrar'
     | '/admin/produkter'
+    | '/admin/rabattkoder'
     | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
@@ -315,6 +326,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/ordrar'
     | '/admin/produkter'
+    | '/admin/rabattkoder'
     | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
@@ -439,6 +451,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSakerhetRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/rabattkoder': {
+      id: '/admin/rabattkoder'
+      path: '/rabattkoder'
+      fullPath: '/admin/rabattkoder'
+      preLoaderRoute: typeof AdminRabattkoderRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/produkter': {
       id: '/admin/produkter'
       path: '/produkter'
@@ -533,6 +552,7 @@ interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminOrdrarRoute: typeof AdminOrdrarRoute
   AdminProdukterRoute: typeof AdminProdukterRoute
+  AdminRabattkoderRoute: typeof AdminRabattkoderRoute
   AdminSakerhetRoute: typeof AdminSakerhetRoute
   AdminSidorRoute: typeof AdminSidorRoute
 }
@@ -544,6 +564,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminOrdrarRoute: AdminOrdrarRoute,
   AdminProdukterRoute: AdminProdukterRoute,
+  AdminRabattkoderRoute: AdminRabattkoderRoute,
   AdminSakerhetRoute: AdminSakerhetRoute,
   AdminSidorRoute: AdminSidorRoute,
 }
