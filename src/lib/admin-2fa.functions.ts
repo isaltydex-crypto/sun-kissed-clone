@@ -29,8 +29,9 @@ export const verifyTotp = createServerFn({ method: "POST" })
 // rotate the seed. The new secret is NOT stored — the admin must paste it
 // into ADMIN_TOTP_SECRET in their .env and restart.
 export const generateTotpSetup = createServerFn({ method: "POST" }).handler(async () => {
-  const { readAdminSessionFromRequest } = await import("./admin-auth.functions");
-  if (!readAdminSessionFromRequest()) {
+  const { verifyAdminSession, SESSION_COOKIE } = await import("./admin-auth.server");
+  const { getCookie } = await import("@tanstack/react-start/server");
+  if (!verifyAdminSession(getCookie(SESSION_COOKIE))) {
     throw new Error("Endast inloggad admin kan generera 2FA-secret.");
   }
 

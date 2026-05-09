@@ -3,7 +3,6 @@ import { getRequestHeader, getCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { forwardToIrc, ircChannelName, provisionChannel } from "./irc-bridge.server";
-import { verifyAdminSession } from "@/lib/admin-auth.functions";
 
 // ---------- helpers ----------
 
@@ -12,7 +11,8 @@ function makeSlug(): string {
   return Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
 }
 
-function requireAdmin() {
+async function requireAdmin() {
+  const { verifyAdminSession } = await import("@/lib/admin-auth.server");
   // Preferred: signed HttpOnly session cookie
   const session = getCookie("pvl_admin_session");
   if (verifyAdminSession(session)) return;
@@ -180,7 +180,7 @@ export const endVisitorChat = createServerFn({ method: "POST" })
 export const adminListChannels = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({}).parse(d ?? {}))
   .handler(async () => {
-    requireAdmin();
+    await requireAdmin();
     const { data: channels, error } = await supabaseAdmin
       .from("chat_channels")
       .select("*")
@@ -195,7 +195,7 @@ export const adminListMessages = createServerFn({ method: "POST" })
     z.object({ channelId: z.string().uuid(), sinceIso: z.string().optional() }).parse(d),
   )
   .handler(async ({ data }) => {
-    requireAdmin();
+    await requireAdmin();
     let q = supabaseAdmin
       .from("chat_messages")
       .select("*")
@@ -219,7 +219,7 @@ export const adminSendMessage = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    requireAdmin();
+    await requireAdmin();
     const { data: channel, error: cErr } = await supabaseAdmin
       .from("chat_channels")
       .select("*")
@@ -258,7 +258,7 @@ export const adminSendMessage = createServerFn({ method: "POST" })
 export const adminCloseChannel = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ channelId: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
-    requireAdmin();
+    await requireAdmin();
     const { error } = await supabaseAdmin
       .from("chat_channels")
       .update({ status: "closed" })
