@@ -112,6 +112,51 @@ export type Database = {
           },
         ]
       }
+      discount_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          max_uses: number | null
+          min_subtotal_ore: number | null
+          type: string
+          updated_at: string
+          used_count: number
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          min_subtotal_ore?: number | null
+          type: string
+          updated_at?: string
+          used_count?: number
+          value: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          min_subtotal_ore?: number | null
+          type?: string
+          updated_at?: string
+          used_count?: number
+          value?: number
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
