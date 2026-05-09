@@ -36,7 +36,7 @@ RUN npm run build && \
      ls -la && \
      exit 1)
 
-FROM node:20-alpine AS run
+FROM node:22-alpine AS run
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/.output ./.output
