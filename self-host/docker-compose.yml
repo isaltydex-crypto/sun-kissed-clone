@@ -249,3 +249,21 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     networks: [pvl]
+
+  # --------------------------------------------------------------------------
+  # Daily Postgres backup (cron inside the container)
+  # Dumps to the `backups` volume; retains last $BACKUP_RETENTION_DAYS files.
+  # Copy off-server with: docker run --rm -v peptivalab_backups:/b -v $PWD:/out alpine cp -r /b /out/
+  # --------------------------------------------------------------------------
+  backup:
+    build: ./backup
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_CRON: ${BACKUP_CRON:-17 3 * * *}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      TZ: UTC
+    volumes:
+      - backups:/backups
+    networks: [pvl]
