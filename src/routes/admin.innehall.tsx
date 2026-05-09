@@ -166,6 +166,32 @@ function AdminContentPage() {
           <TextField label="Nyhetsbrev — text" value={content.footer.newsletterBlurb} onChange={(v) => updateField("footer", "newsletterBlurb", v)} />
           <TextField label="Copyright (använd {year})" value={content.footer.copyright} onChange={(v) => updateField("footer", "copyright", v)} />
         </Section>
+
+        <Section
+          title="Mailmallar"
+          status={status.emails}
+          onSave={() => saveSection("emails")}
+        >
+          <p className="-mt-2 text-xs text-muted-foreground">
+            Mallar för automatiska mejl. Använd platshållare som <code className="rounded bg-muted px-1">{"{{name}}"}</code> — de byts ut när mejlet skickas.
+          </p>
+          <TextField label="Avsändarnamn (rubrik i mejl)" value={content.emails.brandHeader} onChange={(v) => updateField("emails", "brandHeader", v)} />
+          <TextField label="Sidfot i mejl" value={content.emails.footer} onChange={(v) => updateField("emails", "footer", v)} />
+
+          <div className="mt-4 rounded-md border border-border bg-muted/40 p-3">
+            <p className="text-sm font-semibold">Kontaktformulär</p>
+            <p className="text-xs text-muted-foreground">Platshållare: <code>{"{{name}}"}</code>, <code>{"{{email}}"}</code>, <code>{"{{message}}"}</code>, <code>{"{{timestamp}}"}</code></p>
+          </div>
+          <TextField label="Ämne" value={content.emails.contactSubject} onChange={(v) => updateField("emails", "contactSubject", v)} />
+          <TextArea label="Meddelande" value={content.emails.contactBody} onChange={(v) => updateField("emails", "contactBody", v)} />
+
+          <div className="mt-4 rounded-md border border-border bg-muted/40 p-3">
+            <p className="text-sm font-semibold">Driftlarm (backup &amp; verify)</p>
+            <p className="text-xs text-muted-foreground">Platshållare: <code>{"{{job}}"}</code>, <code>{"{{host}}"}</code>, <code>{"{{startedAt}}"}</code>, <code>{"{{failedAt}}"}</code>, <code>{"{{exitCode}}"}</code>, <code>{"{{log}}"}</code></p>
+          </div>
+          <TextField label="Ämne" value={content.emails.alertSubject} onChange={(v) => updateField("emails", "alertSubject", v)} />
+          <TextArea label="Meddelande" value={content.emails.alertBody} onChange={(v) => updateField("emails", "alertBody", v)} />
+        </Section>
       </div>
     </div>
   );
