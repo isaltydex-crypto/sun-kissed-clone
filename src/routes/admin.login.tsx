@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-r
 import { useState, useEffect, type FormEvent } from "react";
 import { Lock } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
-import { getTotpStatus, verifyTotp } from "@/lib/admin-2fa.functions";
+import { getTotpStatus } from "@/lib/admin-2fa.functions";
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
@@ -37,19 +37,12 @@ function AdminLoginPage() {
     e.preventDefault();
     setError(null);
     setBusy(true);
-    try {
-      if (totpRequired) {
-        await verifyTotp({ data: { code } });
-      }
-      if (login(password)) {
-        navigate({ to: redirect });
-      } else {
-        setError("Fel lösenord.");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Inloggning misslyckades.");
-    } finally {
-      setBusy(false);
+    const result = await login(password, totpRequired ? code : undefined);
+    setBusy(false);
+    if (result.ok) {
+      navigate({ to: redirect });
+    } else {
+      setError(result.error);
     }
   };
 
