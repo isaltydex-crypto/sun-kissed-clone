@@ -21,6 +21,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SidaSlugRouteImport } from './routes/sida.$slug'
 import { Route as CheckoutBekraftelseRouteImport } from './routes/checkout.bekraftelse'
 import { Route as AdminSidorRouteImport } from './routes/admin.sidor'
+import { Route as AdminSakerhetRouteImport } from './routes/admin.sakerhet'
 import { Route as AdminProdukterRouteImport } from './routes/admin.produkter'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminInnehallRouteImport } from './routes/admin.innehall'
@@ -88,6 +89,11 @@ const AdminSidorRoute = AdminSidorRouteImport.update({
   path: '/sidor',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSakerhetRoute = AdminSakerhetRouteImport.update({
+  id: '/sakerhet',
+  path: '/sakerhet',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminProdukterRoute = AdminProdukterRouteImport.update({
   id: '/produkter',
   path: '/produkter',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/admin/innehall': typeof AdminInnehallRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/admin/innehall': typeof AdminInnehallRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/admin/innehall': typeof AdminInnehallRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/produkter': typeof AdminProdukterRoute
+  '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/admin/innehall'
     | '/admin/login'
     | '/admin/produkter'
+    | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/admin/innehall'
     | '/admin/login'
     | '/admin/produkter'
+    | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/admin/innehall'
     | '/admin/login'
     | '/admin/produkter'
+    | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
@@ -344,6 +356,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSidorRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/sakerhet': {
+      id: '/admin/sakerhet'
+      path: '/sakerhet'
+      fullPath: '/admin/sakerhet'
+      preLoaderRoute: typeof AdminSakerhetRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/produkter': {
       id: '/admin/produkter'
       path: '/produkter'
@@ -394,6 +413,7 @@ interface AdminRouteChildren {
   AdminInnehallRoute: typeof AdminInnehallRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminProdukterRoute: typeof AdminProdukterRoute
+  AdminSakerhetRoute: typeof AdminSakerhetRoute
   AdminSidorRoute: typeof AdminSidorRoute
 }
 
@@ -402,6 +422,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminInnehallRoute: AdminInnehallRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminProdukterRoute: AdminProdukterRoute,
+  AdminSakerhetRoute: AdminSakerhetRoute,
   AdminSidorRoute: AdminSidorRoute,
 }
 

@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { Lock } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
+import { getTotpStatus, verifyTotp } from "@/lib/admin-2fa.functions";
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
@@ -21,15 +22,34 @@ function AdminLoginPage() {
   const navigate = useNavigate();
   const { redirect } = useSearch({ from: "/admin/login" });
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [totpRequired, setTotpRequired] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const onSubmit = (e: FormEvent) => {
+  useEffect(() => {
+    getTotpStatus()
+      .then((s) => setTotpRequired(s.required))
+      .catch(() => setTotpRequired(false));
+  }, []);
+
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (login(password)) {
-      navigate({ to: redirect });
-    } else {
-      setError("Fel lösenord.");
+    setBusy(true);
+    try {
+      if (totpRequired) {
+        await verifyTotp({ data: { code } });
+      }
+      if (login(password)) {
+        navigate({ to: redirect });
+      } else {
+        setError("Fel lösenord.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Inloggning misslyckades.");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -38,7 +58,7 @@ function AdminLoginPage() {
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-[var(--shadow-card)]">
         <div className="mb-6 flex flex-col items-center text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ocean-deep text-primary-foreground">
-            <Lock className="h-5 w-5" />
+            <Lock className="h-5 w-5" aria-hidden="true" />
           </div>
           <h1 className="mt-4 text-xl font-semibold text-ocean-deep">Admin-inloggning</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -65,7 +85,7 @@ function AdminLoginPage() {
             </div>
           </div>
         ) : (
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4" aria-label="Admin-inloggning">
             <label className="block">
               <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Lösenord
@@ -73,17 +93,37 @@ function AdminLoginPage() {
               <input
                 type="password"
                 autoFocus
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ocean"
               />
             </label>
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {totpRequired && (
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  2FA-kod
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d{6}"
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm tracking-[0.4em] text-foreground focus:outline-none focus:ring-2 focus:ring-ocean"
+                  placeholder="123456"
+                />
+              </label>
+            )}
+            {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
             <button
               type="submit"
-              className="w-full rounded-md bg-ocean-deep px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-ocean"
+              disabled={busy}
+              className="w-full rounded-md bg-ocean-deep px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-ocean disabled:opacity-60"
             >
-              Logga in
+              {busy ? "Loggar in..." : "Logga in"}
             </button>
           </form>
         )}

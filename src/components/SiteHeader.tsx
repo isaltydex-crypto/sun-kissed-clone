@@ -34,13 +34,13 @@ export function SiteHeader() {
           <Link to="/" className="flex items-center gap-3">
             <img src={logo} alt="peptivaLab Group" className="h-11 w-11 object-contain" />
           </Link>
-          <nav className="flex items-center gap-8">
+          <nav className="flex items-center gap-8" aria-label="Huvudmeny">
             {nav.map((n) => (
               <Link
                 key={n.to}
                 to={n.to}
-                className="text-sm font-medium uppercase tracking-wider text-primary-foreground/80 transition hover:text-sun"
-                activeProps={{ className: "text-sun" }}
+                className="text-sm font-medium uppercase tracking-wider text-primary-foreground/80 transition hover:text-sun focus:outline-none focus-visible:ring-2 focus-visible:ring-sun focus-visible:rounded-sm"
+                activeProps={{ className: "text-sun", "aria-current": "page" }}
               >
                 {n.label}
               </Link>
@@ -50,17 +50,21 @@ export function SiteHeader() {
                 key={p.id}
                 to="/sida/$slug"
                 params={{ slug: p.slug }}
-                className="text-sm font-medium uppercase tracking-wider text-primary-foreground/80 transition hover:text-sun"
-                activeProps={{ className: "text-sun" }}
+                className="text-sm font-medium uppercase tracking-wider text-primary-foreground/80 transition hover:text-sun focus:outline-none focus-visible:ring-2 focus-visible:ring-sun focus-visible:rounded-sm"
+                activeProps={{ className: "text-sun", "aria-current": "page" }}
               >
                 {p.menu_label || p.title}
               </Link>
             ))}
           </nav>
-          <button onClick={openCart} className="relative rounded-full p-2 transition hover:bg-white/10" aria-label="Varukorg">
-            <ShoppingBag className="h-5 w-5" />
+          <button
+            onClick={openCart}
+            className="relative rounded-full p-2 transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-sun"
+            aria-label={count > 0 ? `Varukorg, ${count} ${count === 1 ? "produkt" : "produkter"}` : "Varukorg, tom"}
+          >
+            <ShoppingBag className="h-5 w-5" aria-hidden="true" />
             {count > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-sun px-1 text-[10px] font-bold text-ocean-deep">
+              <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-sun px-1 text-[10px] font-bold text-ocean-deep">
                 {count}
               </span>
             )}
