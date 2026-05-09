@@ -39,7 +39,10 @@ services:
       JWT_EXP: 3600
     volumes:
       - pg_data:/var/lib/postgresql/data
-      - ./initdb:/docker-entrypoint-initdb.d:ro
+      # Mount our app schema as a SINGLE FILE (not the whole dir) so we don't
+      # shadow the supabase/postgres image's own bootstrap scripts that create
+      # supabase_admin / supabase_auth_admin / supabase_storage_admin / authenticator.
+      - ./initdb/zz-app-schema.sql:/docker-entrypoint-initdb.d/zz-app-schema.sql:ro
     networks: [pvl]
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
