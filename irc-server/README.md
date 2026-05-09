@@ -52,7 +52,7 @@ Make yourself an oper if you want kick/mode powers:
 
 ## 3. Wire it to the website
 
-Set these in the Lovable Cloud project (Settings → Backend secrets):
+Set these in the app's environment (`self-host/.env`):
 
 ```
 IRC_GATEWAY_URL    = wss://chat.yourdomain.com
