@@ -1,6 +1,6 @@
 // Self-host Vite config: Node SSR build instead of Cloudflare Workers.
 // This file is swapped in by self-host/apply-patch.sh on the server.
-// Do not edit by hand on Lovable — Lovable uses the original vite.config.ts.
+// Do not edit by hand in the editor — the editor uses the original vite.config.ts.
 
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";

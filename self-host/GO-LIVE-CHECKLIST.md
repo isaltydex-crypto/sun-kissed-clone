@@ -188,11 +188,11 @@ chmod 600 .env
 
 ---
 
-## 8. (Optional) Migrate data from Lovable Cloud
+## 8. (Optional) Migrate data from previous host
 
 Skip if starting fresh.
 
-1. In Lovable: **Cloud → Database → Export** → download `dump.sql`
+1. Export the previous database as `dump.sql`
 2. SCP it up:
    ```bash
    scp dump.sql deploy@<VPS_IP>:~/peptivalab/self-host/initdb/01-import.sql
@@ -315,8 +315,8 @@ Now do an off-server copy. Pick one:
 
 ## 13. Post-go-live cleanup
 
-- [ ] Lovable project: **Settings → Visibility → Unpublish** (or just leave the `*.lovable.app` dormant)
-- [ ] Old DNS records pointing to Lovable's IP (`185.158.133.1`) removed
+- [ ] Previous deployment decommissioned
+- [ ] Old DNS records pointing to the previous host removed
 - [ ] Email aliases (`hej@`, `admin@`) still work — go-live didn't touch MX records (verify anyway)
 - [ ] Save `.env` and the JWT generator inputs in your password manager
 - [ ] Document the VPS provider, IP, root password recovery steps somewhere your future-self can find
@@ -349,12 +349,12 @@ docker compose down -v
 
 ## Rollback (if go-live goes wrong)
 
-You can flip back to Lovable in <5 minutes:
+You can flip back to the previous host in <5 minutes:
 
-1. At your registrar, change the four A records back to `185.158.133.1` (Lovable).
-2. In Lovable, **republish** the project.
+1. At your registrar, change the four A records back to the previous host IP.
+2. Re-enable the previous deployment.
 3. Wait for DNS to propagate.
 4. Investigate the VPS at your leisure — it stays running, just no traffic.
 
-The data on Lovable Cloud is unchanged (the migration was a one-way *copy*,
+The data on the previous host is unchanged (the migration was a one-way *copy*,
 not a move). You only lose anything written to the VPS DB after cutover.

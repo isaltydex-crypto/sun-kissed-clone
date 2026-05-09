@@ -5,7 +5,7 @@ It contains:
 
 - **InspIRCd** — the IRC daemon itself (port `6697` TLS, `6667` plain).
 - **ws-gateway** — a tiny Node.js WebSocket bridge in front of InspIRCd. The
-  Lovable site (the `irc-bridge.server.ts` module) connects to this
+  peptivaLab site (the `irc-bridge.server.ts` module) connects to this
   WebSocket; the gateway forwards every line over a real TCP IRC connection.
 - A self-signed TLS cert auto-generated on first start.
 
@@ -25,7 +25,7 @@ That's it. Three things are now listening:
 | ----- | ----------------------------- | -------------------------------------- |
 | 6697  | InspIRCd (TLS)                | You, with HexChat / mIRC / weechat     |
 | 6667  | InspIRCd (plain, internal)    | The `ws-gateway` container             |
-| 8080  | `ws-gateway` (WebSocket)      | The Lovable site (`IRC_GATEWAY_URL`)   |
+| 8080  | `ws-gateway` (WebSocket)      | The peptivaLab site (`IRC_GATEWAY_URL`)|
 
 For production put nginx/Caddy in front of `:8080` to terminate TLS as
 `wss://`. Example Caddyfile snippet:
@@ -52,7 +52,7 @@ Make yourself an oper if you want kick/mode powers:
 
 ## 3. Wire it to the website
 
-Set these in the Lovable Cloud project (Settings → Backend secrets):
+Set these in the app's environment (`self-host/.env`):
 
 ```
 IRC_GATEWAY_URL    = wss://chat.yourdomain.com

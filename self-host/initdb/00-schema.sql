@@ -3,7 +3,7 @@
 -- Auto-loaded by the supabase/postgres image on first boot
 -- (files in /docker-entrypoint-initdb.d run in alpha order).
 --
--- This is a snapshot of the public schema as it was on Lovable Cloud.
+-- This is a snapshot of the public schema from the previous host.
 -- If you ALSO need to migrate data, drop a `01-import.sql` next to this file
 -- (see ../README.md step 4) — it will run after this one.
 -- ============================================================================
