@@ -5,11 +5,11 @@ set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 # 1. Swap vite.config.ts ------------------------------------------------------
-if [ -f "$ROOT/vite.config.lovable.ts" ]; then
-  echo "✔ vite.config already patched (vite.config.lovable.ts exists). Skipping swap."
+if [ -f "$ROOT/vite.config.editor.ts" ]; then
+  echo "✔ vite.config already patched (vite.config.editor.ts exists). Skipping swap."
 else
-  echo "→ backing up vite.config.ts → vite.config.lovable.ts"
-  mv "$ROOT/vite.config.ts" "$ROOT/vite.config.lovable.ts"
+  echo "→ backing up vite.config.ts → vite.config.editor.ts"
+  mv "$ROOT/vite.config.ts" "$ROOT/vite.config.editor.ts"
   echo "→ installing Node-target vite.config.ts"
   cp "$ROOT/self-host/vite.config.node.ts" "$ROOT/vite.config.ts"
 fi
