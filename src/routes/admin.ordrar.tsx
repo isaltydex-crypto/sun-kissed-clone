@@ -63,13 +63,13 @@ function AdminOrdersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {data.orders.map((o) => (
+            {data.orders.map((o: any) => (
               <tr key={o.id}>
                 <td className="px-4 py-3 font-mono text-xs">
                   <details>
                     <summary className="cursor-pointer text-ocean-deep">{o.order_number}</summary>
                     <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                      {o.order_items?.map((it) => (
+                      {o.order_items?.map((it: any) => (
                         <li key={it.id}>
                           {it.quantity} × {it.product_name} — {formatKr(it.line_total_ore)}
                         </li>
