@@ -16,10 +16,9 @@ export const verifyTotp = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const secret = process.env.ADMIN_TOTP_SECRET;
     if (!secret) return { ok: true, skipped: true as const };
-    const { authenticator } = await import("otplib");
-    authenticator.options = { window: 1 };
-    const ok = authenticator.verify({ token: data.code, secret });
-    if (!ok) {
+    const { verify } = await import("otplib");
+    const result = await verify({ secret, token: data.code, epochTolerance: 30 });
+    if (!result.valid) {
       throw new Error("Ogiltig 2FA-kod");
     }
     return { ok: true, skipped: false as const };
@@ -39,13 +38,13 @@ export const generateTotpSetup = createServerFn({ method: "POST" }).handler(asyn
     throw new Error("Endast inloggad admin kan generera 2FA-secret.");
   }
 
-  const { authenticator } = await import("otplib");
+  const { generateSecret, generateURI } = await import("otplib");
   const QRCode = (await import("qrcode")).default;
 
-  const secret = authenticator.generateSecret(32);
+  const secret = generateSecret();
   const issuer = process.env.ADMIN_TOTP_ISSUER || "PeptivaLab";
   const account = process.env.ADMIN_TOTP_ACCOUNT || "admin";
-  const otpauth = authenticator.keyuri(account, issuer, secret);
+  const otpauth = generateURI({ issuer, label: account, secret });
   const qrDataUrl = await QRCode.toDataURL(otpauth);
 
   return { secret, otpauth, qrDataUrl };
