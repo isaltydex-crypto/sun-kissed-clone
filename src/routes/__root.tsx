@@ -30,8 +30,8 @@ const ORG_JSON_LD = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "PeptivaLab Group",
-  url: "https://peptivalab.se",
-  logo: "https://peptivalab.se/favicon.ico",
+  url: "https://peptivalabgroup.com",
+  logo: "https://peptivalabgroup.com/favicon.ico",
   sameAs: [] as string[],
   contactPoint: [{
     "@type": "ContactPoint",

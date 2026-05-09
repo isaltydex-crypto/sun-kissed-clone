@@ -20,7 +20,7 @@ Use them together.
 
 ## 1. DNS — point your domain at the server 🔴
 
-Your domain (peptivalab.se) needs to know where the server lives.
+Your domain (peptivalabgroup.com) needs to know where the server lives.
 
 **Step 1.** On your VPS, find its public IP address:
 ```bash
@@ -33,14 +33,14 @@ and add **four A-records**, all pointing to that IP:
 
 | Subdomain                 | Type | Points to    |
 | ------------------------- | ---- | ------------ |
-| `peptivalab.se`           | A    | your VPS IP  |
-| `www.peptivalab.se`       | A    | your VPS IP  |
-| `chat.peptivalab.se`      | A    | your VPS IP  |
-| `db.peptivalab.se`        | A    | your VPS IP  |
+| `peptivalabgroup.com`           | A    | your VPS IP  |
+| `www.peptivalabgroup.com`       | A    | your VPS IP  |
+| `chat.peptivalabgroup.com`      | A    | your VPS IP  |
+| `db.peptivalabgroup.com`        | A    | your VPS IP  |
 
 **Step 3.** Wait 5–30 minutes, then check from your computer:
 ```bash
-dig +short peptivalab.se
+dig +short peptivalabgroup.com
 ```
 It should print your VPS IP. Repeat for the other three. Don't continue
 until all four work.
@@ -82,7 +82,7 @@ openssl rand -base64 18    # → DASHBOARD_PASSWORD
 | `SERVICE_ROLE_KEY`    | from step 2 (service_role JWT)              |
 | `DASHBOARD_USERNAME`  | anything you like, e.g. `supabase`          |
 | `DASHBOARD_PASSWORD`  | from step 1                                 |
-| `PUBLIC_SUPABASE_URL` | `https://db.peptivalab.se`                  |
+| `PUBLIC_SUPABASE_URL` | `https://db.peptivalabgroup.com`                  |
 
 ---
 
@@ -159,7 +159,7 @@ but no one gets emailed about them, and backup failures are only logged.
 | Gmail (low volume only)           | `smtp.gmail.com`      | `587` | Google account → App Passwords             |
 | Fastmail                          | `smtp.fastmail.com`   | `465` | settings → app passwords                   |
 
-**Step 2.** Verify your sending domain (`peptivalab.se`) inside the
+**Step 2.** Verify your sending domain (`peptivalabgroup.com`) inside the
 provider. They'll give you DNS records to add — do that in your registrar.
 
 **Step 3.** Fill into `self-host/.env`:
@@ -171,7 +171,7 @@ provider. They'll give you DNS records to add — do that in your registrar.
 | `SMTP_SECURE`           | leave empty                                              |
 | `SMTP_USER`             | provider username / API key id                           |
 | `SMTP_PASS`             | provider password / API secret                           |
-| `NOTIFY_EMAIL_FROM`     | `PeptivaLab <noreply@peptivalab.se>`                     |
+| `NOTIFY_EMAIL_FROM`     | `PeptivaLab <noreply@peptivalabgroup.com>`                     |
 | `NOTIFY_EMAIL_TO`       | your real address (comma-separate for multiple)          |
 | `INTERNAL_NOTIFY_TOKEN` | `openssl rand -hex 32` (lets backups send alerts)        |
 
@@ -179,7 +179,7 @@ provider. They'll give you DNS records to add — do that in your registrar.
 to spam. Your provider's setup wizard generates the exact values:
 - **SPF** (TXT record)
 - **DKIM** (CNAME records)
-- **DMARC** (TXT record on `_dmarc.peptivalab.se`)
+- **DMARC** (TXT record on `_dmarc.peptivalabgroup.com`)
 
 > **Email templates** (subject lines and body text) are editable in the
 > admin panel at `/admin/innehall → Mailmallar` — no need to touch any files.
@@ -230,10 +230,10 @@ docker compose exec backup rclone ls b2:peptivalab-backups
 | Variable           | Value                                |
 | ------------------ | ------------------------------------ |
 | `LETSENCRYPT_EMAIL`| your real address (cert expiry warnings) |
-| `SITE_DOMAIN`      | `peptivalab.se`                      |
-| `WWW_DOMAIN`       | `www.peptivalab.se`                  |
-| `CHAT_DOMAIN`      | `chat.peptivalab.se`                 |
-| `STUDIO_DOMAIN`    | `db.peptivalab.se`                   |
+| `SITE_DOMAIN`      | `peptivalabgroup.com`                      |
+| `WWW_DOMAIN`       | `www.peptivalabgroup.com`                  |
+| `CHAT_DOMAIN`      | `chat.peptivalabgroup.com`                 |
+| `STUDIO_DOMAIN`    | `db.peptivalabgroup.com`                   |
 
 **Firewall (UFW):** open only what you need.
 ```bash
@@ -264,7 +264,7 @@ keeps your API key off the browser.
    wallet, that coin is disabled at checkout.
 3. **Dashboard → Store settings → API keys** — click *Create*. Copy the key.
 4. **Dashboard → Store settings → IPN settings**:
-   - **IPN callback URL:** `https://peptivalab.se/api/public/crypto/webhook`
+   - **IPN callback URL:** `https://peptivalabgroup.com/api/public/crypto/webhook`
    - Click *Generate* next to **IPN Secret key** and copy it.
 
 **Step 2. Generate the secrets locally.**
@@ -280,13 +280,13 @@ openssl rand -hex 32       # → CRYPTO_INTERNAL_TOKEN (links site ↔ payments 
 | `NOWPAYMENTS_IPN_SECRET`       | from step 1.4                                       |
 | `NOWPAYMENTS_BASE_URL`         | `https://api.nowpayments.io/v1` (default — leave)   |
 | `CRYPTO_INTERNAL_TOKEN`        | from step 2                                         |
-| `VITE_PAYMENTS_API_BASE_URL`   | `https://peptivalab.se` (where the payments routes live) |
-| `CRYPTO_SUCCESS_URL`           | `https://peptivalab.se/checkout/bekraftelse`        |
-| `CRYPTO_CANCEL_URL`            | `https://peptivalab.se/checkout`                    |
+| `VITE_PAYMENTS_API_BASE_URL`   | `https://peptivalabgroup.com` (where the payments routes live) |
+| `CRYPTO_SUCCESS_URL`           | `https://peptivalabgroup.com/checkout/bekraftelse`        |
+| `CRYPTO_CANCEL_URL`            | `https://peptivalabgroup.com/checkout`                    |
 
 > The frontend calls `${VITE_PAYMENTS_API_BASE_URL}/api/crypto/create-invoice`
 > and `/api/crypto/order/:id` — see `src/lib/paymentsApi.ts`. If you host the
-> payments routes on a different subdomain (e.g. `api.peptivalab.se`), point
+> payments routes on a different subdomain (e.g. `api.peptivalabgroup.com`), point
 > `VITE_PAYMENTS_API_BASE_URL` there and add a matching DNS A-record + Caddy
 > entry.
 
@@ -311,7 +311,7 @@ Optional Plausible Analytics. Empty = no tracking.
 
 | Variable                | Value                                            |
 | ----------------------- | ------------------------------------------------ |
-| `VITE_PLAUSIBLE_DOMAIN` | `peptivalab.se` (your domain in Plausible)       |
+| `VITE_PLAUSIBLE_DOMAIN` | `peptivalabgroup.com` (your domain in Plausible)       |
 | `VITE_PLAUSIBLE_SRC`    | only set if you self-host Plausible              |
 
 > Changes to these need an app rebuild:
@@ -323,7 +323,7 @@ Optional Plausible Analytics. Empty = no tracking.
 
 | Variable          | Value                  |
 | ----------------- | ---------------------- |
-| `PUBLIC_SITE_URL` | `https://peptivalab.se` |
+| `PUBLIC_SITE_URL` | `https://peptivalabgroup.com` |
 
 Used for `/sitemap.xml` and `/robots.txt`. After go-live, submit the
 sitemap to Google Search Console (one-time).
@@ -336,10 +336,10 @@ Get an email/SMS if the site goes down. Free, no env vars.
 
 1. Sign up at <https://uptimerobot.com> (or self-host Uptime Kuma).
 2. Add an HTTP monitor:
-   - **URL:** `https://peptivalab.se/api/public/health`
+   - **URL:** `https://peptivalabgroup.com/api/public/health`
    - **Interval:** 5 min
    - **Alert contact:** your email or phone
-3. Add a second monitor for `https://db.peptivalab.se`.
+3. Add a second monitor for `https://db.peptivalabgroup.com`.
 
 See `UPTIME-MONITORING.md` for screenshots and Uptime Kuma instructions.
 
@@ -361,7 +361,7 @@ add four secrets:
 
 | Secret        | Value                                    |
 | ------------- | ---------------------------------------- |
-| `VPS_HOST`    | your VPS IP, or `peptivalab.se`          |
+| `VPS_HOST`    | your VPS IP, or `peptivalabgroup.com`          |
 | `VPS_USER`    | `deploy`                                 |
 | `VPS_SSH_KEY` | the private key from step 1 (whole thing)|
 | `VPS_PATH`    | `/home/deploy/peptivalab`                |

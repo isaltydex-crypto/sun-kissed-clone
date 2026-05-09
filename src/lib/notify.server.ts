@@ -7,7 +7,7 @@
 //   SMTP_SECURE        true | false (default: true if port=465, else false)
 //   SMTP_USER          login
 //   SMTP_PASS          password
-//   NOTIFY_EMAIL_FROM  "PeptivaLab <noreply@peptivalab.se>"
+//   NOTIFY_EMAIL_FROM  "PeptivaLab <noreply@peptivalabgroup.com>"
 //   NOTIFY_EMAIL_TO    where notifications are sent (comma-separated allowed)
 //
 // All sends are best-effort: failures are logged and swallowed so a broken

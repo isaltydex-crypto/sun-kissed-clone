@@ -28,10 +28,10 @@ DNS records (point at this server's public IP):
 
 | Host                       | Type | Purpose                       |
 | -------------------------- | ---- | ----------------------------- |
-| `peptivalab.se`            | A    | website                       |
-| `www.peptivalab.se`        | A    | website                       |
-| `chat.peptivalab.se`       | A    | IRC ws-gateway                |
-| `db.peptivalab.se`         | A    | Supabase Studio (admin only)  |
+| `peptivalabgroup.com`            | A    | website                       |
+| `www.peptivalabgroup.com`        | A    | website                       |
+| `chat.peptivalabgroup.com`       | A    | IRC ws-gateway                |
+| `db.peptivalabgroup.com`         | A    | Supabase Studio (admin only)  |
 
 ---
 
@@ -121,10 +121,10 @@ First boot takes ~2 minutes (Caddy gets TLS certs from Let's Encrypt).
 
 Verify:
 
-- <https://peptivalab.se> → website
-- <https://chat.peptivalab.se> → IRC ws-gateway (returns "426 Upgrade")
-- <https://db.peptivalab.se> → Supabase Studio (login: `supabase` / `DASHBOARD_PASSWORD`)
-- HexChat → `chat.peptivalab.se:6697`, PASS = `IRC_SERVER_PASSWORD`
+- <https://peptivalabgroup.com> → website
+- <https://chat.peptivalabgroup.com> → IRC ws-gateway (returns "426 Upgrade")
+- <https://db.peptivalabgroup.com> → Supabase Studio (login: `supabase` / `DASHBOARD_PASSWORD`)
+- HexChat → `chat.peptivalabgroup.com:6697`, PASS = `IRC_SERVER_PASSWORD`
 
 ---
 
@@ -133,7 +133,7 @@ Verify:
 Once you've smoke-tested:
 
 1. Decommission the previous deployment (or just point traffic away from it).
-2. Update DNS: change `peptivalab.se` A record from `185.158.133.1`
+2. Update DNS: change `peptivalabgroup.com` A record from `185.158.133.1`
    the previous host → your server's IP.
 3. Wait for propagation, watch `docker compose logs caddy` for the cert.
 
