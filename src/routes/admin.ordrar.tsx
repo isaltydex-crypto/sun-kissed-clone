@@ -20,7 +20,7 @@ function formatKr(ore: number) {
 
 function AdminOrdersPage() {
   const data = Route.useLoaderData();
-  const router = Route.useRouter();
+  const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const update = async (
