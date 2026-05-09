@@ -5,6 +5,14 @@
 
 name: peptivalab
 
+# Reusable log rotation: 10 MiB per file, 3 files = ~30 MiB max per service.
+# Without this, Docker's JSON log driver fills the disk over months.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 networks:
   pvl: {}
 
