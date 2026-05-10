@@ -87,31 +87,80 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-if [ -n "$DOMAIN" ]; then
-  hdr "6. HTTPS probe → $DOMAIN"
-  https_code=$(curl -kI --max-time 10 -o /tmp/_https.out -w '%{http_code}' "https://$DOMAIN" 2>&1 || echo 000)
-  cat /tmp/_https.out 2>/dev/null
-  if [ "$https_code" = "200" ] || [ "$https_code" = "301" ] || [ "$https_code" = "302" ]; then
-    ok "HTTPS responded $https_code"
-  else
-    fail "HTTPS responded $https_code"
-  fi
+if [ "${#DOMAINS[@]}" -gt 0 ]; then
+  hdr "6. DNS records for configured domains"
+  for domain in "${DOMAINS[@]}"; do
+    echo "--- $domain ---"
+    (dig +short A "$domain" 2>/dev/null || getent ahostsv4 "$domain" 2>/dev/null || true)
+    (dig +short AAAA "$domain" 2>/dev/null || true)
+  done
+  ok "logged DNS records"
 
-  hdr "7. HTTP probe → $DOMAIN"
-  http_code=$(curl -I --max-time 10 -o /tmp/_http.out -w '%{http_code}' "http://$DOMAIN" 2>&1 || echo 000)
-  cat /tmp/_http.out 2>/dev/null
-  if [ "$http_code" = "200" ] || [ "$http_code" = "301" ] || [ "$http_code" = "302" ]; then
-    ok "HTTP responded $http_code"
-  else
-    fail "HTTP responded $http_code"
-  fi
+  hdr "7. HTTPS / HTTP probes from this VPS"
+  for domain in "${DOMAINS[@]}"; do
+    echo "--- HTTPS $domain ---"
+    https_out="/tmp/_https_${domain//[^A-Za-z0-9]/_}.out"
+    https_code=$(curl -kI --max-time 10 -o "$https_out" -w '%{http_code}' "https://$domain" 2>&1 || echo 000)
+    cat "$https_out" 2>/dev/null
+    if [ "$https_code" = "200" ] || [ "$https_code" = "301" ] || [ "$https_code" = "302" ]; then
+      ok "HTTPS $domain responded $https_code"
+    else
+      fail "HTTPS $domain responded $https_code"
+    fi
+
+    echo "--- HTTP $domain ---"
+    http_out="/tmp/_http_${domain//[^A-Za-z0-9]/_}.out"
+    http_code=$(curl -I --max-time 10 -o "$http_out" -w '%{http_code}' "http://$domain" 2>&1 || echo 000)
+    cat "$http_out" 2>/dev/null
+    if [ "$http_code" = "200" ] || [ "$http_code" = "301" ] || [ "$http_code" = "302" ]; then
+      ok "HTTP $domain responded $http_code"
+    else
+      fail "HTTP $domain responded $http_code"
+    fi
+  done
 fi
 
 # ---------------------------------------------------------------------------
-hdr "8. Public IP of this VPS"
+hdr "8. Localhost probes on this VPS"
+for scheme in http https; do
+  if [ "$scheme" = "https" ]; then
+    local_code=$(curl -kI --resolve "local.test:443:127.0.0.1" --max-time 10 -o /tmp/_local_https.out -w '%{http_code}' "https://local.test" 2>&1 || echo 000)
+    cat /tmp/_local_https.out 2>/dev/null
+  if [ "$https_code" = "200" ] || [ "$https_code" = "301" ] || [ "$https_code" = "302" ]; then
+      ok "localhost HTTPS responded $local_code"
+    else
+      warn "localhost HTTPS responded $local_code (may be expected if hostnames do not match Caddy config)"
+    fi
+  else
+    local_code=$(curl -I --max-time 10 -o /tmp/_local_http.out -w '%{http_code}' "http://127.0.0.1" 2>&1 || echo 000)
+    cat /tmp/_local_http.out 2>/dev/null
+    if [ "$local_code" = "200" ] || [ "$local_code" = "301" ] || [ "$local_code" = "302" ]; then
+      ok "localhost HTTP responded $local_code"
+    else
+      warn "localhost HTTP responded $local_code (may be expected if hostnames do not match Caddy config)"
+    fi
+  fi
+done
+
+# ---------------------------------------------------------------------------
+hdr "9. Public IP of this VPS"
 pub_ip=$(curl -4 -s --max-time 5 ifconfig.me || echo "?")
 echo "public IP: $pub_ip"
 info "VPS public IP: $pub_ip"
+
+if [ "${#DOMAINS[@]}" -gt 0 ] && [ "$pub_ip" != "?" ]; then
+  hdr "10. DNS vs VPS IP comparison"
+  for domain in "${DOMAINS[@]}"; do
+    ips=$(dig +short A "$domain" 2>/dev/null || true)
+    echo "--- $domain ---"
+    echo "$ips"
+    if echo "$ips" | grep -Fxq "$pub_ip"; then
+      ok "$domain A record includes VPS IP $pub_ip"
+    else
+      warn "$domain A record does not include VPS IP $pub_ip"
+    fi
+  done
+fi
 
 # ---------------------------------------------------------------------------
 hdr "Common fixes"
@@ -119,4 +168,5 @@ cat <<'EOF'
 - UFW blocking:    sudo ufw allow 80,443/tcp
 - Port 80 in use:  stop apache/nginx, then: docker compose restart caddy
 - Cert errors:     check DNS A records match the public IP above
+- Local works but external fails: check provider firewall/security group for 80/443
 EOF
