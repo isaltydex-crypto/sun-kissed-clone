@@ -28,6 +28,17 @@ for d in "$SITE_DOMAIN_VALUE" "$WWW_DOMAIN_VALUE" "$CHAT_DOMAIN_VALUE" "$STUDIO_
 done
 PROBE_DOMAIN="${SITE_DOMAIN_VALUE:-local.test}"
 
+is_expected_http_code() {
+  local domain="$1"
+  local code="$2"
+  case "$code" in
+    200|301|302|307|308) return 0 ;;
+    401) [ "$domain" = "$STUDIO_DOMAIN_VALUE" ] && return 0 ;;
+    426) [ "$domain" = "$CHAT_DOMAIN_VALUE" ] && return 0 ;;
+  esac
+  return 1
+}
+
 info "SITE_DOMAIN=${SITE_DOMAIN_VALUE:-<unset>}"
 info "WWW_DOMAIN=${WWW_DOMAIN_VALUE:-<unset>}"
 info "CHAT_DOMAIN=${CHAT_DOMAIN_VALUE:-<unset>}"
@@ -103,7 +114,7 @@ if [ "${#DOMAINS[@]}" -gt 0 ]; then
     https_out="/tmp/_https_${domain//[^A-Za-z0-9]/_}.out"
     https_code=$(curl -kI --max-time 10 -o "$https_out" -w '%{http_code}' "https://$domain" || echo 000)
     cat "$https_out" 2>/dev/null
-    if [ "$https_code" = "200" ] || [ "$https_code" = "301" ] || [ "$https_code" = "302" ]; then
+    if is_expected_http_code "$domain" "$https_code"; then
       ok "HTTPS $domain responded $https_code"
     else
       fail "HTTPS $domain responded $https_code"
@@ -113,7 +124,7 @@ if [ "${#DOMAINS[@]}" -gt 0 ]; then
     http_out="/tmp/_http_${domain//[^A-Za-z0-9]/_}.out"
     http_code=$(curl -I --max-time 10 -o "$http_out" -w '%{http_code}' "http://$domain" || echo 000)
     cat "$http_out" 2>/dev/null
-    if [ "$http_code" = "200" ] || [ "$http_code" = "301" ] || [ "$http_code" = "302" ]; then
+    if is_expected_http_code "$domain" "$http_code"; then
       ok "HTTP $domain responded $http_code"
     else
       fail "HTTP $domain responded $http_code"
@@ -127,7 +138,7 @@ for scheme in http https; do
   if [ "$scheme" = "https" ]; then
     local_code=$(curl -kI --resolve "$PROBE_DOMAIN:443:127.0.0.1" --max-time 10 -o /tmp/_local_https.out -w '%{http_code}' "https://$PROBE_DOMAIN" || echo 000)
     cat /tmp/_local_https.out 2>/dev/null
-    if [ "$local_code" = "200" ] || [ "$local_code" = "301" ] || [ "$local_code" = "302" ]; then
+    if is_expected_http_code "$PROBE_DOMAIN" "$local_code"; then
       ok "localhost HTTPS for $PROBE_DOMAIN responded $local_code"
     else
       warn "localhost HTTPS for $PROBE_DOMAIN responded $local_code"
@@ -135,7 +146,7 @@ for scheme in http https; do
   else
     local_code=$(curl -I --resolve "$PROBE_DOMAIN:80:127.0.0.1" --max-time 10 -o /tmp/_local_http.out -w '%{http_code}' "http://$PROBE_DOMAIN" || echo 000)
     cat /tmp/_local_http.out 2>/dev/null
-    if [ "$local_code" = "200" ] || [ "$local_code" = "301" ] || [ "$local_code" = "302" ]; then
+    if is_expected_http_code "$PROBE_DOMAIN" "$local_code"; then
       ok "localhost HTTP for $PROBE_DOMAIN responded $local_code"
     else
       warn "localhost HTTP for $PROBE_DOMAIN responded $local_code"
