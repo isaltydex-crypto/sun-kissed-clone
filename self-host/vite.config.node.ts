@@ -4,7 +4,6 @@
 
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import { nitro } from "nitro/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
@@ -13,8 +12,13 @@ export default defineConfig({
   plugins: [
     tsConfigPaths(),
     tailwindcss(),
-    tanstackStart(),
-    nitro({ preset: "node-server" }),
+    // tanstackStart embeds Nitro internally — pass the node-server preset
+    // through its `server` option so the build emits a runnable
+    // .output/server/index.mjs with an actual http listener.
+    tanstackStart({
+      target: "node-server",
+      server: { preset: "node-server" },
+    }),
     viteReact(),
   ],
   server: { port: 3000, host: "0.0.0.0" },

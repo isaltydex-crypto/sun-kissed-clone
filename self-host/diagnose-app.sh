@@ -66,9 +66,8 @@ docker compose run --rm --entrypoint sh app -c '
   ls -la .output/server 2>/dev/null || echo "(no .output/server)"
   echo
   echo "--- running entry (10s timeout) ---"
-  ENTRY="$(grep -oE "node [^ ]+" start-server.sh | awk "{print \$2}")"
-  echo "entry=$ENTRY"
-  timeout 10 node "$ENTRY"
+  echo "--- running start-server.sh (10s timeout) ---"
+  timeout 10 ./start-server.sh
   echo "exit=$?"
 ' 2>&1 | tail -n 100
 
