@@ -51,5 +51,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/runtime ./
 COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/package-lock.json* ./
+# The TanStack Start bundle still requires some packages (e.g. h3-v2) at
+# runtime instead of inlining them, so we need a node_modules tree alongside
+# the dist output. Install production deps only to keep the image small.
+RUN npm install --omit=dev --no-audit --no-fund --ignore-scripts || \
+    npm install --omit=dev --no-audit --no-fund --ignore-scripts --legacy-peer-deps
 EXPOSE 3000
 CMD ["./start-server.sh"]
