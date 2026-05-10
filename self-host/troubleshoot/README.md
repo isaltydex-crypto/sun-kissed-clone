@@ -39,16 +39,18 @@ rm self-host/troubleshoot/logs/*.log
 **Use when:** the site doesn't load in a browser (timeout, connection refused, cert warning, ERR_CONNECTION_*).
 
 **What it does:**
-- Reads `SITE_DOMAIN` from `.env`
+- Reads `SITE_DOMAIN`, `WWW_DOMAIN`, `CHAT_DOMAIN`, and `STUDIO_DOMAIN` from `.env`
 - Greps Caddy logs for cert / ACME / error lines
 - Lists what's bound to ports 80 and 443
 - Shows processes holding port 80 (catches stray nginx/apache)
 - Shows UFW firewall status
 - Shows `docker compose ps` for all containers
-- Probes the site over HTTPS and HTTP from inside the VPS
-- Prints the VPS public IP so you can compare it to your DNS A records
+- Logs DNS A/AAAA records for each configured domain
+- Probes each configured domain over HTTPS and HTTP from inside the VPS
+- Probes Caddy locally on `127.0.0.1` using the configured hostname
+- Prints the VPS public IP and compares it to DNS A records
 
-**Typical fixes it points to:** UFW blocking 80/443, another web server holding port 80, Let's Encrypt failing because DNS doesn't match the public IP.
+**Typical fixes it points to:** UFW blocking 80/443, provider firewall/security group blocking 80/443, another web server holding port 80, Let's Encrypt failing because DNS doesn't match the public IP.
 
 ---
 

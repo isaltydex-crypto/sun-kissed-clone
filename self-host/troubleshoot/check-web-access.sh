@@ -6,11 +6,32 @@ set -u
 # shellcheck source=_lib.sh
 . "$(cd "$(dirname "$0")" && pwd)/_lib.sh"
 
-DOMAIN="${SITE_DOMAIN:-}"
-if [ -z "$DOMAIN" ] && [ -f .env ]; then
-  DOMAIN=$(grep -E '^SITE_DOMAIN=' .env | cut -d= -f2- | tr -d '"')
-fi
-info "SITE_DOMAIN=${DOMAIN:-<unset>}"
+read_env_value() {
+  local key="$1"
+  local value="${!key:-}"
+  if [ -z "$value" ] && [ -f .env ]; then
+    value=$(grep -E "^${key}=" .env | tail -n1 | cut -d= -f2- | tr -d '"' | tr -d "'")
+  fi
+  printf '%s' "$value"
+}
+
+SITE_DOMAIN_VALUE="$(read_env_value SITE_DOMAIN)"
+WWW_DOMAIN_VALUE="$(read_env_value WWW_DOMAIN)"
+CHAT_DOMAIN_VALUE="$(read_env_value CHAT_DOMAIN)"
+STUDIO_DOMAIN_VALUE="$(read_env_value STUDIO_DOMAIN)"
+
+DOMAINS=()
+for d in "$SITE_DOMAIN_VALUE" "$WWW_DOMAIN_VALUE" "$CHAT_DOMAIN_VALUE" "$STUDIO_DOMAIN_VALUE"; do
+  if [ -n "$d" ]; then
+    DOMAINS+=("$d")
+  fi
+done
+PROBE_DOMAIN="${SITE_DOMAIN_VALUE:-local.test}"
+
+info "SITE_DOMAIN=${SITE_DOMAIN_VALUE:-<unset>}"
+info "WWW_DOMAIN=${WWW_DOMAIN_VALUE:-<unset>}"
+info "CHAT_DOMAIN=${CHAT_DOMAIN_VALUE:-<unset>}"
+info "STUDIO_DOMAIN=${STUDIO_DOMAIN_VALUE:-<unset>}"
 
 # ---------------------------------------------------------------------------
 hdr "1. Caddy logs (cert / errors)"
@@ -67,31 +88,80 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-if [ -n "$DOMAIN" ]; then
-  hdr "6. HTTPS probe → $DOMAIN"
-  https_code=$(curl -kI --max-time 10 -o /tmp/_https.out -w '%{http_code}' "https://$DOMAIN" 2>&1 || echo 000)
-  cat /tmp/_https.out 2>/dev/null
-  if [ "$https_code" = "200" ] || [ "$https_code" = "301" ] || [ "$https_code" = "302" ]; then
-    ok "HTTPS responded $https_code"
-  else
-    fail "HTTPS responded $https_code"
-  fi
+if [ "${#DOMAINS[@]}" -gt 0 ]; then
+  hdr "6. DNS records for configured domains"
+  for domain in "${DOMAINS[@]}"; do
+    echo "--- $domain ---"
+    (dig +short A "$domain" 2>/dev/null || getent ahostsv4 "$domain" 2>/dev/null || true)
+    (dig +short AAAA "$domain" 2>/dev/null || true)
+  done
+  ok "logged DNS records"
 
-  hdr "7. HTTP probe → $DOMAIN"
-  http_code=$(curl -I --max-time 10 -o /tmp/_http.out -w '%{http_code}' "http://$DOMAIN" 2>&1 || echo 000)
-  cat /tmp/_http.out 2>/dev/null
-  if [ "$http_code" = "200" ] || [ "$http_code" = "301" ] || [ "$http_code" = "302" ]; then
-    ok "HTTP responded $http_code"
-  else
-    fail "HTTP responded $http_code"
-  fi
+  hdr "7. HTTPS / HTTP probes from this VPS"
+  for domain in "${DOMAINS[@]}"; do
+    echo "--- HTTPS $domain ---"
+    https_out="/tmp/_https_${domain//[^A-Za-z0-9]/_}.out"
+    https_code=$(curl -kI --max-time 10 -o "$https_out" -w '%{http_code}' "https://$domain" || echo 000)
+    cat "$https_out" 2>/dev/null
+    if [ "$https_code" = "200" ] || [ "$https_code" = "301" ] || [ "$https_code" = "302" ]; then
+      ok "HTTPS $domain responded $https_code"
+    else
+      fail "HTTPS $domain responded $https_code"
+    fi
+
+    echo "--- HTTP $domain ---"
+    http_out="/tmp/_http_${domain//[^A-Za-z0-9]/_}.out"
+    http_code=$(curl -I --max-time 10 -o "$http_out" -w '%{http_code}' "http://$domain" || echo 000)
+    cat "$http_out" 2>/dev/null
+    if [ "$http_code" = "200" ] || [ "$http_code" = "301" ] || [ "$http_code" = "302" ]; then
+      ok "HTTP $domain responded $http_code"
+    else
+      fail "HTTP $domain responded $http_code"
+    fi
+  done
 fi
 
 # ---------------------------------------------------------------------------
-hdr "8. Public IP of this VPS"
+hdr "8. Localhost probes on this VPS"
+for scheme in http https; do
+  if [ "$scheme" = "https" ]; then
+    local_code=$(curl -kI --resolve "$PROBE_DOMAIN:443:127.0.0.1" --max-time 10 -o /tmp/_local_https.out -w '%{http_code}' "https://$PROBE_DOMAIN" || echo 000)
+    cat /tmp/_local_https.out 2>/dev/null
+    if [ "$local_code" = "200" ] || [ "$local_code" = "301" ] || [ "$local_code" = "302" ]; then
+      ok "localhost HTTPS for $PROBE_DOMAIN responded $local_code"
+    else
+      warn "localhost HTTPS for $PROBE_DOMAIN responded $local_code"
+    fi
+  else
+    local_code=$(curl -I --resolve "$PROBE_DOMAIN:80:127.0.0.1" --max-time 10 -o /tmp/_local_http.out -w '%{http_code}' "http://$PROBE_DOMAIN" || echo 000)
+    cat /tmp/_local_http.out 2>/dev/null
+    if [ "$local_code" = "200" ] || [ "$local_code" = "301" ] || [ "$local_code" = "302" ]; then
+      ok "localhost HTTP for $PROBE_DOMAIN responded $local_code"
+    else
+      warn "localhost HTTP for $PROBE_DOMAIN responded $local_code"
+    fi
+  fi
+done
+
+# ---------------------------------------------------------------------------
+hdr "9. Public IP of this VPS"
 pub_ip=$(curl -4 -s --max-time 5 ifconfig.me || echo "?")
 echo "public IP: $pub_ip"
 info "VPS public IP: $pub_ip"
+
+if [ "${#DOMAINS[@]}" -gt 0 ] && [ "$pub_ip" != "?" ]; then
+  hdr "10. DNS vs VPS IP comparison"
+  for domain in "${DOMAINS[@]}"; do
+    ips=$(dig +short A "$domain" 2>/dev/null || true)
+    echo "--- $domain ---"
+    echo "$ips"
+    if echo "$ips" | grep -Fxq "$pub_ip"; then
+      ok "$domain A record includes VPS IP $pub_ip"
+    else
+      warn "$domain A record does not include VPS IP $pub_ip"
+    fi
+  done
+fi
 
 # ---------------------------------------------------------------------------
 hdr "Common fixes"
@@ -99,4 +169,5 @@ cat <<'EOF'
 - UFW blocking:    sudo ufw allow 80,443/tcp
 - Port 80 in use:  stop apache/nginx, then: docker compose restart caddy
 - Cert errors:     check DNS A records match the public IP above
+- Local works but external fails: check provider firewall/security group for 80/443
 EOF
