@@ -39,11 +39,11 @@ export async function recordDiagnostic(input: DiagInput): Promise<string | null>
       p_severity: input.severity,
       p_kind: input.kind,
       p_message: input.message.slice(0, 4000),
-      p_stack: input.stack ? input.stack.slice(0, 8000) : null,
+      p_stack: input.stack ? input.stack.slice(0, 8000) : (null as unknown as string),
       p_meta: (input.meta ?? {}) as never,
-      p_host: input.host ?? null,
-      p_url: input.url ?? null,
-      p_user_agent: input.userAgent ?? null,
+      p_host: (input.host ?? null) as unknown as string,
+      p_url: (input.url ?? null) as unknown as string,
+      p_user_agent: (input.userAgent ?? null) as unknown as string,
       p_fingerprint: fingerprint,
     });
     if (error) {

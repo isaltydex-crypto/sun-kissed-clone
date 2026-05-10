@@ -28,9 +28,12 @@ import { Route as AdminOrdrarRouteImport } from './routes/admin.ordrar'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminLoggRouteImport } from './routes/admin.logg'
 import { Route as AdminInnehallRouteImport } from './routes/admin.innehall'
+import { Route as AdminDiagnostikRouteImport } from './routes/admin.diagnostik'
 import { Route as AdminChattRouteImport } from './routes/admin.chatt'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicDiagClientRouteImport } from './routes/api/public/diag-client'
 import { Route as ApiInternalNotifyRouteImport } from './routes/api/internal/notify'
+import { Route as ApiInternalDiagRouteImport } from './routes/api/internal/diag'
 import { Route as ApiDiscountValidateRouteImport } from './routes/api/discount.validate'
 import { Route as ApiCryptoCreateInvoiceRouteImport } from './routes/api/crypto.create-invoice'
 import { Route as ApiPublicCryptoWebhookRouteImport } from './routes/api/public/crypto.webhook'
@@ -131,6 +134,11 @@ const AdminInnehallRoute = AdminInnehallRouteImport.update({
   path: '/innehall',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDiagnostikRoute = AdminDiagnostikRouteImport.update({
+  id: '/diagnostik',
+  path: '/diagnostik',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminChattRoute = AdminChattRouteImport.update({
   id: '/chatt',
   path: '/chatt',
@@ -141,9 +149,19 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDiagClientRoute = ApiPublicDiagClientRouteImport.update({
+  id: '/api/public/diag-client',
+  path: '/api/public/diag-client',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInternalNotifyRoute = ApiInternalNotifyRouteImport.update({
   id: '/api/internal/notify',
   path: '/api/internal/notify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiInternalDiagRoute = ApiInternalDiagRouteImport.update({
+  id: '/api/internal/diag',
+  path: '/api/internal/diag',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDiscountValidateRoute = ApiDiscountValidateRouteImport.update({
@@ -178,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
+  '/admin/diagnostik': typeof AdminDiagnostikRoute
   '/admin/innehall': typeof AdminInnehallRoute
   '/admin/logg': typeof AdminLoggRoute
   '/admin/login': typeof AdminLoginRoute
@@ -190,7 +209,9 @@ export interface FileRoutesByFullPath {
   '/sida/$slug': typeof SidaSlugRoute
   '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
   '/api/discount/validate': typeof ApiDiscountValidateRoute
+  '/api/internal/diag': typeof ApiInternalDiagRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
+  '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
@@ -206,6 +227,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
+  '/admin/diagnostik': typeof AdminDiagnostikRoute
   '/admin/innehall': typeof AdminInnehallRoute
   '/admin/logg': typeof AdminLoggRoute
   '/admin/login': typeof AdminLoginRoute
@@ -218,7 +240,9 @@ export interface FileRoutesByTo {
   '/sida/$slug': typeof SidaSlugRoute
   '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
   '/api/discount/validate': typeof ApiDiscountValidateRoute
+  '/api/internal/diag': typeof ApiInternalDiagRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
+  '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
@@ -235,6 +259,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
+  '/admin/diagnostik': typeof AdminDiagnostikRoute
   '/admin/innehall': typeof AdminInnehallRoute
   '/admin/logg': typeof AdminLoggRoute
   '/admin/login': typeof AdminLoginRoute
@@ -247,7 +272,9 @@ export interface FileRoutesById {
   '/sida/$slug': typeof SidaSlugRoute
   '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
   '/api/discount/validate': typeof ApiDiscountValidateRoute
+  '/api/internal/diag': typeof ApiInternalDiagRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
+  '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
@@ -265,6 +292,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/admin/chatt'
+    | '/admin/diagnostik'
     | '/admin/innehall'
     | '/admin/logg'
     | '/admin/login'
@@ -277,7 +305,9 @@ export interface FileRouteTypes {
     | '/sida/$slug'
     | '/api/crypto/create-invoice'
     | '/api/discount/validate'
+    | '/api/internal/diag'
     | '/api/internal/notify'
+    | '/api/public/diag-client'
     | '/api/public/health'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
@@ -293,6 +323,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/admin/chatt'
+    | '/admin/diagnostik'
     | '/admin/innehall'
     | '/admin/logg'
     | '/admin/login'
@@ -305,7 +336,9 @@ export interface FileRouteTypes {
     | '/sida/$slug'
     | '/api/crypto/create-invoice'
     | '/api/discount/validate'
+    | '/api/internal/diag'
     | '/api/internal/notify'
+    | '/api/public/diag-client'
     | '/api/public/health'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
@@ -321,6 +354,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/admin/chatt'
+    | '/admin/diagnostik'
     | '/admin/innehall'
     | '/admin/logg'
     | '/admin/login'
@@ -333,7 +367,9 @@ export interface FileRouteTypes {
     | '/sida/$slug'
     | '/api/crypto/create-invoice'
     | '/api/discount/validate'
+    | '/api/internal/diag'
     | '/api/internal/notify'
+    | '/api/public/diag-client'
     | '/api/public/health'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
@@ -352,7 +388,9 @@ export interface RootRouteChildren {
   SidaSlugRoute: typeof SidaSlugRoute
   ApiCryptoCreateInvoiceRoute: typeof ApiCryptoCreateInvoiceRoute
   ApiDiscountValidateRoute: typeof ApiDiscountValidateRoute
+  ApiInternalDiagRoute: typeof ApiInternalDiagRoute
   ApiInternalNotifyRoute: typeof ApiInternalNotifyRoute
+  ApiPublicDiagClientRoute: typeof ApiPublicDiagClientRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiCryptoOrderOrderIdRoute: typeof ApiCryptoOrderOrderIdRoute
   ApiPublicCryptoWebhookRoute: typeof ApiPublicCryptoWebhookRoute
@@ -493,6 +531,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInnehallRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/diagnostik': {
+      id: '/admin/diagnostik'
+      path: '/diagnostik'
+      fullPath: '/admin/diagnostik'
+      preLoaderRoute: typeof AdminDiagnostikRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/chatt': {
       id: '/admin/chatt'
       path: '/chatt'
@@ -507,11 +552,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/diag-client': {
+      id: '/api/public/diag-client'
+      path: '/api/public/diag-client'
+      fullPath: '/api/public/diag-client'
+      preLoaderRoute: typeof ApiPublicDiagClientRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/internal/notify': {
       id: '/api/internal/notify'
       path: '/api/internal/notify'
       fullPath: '/api/internal/notify'
       preLoaderRoute: typeof ApiInternalNotifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/internal/diag': {
+      id: '/api/internal/diag'
+      path: '/api/internal/diag'
+      fullPath: '/api/internal/diag'
+      preLoaderRoute: typeof ApiInternalDiagRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/discount/validate': {
@@ -547,6 +606,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminChattRoute: typeof AdminChattRoute
+  AdminDiagnostikRoute: typeof AdminDiagnostikRoute
   AdminInnehallRoute: typeof AdminInnehallRoute
   AdminLoggRoute: typeof AdminLoggRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -559,6 +619,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminChattRoute: AdminChattRoute,
+  AdminDiagnostikRoute: AdminDiagnostikRoute,
   AdminInnehallRoute: AdminInnehallRoute,
   AdminLoggRoute: AdminLoggRoute,
   AdminLoginRoute: AdminLoginRoute,
@@ -596,7 +657,9 @@ const rootRouteChildren: RootRouteChildren = {
   SidaSlugRoute: SidaSlugRoute,
   ApiCryptoCreateInvoiceRoute: ApiCryptoCreateInvoiceRoute,
   ApiDiscountValidateRoute: ApiDiscountValidateRoute,
+  ApiInternalDiagRoute: ApiInternalDiagRoute,
   ApiInternalNotifyRoute: ApiInternalNotifyRoute,
+  ApiPublicDiagClientRoute: ApiPublicDiagClientRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiCryptoOrderOrderIdRoute: ApiCryptoOrderOrderIdRoute,
   ApiPublicCryptoWebhookRoute: ApiPublicCryptoWebhookRoute,
