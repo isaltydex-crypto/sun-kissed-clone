@@ -74,28 +74,32 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
-### `check-pc-access.ps1` (Windows / PowerShell — runs on your PC, not the VPS)
-**Use when:** the site loads from your phone / other devices but **not from a specific PC** (timeout, DNS fail, cert error, blank page only on that machine).
+### `check-pc-access.ps1` (Windows / PowerShell — **standalone**, runs on the affected PC)
+**Use when:** the site loads from your phone / other devices but **not from a specific PC**.
+
+This script is self-contained — it does **not** need the rest of the repo. Copy
+just the `.ps1` file (USB stick, email, download from GitHub) onto the affected
+PC and run it. Logs are written to `%USERPROFILE%\Desktop\pc-access-logs\`.
 
 **What it does (read-only by default):**
-- Resolves the domain via your local DNS and cross-checks against `1.1.1.1` and `8.8.8.8` (catches stale/poisoned ISP DNS)
-- Dumps the local DNS cache entries for the domain
-- Scans `C:\Windows\System32\drivers\etc\hosts` for stray overrides
-- Pings, plus TCP connect tests on 443 and 80
-- Performs an HTTPS HEAD request and prints status + response headers
-- Inspects the served TLS certificate (subject, issuer, validity, thumbprint)
-- Reports any system / environment proxy that might intercept traffic
+- Resolves the domain via local DNS and cross-checks `1.1.1.1` and `8.8.8.8`
+- Dumps the local DNS cache for the domain
+- Scans the `hosts` file for stray overrides
+- Pings + TCP connect tests on 443 and 80
+- HTTPS HEAD request (status + response headers)
+- Inspects the served TLS certificate
+- Reports system / environment proxy settings
 - Runs `tracert` to show where packets die
-- Logs everything to `self-host/troubleshoot/logs/check-pc-access-<timestamp>.log`
+- Opens the log folder when finished
 
-**Run it (from the project folder on the affected PC):**
+**Run it:**
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\self-host\troubleshoot\check-pc-access.ps1
+powershell -ExecutionPolicy Bypass -File .\check-pc-access.ps1
 ```
 
-**With auto-repair (admin PowerShell):** flushes DNS, re-registers DNS, resets Winsock and the IP stack (reboot recommended afterwards):
+**With auto-repair (admin PowerShell):**
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\self-host\troubleshoot\check-pc-access.ps1 -Fix
+powershell -ExecutionPolicy Bypass -File .\check-pc-access.ps1 -Fix
 ```
 
 **Override the domain:** `-Domain example.com`
