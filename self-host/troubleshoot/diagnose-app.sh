@@ -14,8 +14,8 @@
 # ============================================================================
 set -u
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR"
+# shellcheck source=_lib.sh
+. "$(cd "$(dirname "$0")" && pwd)/_lib.sh"
 
 hr() { printf '\n\033[1;36m=== %s ===\033[0m\n' "$*"; }
 
