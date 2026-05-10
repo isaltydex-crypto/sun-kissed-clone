@@ -26,6 +26,7 @@ for d in "$SITE_DOMAIN_VALUE" "$WWW_DOMAIN_VALUE" "$CHAT_DOMAIN_VALUE" "$STUDIO_
     DOMAINS+=("$d")
   fi
 done
+PROBE_DOMAIN="${SITE_DOMAIN_VALUE:-local.test}"
 
 info "SITE_DOMAIN=${SITE_DOMAIN_VALUE:-<unset>}"
 info "WWW_DOMAIN=${WWW_DOMAIN_VALUE:-<unset>}"
@@ -100,7 +101,7 @@ if [ "${#DOMAINS[@]}" -gt 0 ]; then
   for domain in "${DOMAINS[@]}"; do
     echo "--- HTTPS $domain ---"
     https_out="/tmp/_https_${domain//[^A-Za-z0-9]/_}.out"
-    https_code=$(curl -kI --max-time 10 -o "$https_out" -w '%{http_code}' "https://$domain" 2>&1 || echo 000)
+    https_code=$(curl -kI --max-time 10 -o "$https_out" -w '%{http_code}' "https://$domain" || echo 000)
     cat "$https_out" 2>/dev/null
     if [ "$https_code" = "200" ] || [ "$https_code" = "301" ] || [ "$https_code" = "302" ]; then
       ok "HTTPS $domain responded $https_code"
@@ -110,7 +111,7 @@ if [ "${#DOMAINS[@]}" -gt 0 ]; then
 
     echo "--- HTTP $domain ---"
     http_out="/tmp/_http_${domain//[^A-Za-z0-9]/_}.out"
-    http_code=$(curl -I --max-time 10 -o "$http_out" -w '%{http_code}' "http://$domain" 2>&1 || echo 000)
+    http_code=$(curl -I --max-time 10 -o "$http_out" -w '%{http_code}' "http://$domain" || echo 000)
     cat "$http_out" 2>/dev/null
     if [ "$http_code" = "200" ] || [ "$http_code" = "301" ] || [ "$http_code" = "302" ]; then
       ok "HTTP $domain responded $http_code"
@@ -124,20 +125,20 @@ fi
 hdr "8. Localhost probes on this VPS"
 for scheme in http https; do
   if [ "$scheme" = "https" ]; then
-    local_code=$(curl -kI --resolve "local.test:443:127.0.0.1" --max-time 10 -o /tmp/_local_https.out -w '%{http_code}' "https://local.test" 2>&1 || echo 000)
+    local_code=$(curl -kI --resolve "$PROBE_DOMAIN:443:127.0.0.1" --max-time 10 -o /tmp/_local_https.out -w '%{http_code}' "https://$PROBE_DOMAIN" || echo 000)
     cat /tmp/_local_https.out 2>/dev/null
-  if [ "$https_code" = "200" ] || [ "$https_code" = "301" ] || [ "$https_code" = "302" ]; then
-      ok "localhost HTTPS responded $local_code"
+    if [ "$local_code" = "200" ] || [ "$local_code" = "301" ] || [ "$local_code" = "302" ]; then
+      ok "localhost HTTPS for $PROBE_DOMAIN responded $local_code"
     else
-      warn "localhost HTTPS responded $local_code (may be expected if hostnames do not match Caddy config)"
+      warn "localhost HTTPS for $PROBE_DOMAIN responded $local_code"
     fi
   else
-    local_code=$(curl -I --max-time 10 -o /tmp/_local_http.out -w '%{http_code}' "http://127.0.0.1" 2>&1 || echo 000)
+    local_code=$(curl -I --resolve "$PROBE_DOMAIN:80:127.0.0.1" --max-time 10 -o /tmp/_local_http.out -w '%{http_code}' "http://$PROBE_DOMAIN" || echo 000)
     cat /tmp/_local_http.out 2>/dev/null
     if [ "$local_code" = "200" ] || [ "$local_code" = "301" ] || [ "$local_code" = "302" ]; then
-      ok "localhost HTTP responded $local_code"
+      ok "localhost HTTP for $PROBE_DOMAIN responded $local_code"
     else
-      warn "localhost HTTP responded $local_code (may be expected if hostnames do not match Caddy config)"
+      warn "localhost HTTP for $PROBE_DOMAIN responded $local_code"
     fi
   fi
 done
