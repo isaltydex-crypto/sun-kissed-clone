@@ -30,50 +30,25 @@ RUN if [ ! -f vite.config.editor.ts ]; then \
       cp self-host/vite.config.node.ts vite.config.ts; \
     fi
 RUN npm run build && \
-    SERVER_ENTRY="" && \
-    for candidate in \
-      .output/server/index.mjs \
-      .output/server/index.js \
-      .output/server/server.mjs \
-      .output/server/server.js \
-      dist/server/index.mjs \
-      dist/server/index.js \
-      dist/server/server.mjs \
-      dist/server/server.js; do \
-      if [ -f "$candidate" ]; then SERVER_ENTRY="$candidate"; break; fi; \
-    done && \
-    if [ -z "$SERVER_ENTRY" ]; then \
-      SERVER_ENTRY="$(find .output dist -maxdepth 4 -type f \( -name 'index.mjs' -o -name 'index.js' -o -name 'server.mjs' -o -name 'server.js' \) | sort | head -n 1)"; \
-    fi && \
-    test -n "$SERVER_ENTRY" && \
     mkdir -p /app/runtime && \
     for dir in .output dist; do \
       if [ -d "$dir" ]; then cp -R "$dir" /app/runtime/; fi; \
     done && \
+    cp self-host/node-adapter.mjs /app/runtime/node-adapter.mjs && \
     printf '%s\n' \
       '#!/bin/sh' \
       'set -u' \
-      "ENTRY=\"$SERVER_ENTRY\"" \
       'echo "[app] boot $(date -Iseconds)"' \
       'echo "[app] node $(node --version)"' \
       'echo "[app] cwd $(pwd)"' \
-      'echo "[app] entry: $ENTRY"' \
       'echo "[app] host=${HOST:-0.0.0.0} port=${PORT:-3000}"' \
-      'if [ ! -f "$ENTRY" ]; then' \
-      '  echo "[app] ERROR: server entry not found: $ENTRY" >&2' \
-      '  find . -maxdepth 4 -type f | sort >&2' \
-      '  exit 1' \
-      'fi' \
-      'node "$ENTRY"' \
+      'ls -la dist/server 2>/dev/null || ls -la .output/server 2>/dev/null || true' \
+      'node ./node-adapter.mjs' \
       'code=$?' \
       'echo "[app] node exited with code $code" >&2' \
       'exit "$code"' \
       > /app/runtime/start-server.sh && \
-    chmod +x /app/runtime/start-server.sh || \
-    (echo "ERROR: Node SSR build did not create a runnable server entry" && \
-     echo "Build output folders found:" && \
-     find .output dist -maxdepth 4 -type f -print 2>/dev/null || true && \
-     exit 1)
+    chmod +x /app/runtime/start-server.sh
 
 FROM node:22-alpine AS run
 WORKDIR /app
