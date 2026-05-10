@@ -18,8 +18,8 @@
 # ============================================================================
 set -u
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR"
+# shellcheck source=_lib.sh
+. "$(cd "$(dirname "$0")" && pwd)/_lib.sh"
 
 # Load .env safely — values may contain $(...), spaces, <>, etc. that would
 # break `source`. Parse line-by-line and export literal KEY=VALUE pairs only.
