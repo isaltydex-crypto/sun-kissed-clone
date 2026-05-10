@@ -3,7 +3,8 @@
 # Run from: /home/deploy/sun-kissed-clone/self-host
 set -u
 
-cd "$(dirname "$0")/.." || exit 1
+# shellcheck source=_lib.sh
+. "$(cd "$(dirname "$0")" && pwd)/_lib.sh"
 
 GREEN=$'\033[0;32m'; RED=$'\033[0;31m'; YEL=$'\033[1;33m'; NC=$'\033[0m'
 hdr() { echo; echo "${YEL}=== $* ===${NC}"; }
