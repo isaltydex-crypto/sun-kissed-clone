@@ -42,6 +42,7 @@ services:
       # Mount our app schema as a SINGLE FILE (not the whole dir) so we don't
       # shadow the supabase/postgres image's own bootstrap scripts that create
       # supabase_admin / supabase_auth_admin / supabase_storage_admin / authenticator.
+      - ./initdb/99-roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
       - ./initdb/zz-app-schema.sql:/docker-entrypoint-initdb.d/zz-app-schema.sql:ro
     networks: [pvl]
     healthcheck:
