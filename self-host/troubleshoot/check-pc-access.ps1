@@ -86,7 +86,7 @@ Hdr "4. hosts file overrides"
 $hosts = "$env:WINDIR\System32\drivers\etc\hosts"
 $hostMatches = Select-String -Path $hosts -Pattern $Domain -ErrorAction SilentlyContinue
 if ($hostMatches) {
-    Warn "hosts file contains entries for $Domain:"
+    Warn "hosts file contains entries for ${Domain}:"
     $hostMatches | ForEach-Object { Info $_.Line }
 } else { Ok "No hosts file overrides" }
 
