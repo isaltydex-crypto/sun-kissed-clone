@@ -17,7 +17,8 @@ set -u
 # shellcheck source=_lib.sh
 . "$(cd "$(dirname "$0")" && pwd)/_lib.sh"
 
-hr() { printf '\n\033[1;36m=== %s ===\033[0m\n' "$*"; }
+# hdr/info/ok/warn/fail come from _lib.sh
+hr() { hdr "$@"; }
 
 # ---------------------------------------------------------------------------
 hr "1. ADMIN_SESSION_SECRET"
@@ -76,5 +77,5 @@ docker compose run --rm --entrypoint sh app -c '
   echo "exit=$?"
 ' 2>&1
 
-hr "DONE"
-echo "Send the full output of this script to continue debugging."
+hdr "DONE"
+info "Send the saved log file to continue debugging."

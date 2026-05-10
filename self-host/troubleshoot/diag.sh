@@ -55,10 +55,13 @@ CRIT=0
 WARN=0
 SUMMARY=""
 
-hr() { printf '\n\033[1;36m=== %s ===\033[0m\n' "$*"; }
-ok() { printf '  \033[32m✓\033[0m %s\n' "$*"; }
-warn() { printf '  \033[33m⚠\033[0m %s\n' "$*"; WARN=$((WARN+1)); SUMMARY="${SUMMARY}WARN: $*"$'\n'; }
-crit() { printf '  \033[31m✗\033[0m %s\n' "$*"; CRIT=$((CRIT+1)); SUMMARY="${SUMMARY}CRIT: $*"$'\n'; }
+# hdr/ok/warn/fail provided by _lib.sh (print to terminal + log).
+# Local aliases for legacy names used below:
+hr()   { hdr "$@"; }
+crit() { fail "$@"; CRIT=$((CRIT+1)); SUMMARY="${SUMMARY}CRIT: $*"$'\n'; }
+_warn_orig() { warn "$@"; WARN=$((WARN+1)); SUMMARY="${SUMMARY}WARN: $*"$'\n'; }
+# Override warn locally so counters update:
+warn() { _ts_emit $'  \033[33m⚠\033[0m '"$*" "  [WARN] $*"; WARN=$((WARN+1)); SUMMARY="${SUMMARY}WARN: $*"$'\n'; }
 
 # JSON-escape helper (POSIX awk).
 j_esc() {

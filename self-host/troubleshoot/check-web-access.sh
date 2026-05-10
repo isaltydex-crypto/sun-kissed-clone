@@ -1,51 +1,102 @@
 #!/usr/bin/env bash
 # Diagnose why the site isn't reachable from a browser.
-# Run from: /home/deploy/sun-kissed-clone/self-host
+# Run from anywhere — script cd's into self-host/ via _lib.sh.
 set -u
 
 # shellcheck source=_lib.sh
 . "$(cd "$(dirname "$0")" && pwd)/_lib.sh"
 
-GREEN=$'\033[0;32m'; RED=$'\033[0;31m'; YEL=$'\033[1;33m'; NC=$'\033[0m'
-hdr() { echo; echo "${YEL}=== $* ===${NC}"; }
-
 DOMAIN="${SITE_DOMAIN:-}"
 if [ -z "$DOMAIN" ] && [ -f .env ]; then
   DOMAIN=$(grep -E '^SITE_DOMAIN=' .env | cut -d= -f2- | tr -d '"')
 fi
-echo "SITE_DOMAIN=${DOMAIN:-<unset>}"
+info "SITE_DOMAIN=${DOMAIN:-<unset>}"
 
-hdr "Caddy logs (cert / errors)"
-docker compose logs --tail=150 caddy 2>/dev/null | grep -iE "cert|error|obtain|ready|acme|fail" || echo "(no matches)"
-
-hdr "Listening sockets on :80 / :443"
-if command -v ss >/dev/null; then
-  ss -tlnp 2>/dev/null | grep -E ':80\b|:443\b' || echo "${RED}nothing listening on 80/443${NC}"
+# ---------------------------------------------------------------------------
+hdr "1. Caddy logs (cert / errors)"
+echo "--- last 200 caddy log lines ---"
+docker compose logs --tail=200 caddy 2>&1 || true
+echo "--- end caddy logs ---"
+# Surface a one-line verdict to the terminal.
+matches=$(docker compose logs --tail=200 caddy 2>/dev/null | grep -ciE 'error|fail|obtain' || true)
+if [ "${matches:-0}" -gt 0 ]; then
+  warn "$matches error/fail lines in recent Caddy logs (see log file)"
 else
-  netstat -tlnp 2>/dev/null | grep -E ':80\b|:443\b' || echo "${RED}nothing listening on 80/443${NC}"
+  ok "no recent Caddy errors"
 fi
 
-hdr "Processes holding :80"
-(command -v lsof >/dev/null && sudo lsof -i :80 -sTCP:LISTEN 2>/dev/null) || echo "(lsof not available)"
+# ---------------------------------------------------------------------------
+hdr "2. Listening sockets on :80 / :443"
+listening=$( (ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null) | grep -E ':80\b|:443\b' || true)
+echo "$listening"
+if [ -n "$listening" ]; then
+  ok "ports 80/443 are bound"
+else
+  fail "nothing listening on 80/443"
+fi
 
-hdr "UFW firewall status"
-sudo ufw status 2>/dev/null || echo "(ufw not installed / not sudo)"
+# ---------------------------------------------------------------------------
+hdr "3. Processes holding :80"
+if command -v lsof >/dev/null; then
+  sudo lsof -i :80 -sTCP:LISTEN 2>&1 || true
+else
+  echo "(lsof not available)"
+fi
+ok "logged port-80 holders"
 
-hdr "Docker containers"
-docker compose ps 2>/dev/null
+# ---------------------------------------------------------------------------
+hdr "4. UFW firewall status"
+ufw_out=$(sudo ufw status 2>&1 || true)
+echo "$ufw_out"
+if echo "$ufw_out" | grep -qiE '80.*ALLOW|443.*ALLOW'; then
+  ok "UFW allows 80/443 (or is inactive)"
+elif echo "$ufw_out" | grep -qi 'inactive'; then
+  ok "UFW inactive (no firewall blocking)"
+else
+  warn "UFW may be blocking 80/443 (see log)"
+fi
 
+# ---------------------------------------------------------------------------
+hdr "5. Docker containers"
+docker compose ps 2>&1 || true
+unhealthy=$(docker compose ps 2>/dev/null | grep -ciE 'restart|exit|unhealthy' || true)
+if [ "${unhealthy:-0}" -gt 0 ]; then
+  warn "$unhealthy containers in bad state (see log)"
+else
+  ok "all containers look up"
+fi
+
+# ---------------------------------------------------------------------------
 if [ -n "$DOMAIN" ]; then
-  hdr "Local HTTPS probe to $DOMAIN"
-  curl -kI --max-time 10 "https://$DOMAIN" || echo "${RED}HTTPS probe failed${NC}"
-  hdr "Local HTTP probe to $DOMAIN"
-  curl -I --max-time 10 "http://$DOMAIN" || echo "${RED}HTTP probe failed${NC}"
+  hdr "6. HTTPS probe → $DOMAIN"
+  https_code=$(curl -kI --max-time 10 -o /tmp/_https.out -w '%{http_code}' "https://$DOMAIN" 2>&1 || echo 000)
+  cat /tmp/_https.out 2>/dev/null
+  if [ "$https_code" = "200" ] || [ "$https_code" = "301" ] || [ "$https_code" = "302" ]; then
+    ok "HTTPS responded $https_code"
+  else
+    fail "HTTPS responded $https_code"
+  fi
+
+  hdr "7. HTTP probe → $DOMAIN"
+  http_code=$(curl -I --max-time 10 -o /tmp/_http.out -w '%{http_code}' "http://$DOMAIN" 2>&1 || echo 000)
+  cat /tmp/_http.out 2>/dev/null
+  if [ "$http_code" = "200" ] || [ "$http_code" = "301" ] || [ "$http_code" = "302" ]; then
+    ok "HTTP responded $http_code"
+  else
+    fail "HTTP responded $http_code"
+  fi
 fi
 
-hdr "Public IP of this VPS"
-curl -4 -s --max-time 5 ifconfig.me; echo
+# ---------------------------------------------------------------------------
+hdr "8. Public IP of this VPS"
+pub_ip=$(curl -4 -s --max-time 5 ifconfig.me || echo "?")
+echo "public IP: $pub_ip"
+info "VPS public IP: $pub_ip"
 
-echo
-echo "${GREEN}Done.${NC} Common fixes:"
-echo "  - UFW blocking:    sudo ufw allow 80,443/tcp"
-echo "  - Port 80 in use:  stop apache/nginx, then: docker compose restart caddy"
-echo "  - Cert errors:     check DNS A records match the public IP above"
+# ---------------------------------------------------------------------------
+hdr "Common fixes"
+cat <<'EOF'
+- UFW blocking:    sudo ufw allow 80,443/tcp
+- Port 80 in use:  stop apache/nginx, then: docker compose restart caddy
+- Cert errors:     check DNS A records match the public IP above
+EOF
