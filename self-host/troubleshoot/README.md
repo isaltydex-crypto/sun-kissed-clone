@@ -81,7 +81,11 @@ rm self-host/troubleshoot/logs/*.log
 ## Adding a new script
 
 1. Create the script in this folder: `self-host/troubleshoot/<name>.sh`
-2. Start it with `#!/usr/bin/env bash` and `set -u`
+2. Start it with `#!/usr/bin/env bash` and `set -u`, then immediately source the logging helper:
+   ```bash
+   . "$(cd "$(dirname "$0")" && pwd)/_lib.sh"
+   ```
+   This auto-creates a timestamped log file under `logs/` and silences the terminal.
 3. Make it idempotent — safe to run multiple times
 4. Add a section to this README with:
    - **Use when:** the symptom that calls for it
