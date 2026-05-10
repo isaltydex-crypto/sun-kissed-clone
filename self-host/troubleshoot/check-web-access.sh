@@ -175,6 +175,16 @@ if [ -n "$SITE_DOMAIN_VALUE" ]; then
         echo "$asset_code $content_type $asset_url"
         if ! is_expected_http_code "$SITE_DOMAIN_VALUE" "$asset_code"; then
           bad_assets=$((bad_assets + 1))
+          # Look for same-prefix files inside the app container — indicates SSR/client hash mismatch
+          asset_path="${asset#https://*/}"; asset_path="${asset_path#http://*/}"
+          base=$(basename "$asset_path")
+          # strip hash: foo-AbCdEfGh.ext  ->  foo
+          prefix=$(echo "$base" | sed -E 's/-[A-Za-z0-9_-]{6,}\.[a-zA-Z0-9]+$//')
+          ext="${base##*.}"
+          if [ -n "$prefix" ] && [ "$prefix" != "$base" ]; then
+            echo "  looking for similar files matching '${prefix}-*.${ext}' in container..."
+            docker compose exec -T app sh -lc "find .output/public .output/client dist/client dist/public public -type f -name '${prefix}-*.${ext}' 2>/dev/null" 2>/dev/null | sed 's/^/    /' || true
+          fi
         fi
       done <<< "$assets"
       if [ "$bad_assets" -gt 0 ]; then
