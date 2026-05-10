@@ -106,6 +106,22 @@ powershell -ExecutionPolicy Bypass -File .\check-pc-access.ps1 -Fix
 
 ---
 
+### `check-irc.sh`
+**Use when:** the live chat widget shows "ansluter…" forever, admins don't receive visitor messages, or you want to confirm the InspIRCd + ws-gateway + bridge chain is healthy.
+
+**What it does:**
+- Verifies all required `.env` vars are present and not `CHANGEME`, and that `IRC_BOT_PASSWORD` matches `GATEWAY_TOKEN` (bridge auth fails otherwise)
+- Confirms `ircd` and `ws-gateway` containers are running, with recent log tails
+- From inside the docker network, opens a TCP connection to `ircd:6667` and checks for an IRC banner
+- Confirms host port `8080` is listening
+- Performs a real WebSocket handshake against `ws://127.0.0.1:8080` AND the public `IRC_GATEWAY_URL` using the configured `GATEWAY_TOKEN`, expecting `READY` back
+- Hits `https://chat.<domain>` through Caddy and treats `426`/`101`/`400`/`404` as healthy (a plain GET to a WS endpoint is supposed to be rejected)
+- Confirms the `app` container has the IRC env vars baked in (catches the "I edited `.env` but used `restart`" footgun) and greps app logs for `irc-bridge` activity
+
+**Typical fixes it points to:** mismatched `IRC_BOT_PASSWORD` / `GATEWAY_TOKEN`, missing `IRC_GATEWAY_URL` in the app container (use `docker compose up -d app`, not `restart`), Caddy not proxying `chat.<domain>`, or InspIRCd refusing `PASS`.
+
+---
+
 ### `check-caddy-dns.sh`
 **Use when:** Caddy returns **502 Bad Gateway** and its logs show `dial tcp: lookup app on 127.0.0.11:53: no such host` (or any upstream hostname it can't resolve).
 
