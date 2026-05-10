@@ -46,7 +46,7 @@ rm self-host/troubleshoot/logs/*.log
 - Shows UFW firewall status
 - Shows `docker compose ps` for all containers
 - Logs DNS A/AAAA records for each configured domain
-- Probes each configured domain over HTTPS and HTTP from inside the VPS
+- Probes each configured domain over HTTPS and HTTP from inside the VPS, treating redirects, protected DB login, and WebSocket upgrade responses as expected
 - Probes Caddy locally on `127.0.0.1` using the configured hostname
 - Prints the VPS public IP and compares it to DNS A records
 
