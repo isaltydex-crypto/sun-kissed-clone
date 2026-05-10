@@ -30,16 +30,45 @@ RUN if [ ! -f vite.config.editor.ts ]; then \
       cp self-host/vite.config.node.ts vite.config.ts; \
     fi
 RUN npm run build && \
-    OUTPUT_ROOT="" && \
-    for dir in .output dist; do \
-      if [ -d "$dir" ]; then OUTPUT_ROOT="$dir"; break; fi; \
+    SERVER_ENTRY="" && \
+    for candidate in \
+      .output/server/index.mjs \
+      .output/server/index.js \
+      .output/server/server.mjs \
+      .output/server/server.js \
+      dist/server/index.mjs \
+      dist/server/index.js \
+      dist/server/server.mjs \
+      dist/server/server.js; do \
+      if [ -f "$candidate" ]; then SERVER_ENTRY="$candidate"; break; fi; \
     done && \
-    test -n "$OUTPUT_ROOT" && \
-    SERVER_ENTRY="$(find "$OUTPUT_ROOT" -maxdepth 4 -type f \( -name 'index.mjs' -o -name 'index.js' -o -name 'server.mjs' -o -name 'server.js' \) | sort | head -n 1)" && \
+    if [ -z "$SERVER_ENTRY" ]; then \
+      SERVER_ENTRY="$(find .output dist -maxdepth 4 -type f \( -name 'index.mjs' -o -name 'index.js' -o -name 'server.mjs' -o -name 'server.js' \) | sort | head -n 1)"; \
+    fi && \
     test -n "$SERVER_ENTRY" && \
     mkdir -p /app/runtime && \
-    cp -R "$OUTPUT_ROOT" /app/runtime/ && \
-    printf '#!/bin/sh\nset -e\nexec node "%s"\n' "$SERVER_ENTRY" > /app/runtime/start-server.sh && \
+    for dir in .output dist; do \
+      if [ -d "$dir" ]; then cp -R "$dir" /app/runtime/; fi; \
+    done && \
+    printf '%s\n' \
+      '#!/bin/sh' \
+      'set -u' \
+      "ENTRY=\"$SERVER_ENTRY\"" \
+      'echo "[app] boot $(date -Iseconds)"' \
+      'echo "[app] node $(node --version)"' \
+      'echo "[app] cwd $(pwd)"' \
+      'echo "[app] entry: $ENTRY"' \
+      'echo "[app] host=${HOST:-0.0.0.0} port=${PORT:-3000}"' \
+      'if [ ! -f "$ENTRY" ]; then' \
+      '  echo "[app] ERROR: server entry not found: $ENTRY" >&2' \
+      '  find . -maxdepth 4 -type f | sort >&2' \
+      '  exit 1' \
+      'fi' \
+      'node "$ENTRY"' \
+      'code=$?' \
+      'echo "[app] node exited with code $code" >&2' \
+      'exit "$code"' \
+      > /app/runtime/start-server.sh && \
     chmod +x /app/runtime/start-server.sh || \
     (echo "ERROR: Node SSR build did not create a runnable server entry" && \
      echo "Build output folders found:" && \
