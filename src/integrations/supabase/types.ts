@@ -112,6 +112,66 @@ export type Database = {
           },
         ]
       }
+      diagnostic_events: {
+        Row: {
+          created_at: string
+          fingerprint: string
+          host: string | null
+          id: string
+          kind: string
+          last_seen_at: string
+          message: string
+          meta: Json
+          occurrence_count: number
+          resolved: boolean
+          resolved_at: string | null
+          resolved_note: string | null
+          severity: string
+          source: string
+          stack: string | null
+          url: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          fingerprint: string
+          host?: string | null
+          id?: string
+          kind: string
+          last_seen_at?: string
+          message: string
+          meta?: Json
+          occurrence_count?: number
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_note?: string | null
+          severity: string
+          source: string
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          fingerprint?: string
+          host?: string | null
+          id?: string
+          kind?: string
+          last_seen_at?: string
+          message?: string
+          meta?: Json
+          occurrence_count?: number
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_note?: string | null
+          severity?: string
+          source?: string
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       discount_codes: {
         Row: {
           active: boolean
@@ -329,7 +389,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      record_diagnostic_event: {
+        Args: {
+          p_fingerprint: string
+          p_host: string
+          p_kind: string
+          p_message: string
+          p_meta: Json
+          p_severity: string
+          p_source: string
+          p_stack: string
+          p_url: string
+          p_user_agent: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
