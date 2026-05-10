@@ -197,13 +197,117 @@ openssl rand -hex 32       # → CRYPTO_INTERNAL_TOKEN
 
 ## 7. Fill in `.env` 🔴
 
+The `.env` file lives **on the VPS** at `~/peptivalab/self-host/.env`. It's
+plain text — every line is `KEY=value`. Every `CHANGEME_*` value must be
+replaced with one of the secrets you generated in §6.
+
+### 7.0 How to edit `.env` (step-by-step)
+
+Follow this exact sequence every time you change `.env`, both for first-boot
+and any later edit. Skipping a step is how `.env` edits "silently don't
+take effect".
+
+**Step 1 — SSH into the VPS as the `deploy` user.**
+
 ```bash
+ssh deploy@<VPS_IP>            # never edit as root
 cd ~/peptivalab/self-host
-cp .env.example .env
+```
+
+**Step 2 — On first boot only, create `.env` from the template.**
+
+```bash
+[ -f .env ] || cp .env.example .env
+```
+
+The `[ -f .env ] ||` part means "only copy if `.env` doesn't already exist"
+— so re-running this can't wipe an `.env` you've already filled in.
+
+**Step 3 — Make a backup before editing.** Cheap insurance.
+
+```bash
+cp .env .env.bak.$(date +%F-%H%M)
+```
+
+**Step 4 — Open it in the `nano` editor.**
+
+```bash
 nano .env
 ```
 
-Replace **every** `CHANGEME_*` with one of the values you generated.
+`nano` basics (the bottom bar shows them too — `^` means the **Ctrl** key):
+
+| Key            | Action                                                  |
+| -------------- | ------------------------------------------------------- |
+| Arrow keys     | Move the cursor                                         |
+| `Ctrl+W`       | Search — type the variable name, press Enter            |
+| `Ctrl+K`       | Cut the current line (use to delete an entire line)     |
+| `Ctrl+U`       | Paste the line you just cut                             |
+| `Ctrl+O`, Enter| **Save** (writes the file)                              |
+| `Ctrl+X`       | Exit (asks to save if you haven't)                      |
+
+> **Pasting from your password manager:** in most terminals, `Shift+Insert`
+> or `Ctrl+Shift+V` pastes. **Right-click → Paste** also works in PuTTY,
+> WSL and Windows Terminal.
+
+**Step 5 — Replace every `CHANGEME_…` value.** Format rules:
+
+- One variable per line: `KEY=value` — no spaces around `=`.
+- **Don't quote values** unless the value itself contains spaces or `#`.
+  `JWT_SECRET=abc123` is correct, `JWT_SECRET="abc123"` works but is noisy.
+- A line that starts with `#` is a comment — ignored. Use it for notes.
+- Multi-line values (only `RCLONE_CONFIG` needs this) keep working as long
+  as you don't add a blank line in the middle of the block.
+- Don't leave any `CHANGEME_*` placeholders. Even one breaks the boot.
+
+**Step 6 — Save and exit.** `Ctrl+O`, Enter, `Ctrl+X`.
+
+**Step 7 — Verify the edit.**
+
+```bash
+chmod 600 .env                 # only you can read it
+grep CHANGEME .env             # MUST print nothing
+docker compose config -q       # MUST exit 0 (validates compose + .env)
+```
+
+If `grep CHANGEME .env` prints any line, you missed a value — go back to
+step 4 and fix it.
+
+If `docker compose config -q` prints an error, your `.env` has a syntax
+problem (most often: a stray space, an unmatched quote, or `$` in a value
+that compose tries to interpret — escape it as `$$`).
+
+**Step 8 — Apply the change.**
+
+| What you changed                                | How to apply                                                                |
+| ----------------------------------------------- | --------------------------------------------------------------------------- |
+| First boot, or any non-`VITE_*` variable        | `docker compose up -d` (recreates affected containers with the new env)     |
+| A single service's variable (e.g. `SMTP_PASS`)  | `docker compose up -d <service>` — e.g. `docker compose up -d app`          |
+| Any `VITE_*` variable (baked into the frontend) | `docker compose build app && docker compose up -d app` — needs a **rebuild**|
+
+> **Use `up -d`, NOT `restart`.** `docker compose restart` reuses the
+> existing container with its old environment — your edit silently won't
+> take effect. Only `up -d` re-reads `.env` and recreates the container.
+
+**Step 9 — Confirm it took effect.**
+
+```bash
+docker compose ps              # target service should be Up / healthy
+docker compose logs -f <service>  # tail logs and watch for errors
+```
+
+For a single variable, you can verify it landed inside the container:
+
+```bash
+docker compose exec app printenv SMTP_HOST
+```
+
+If you broke something, restore the backup from step 3:
+
+```bash
+cp .env.bak.<timestamp> .env
+docker compose up -d
+```
 
 ### 7.1 Core stack
 
