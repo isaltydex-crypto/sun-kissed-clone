@@ -2,7 +2,9 @@
 
 All diagnostic and troubleshooting scripts for the self-hosted stack live in this folder.
 
-**Rule:** every new troubleshooting script goes here AND gets an entry in this README.
+**Rules:**
+- Every new troubleshooting script goes here AND gets an entry in this README.
+- Every script sources `_lib.sh`, which redirects all output to `troubleshoot/logs/<script>-<timestamp>.log`. The terminal only shows a banner and the final log path — no wall of text.
 
 ---
 
@@ -12,11 +14,22 @@ All diagnostic and troubleshooting scripts for the self-hosted stack live in thi
 cd /home/deploy/sun-kissed-clone
 git pull
 chmod +x self-host/troubleshoot/*.sh
-cd self-host
-bash troubleshoot/<script-name>.sh
+bash self-host/troubleshoot/<script-name>.sh
 ```
 
-Always run from the `self-host/` directory unless a script says otherwise — the scripts read `.env` and call `docker compose` from there.
+After the script finishes it prints something like:
+
+```
+✓ finished  log: /home/deploy/sun-kissed-clone/self-host/troubleshoot/logs/diag-20260510-134812.log
+```
+
+Send me that file (`cat <path>` and paste, or upload it) instead of screenshots.
+
+Clear old logs anytime with:
+
+```bash
+rm self-host/troubleshoot/logs/*.log
+```
 
 ---
 
