@@ -2,6 +2,10 @@
 
 All diagnostic and troubleshooting scripts for the self-hosted stack live in this folder.
 
+> **Tip:** for an interactive menu that lets you pick scripts, restart/rebuild
+> containers, tail logs, open shells, and view past log files — run
+> `bash self-host/menu.sh` instead of remembering individual commands.
+
 **Rules:**
 - Every new troubleshooting script goes here AND gets an entry in this README.
 - Every script sources `_lib.sh`, which redirects all output to `troubleshoot/logs/<script>-<timestamp>.log`. The terminal only shows a banner and the final log path — no wall of text.
