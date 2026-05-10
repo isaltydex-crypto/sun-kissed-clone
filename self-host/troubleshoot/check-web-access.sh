@@ -139,7 +139,7 @@ fi
 # ---------------------------------------------------------------------------
 hdr "8. App static files inside container"
 if docker compose ps app 2>/dev/null | grep -q app; then
-  docker compose exec -T app sh -lc 'echo "--- static dirs ---"; for d in .output/public .output/client dist/client dist/public public; do [ -d "$d" ] && { echo "$d"; find "$d" -maxdepth 2 -type f | head -n 20; }; done' 2>&1 || true
+  docker compose exec -T app sh -lc 'echo "--- static dirs ---"; for d in .output/public .output/client dist/client dist/public public; do [ -d "$d" ] && { echo "==> $d"; find "$d" -type f | sort; }; done' 2>&1 || true
   static_count=$(docker compose exec -T app sh -lc 'count=0; for d in .output/public .output/client dist/client dist/public public; do [ -d "$d" ] && count=$((count + $(find "$d" -type f | wc -l))); done; echo "$count"' 2>/dev/null | tr -dc '0-9' || echo 0)
   if [ "${static_count:-0}" -gt 0 ]; then
     ok "app container has $static_count static files"
@@ -175,6 +175,16 @@ if [ -n "$SITE_DOMAIN_VALUE" ]; then
         echo "$asset_code $content_type $asset_url"
         if ! is_expected_http_code "$SITE_DOMAIN_VALUE" "$asset_code"; then
           bad_assets=$((bad_assets + 1))
+          # Look for same-prefix files inside the app container — indicates SSR/client hash mismatch
+          asset_path="${asset#https://*/}"; asset_path="${asset_path#http://*/}"
+          base=$(basename "$asset_path")
+          # strip hash: foo-AbCdEfGh.ext  ->  foo
+          prefix=$(echo "$base" | sed -E 's/-[A-Za-z0-9_-]{6,}\.[a-zA-Z0-9]+$//')
+          ext="${base##*.}"
+          if [ -n "$prefix" ] && [ "$prefix" != "$base" ]; then
+            echo "  looking for similar files matching '${prefix}-*.${ext}' in container..."
+            docker compose exec -T app sh -lc "find .output/public .output/client dist/client dist/public public -type f -name '${prefix}-*.${ext}' 2>/dev/null" 2>/dev/null | sed 's/^/    /' || true
+          fi
         fi
       done <<< "$assets"
       if [ "$bad_assets" -gt 0 ]; then
