@@ -43,13 +43,16 @@ docker compose logs --tail=20 ircd || true
 # ---------------------------------------------------------------------------
 hr "3. app container status"
 APP_CID="$(docker compose ps -q app)"
+echo "--- compose app service ---"
+docker compose ps app || true
 if [ -n "$APP_CID" ]; then
   docker inspect "$APP_CID" --format \
-    'status={{.State.Status}} exit={{.State.ExitCode}} restarts={{.RestartCount}} err={{.State.Error}}'
+    'status={{.State.Status}} exit={{.State.ExitCode}} restarts={{.RestartCount}} pid={{.State.Pid}} logDriver={{.HostConfig.LogConfig.Type}} logPath={{.LogPath}} err={{.State.Error}}'
 else
   echo "(no app container yet)"
 fi
-docker compose logs --tail=40 app || true
+echo "--- app logs ---"
+docker compose logs --tail=80 app || true
 
 # ---------------------------------------------------------------------------
 hr "4. manual run inside fresh app container"
@@ -61,15 +64,17 @@ docker compose run --rm --entrypoint sh app -c '
   echo "--- start-server.sh ---"
   cat start-server.sh 2>/dev/null || echo "(missing)"
   echo
+  echo "--- output folders ---"
+  find . -maxdepth 3 -type f \( -path "./.output/*" -o -path "./dist/*" \) | sort | head -n 80
+  echo
   echo "--- entry file listing ---"
   ls -la dist/server 2>/dev/null || echo "(no dist/server)"
   ls -la .output/server 2>/dev/null || echo "(no .output/server)"
   echo
-  echo "--- running entry (10s timeout) ---"
   echo "--- running start-server.sh (10s timeout) ---"
   timeout 10 ./start-server.sh
   echo "exit=$?"
-' 2>&1 | tail -n 100
+' 2>&1
 
 hr "DONE"
 echo "Send the full output of this script to continue debugging."
