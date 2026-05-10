@@ -6,11 +6,31 @@ set -u
 # shellcheck source=_lib.sh
 . "$(cd "$(dirname "$0")" && pwd)/_lib.sh"
 
-DOMAIN="${SITE_DOMAIN:-}"
-if [ -z "$DOMAIN" ] && [ -f .env ]; then
-  DOMAIN=$(grep -E '^SITE_DOMAIN=' .env | cut -d= -f2- | tr -d '"')
-fi
-info "SITE_DOMAIN=${DOMAIN:-<unset>}"
+read_env_value() {
+  local key="$1"
+  local value="${!key:-}"
+  if [ -z "$value" ] && [ -f .env ]; then
+    value=$(grep -E "^${key}=" .env | tail -n1 | cut -d= -f2- | tr -d '"' | tr -d "'")
+  fi
+  printf '%s' "$value"
+}
+
+SITE_DOMAIN_VALUE="$(read_env_value SITE_DOMAIN)"
+WWW_DOMAIN_VALUE="$(read_env_value WWW_DOMAIN)"
+CHAT_DOMAIN_VALUE="$(read_env_value CHAT_DOMAIN)"
+STUDIO_DOMAIN_VALUE="$(read_env_value STUDIO_DOMAIN)"
+
+DOMAINS=()
+for d in "$SITE_DOMAIN_VALUE" "$WWW_DOMAIN_VALUE" "$CHAT_DOMAIN_VALUE" "$STUDIO_DOMAIN_VALUE"; do
+  if [ -n "$d" ]; then
+    DOMAINS+=("$d")
+  fi
+done
+
+info "SITE_DOMAIN=${SITE_DOMAIN_VALUE:-<unset>}"
+info "WWW_DOMAIN=${WWW_DOMAIN_VALUE:-<unset>}"
+info "CHAT_DOMAIN=${CHAT_DOMAIN_VALUE:-<unset>}"
+info "STUDIO_DOMAIN=${STUDIO_DOMAIN_VALUE:-<unset>}"
 
 # ---------------------------------------------------------------------------
 hdr "1. Caddy logs (cert / errors)"
