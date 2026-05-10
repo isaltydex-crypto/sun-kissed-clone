@@ -21,9 +21,30 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Load .env so we get INTERNAL_NOTIFY_TOKEN, SMTP_HOST, etc.
+# Load .env safely — values may contain $(...), spaces, <>, etc. that would
+# break `source`. Parse line-by-line and export literal KEY=VALUE pairs only.
 if [ -f .env ]; then
-  set -a; . ./.env; set +a
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      ''|\#*) continue ;;
+    esac
+    case "$line" in
+      *=*)
+        key="${line%%=*}"
+        val="${line#*=}"
+        # strip surrounding quotes if present
+        case "$val" in
+          \"*\") val="${val#\"}"; val="${val%\"}" ;;
+          \'*\') val="${val#\'}"; val="${val%\'}" ;;
+        esac
+        # only export shell-safe variable names
+        case "$key" in
+          [A-Za-z_]*[!A-Za-z0-9_]*) ;;
+          [A-Za-z_]*) export "$key=$val" ;;
+        esac
+        ;;
+    esac
+  done < .env
 fi
 
 HOSTNAME_S="$(hostname 2>/dev/null || echo unknown)"
