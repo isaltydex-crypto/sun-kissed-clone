@@ -139,7 +139,7 @@ fi
 # ---------------------------------------------------------------------------
 hdr "8. App static files inside container"
 if docker compose ps app 2>/dev/null | grep -q app; then
-  docker compose exec -T app sh -lc 'echo "--- static dirs ---"; for d in .output/public .output/client dist/client dist/public public; do [ -d "$d" ] && { echo "$d"; find "$d" -maxdepth 2 -type f | head -n 20; }; done' 2>&1 || true
+  docker compose exec -T app sh -lc 'echo "--- static dirs ---"; for d in .output/public .output/client dist/client dist/public public; do [ -d "$d" ] && { echo "==> $d"; find "$d" -type f | sort; }; done' 2>&1 || true
   static_count=$(docker compose exec -T app sh -lc 'count=0; for d in .output/public .output/client dist/client dist/public public; do [ -d "$d" ] && count=$((count + $(find "$d" -type f | wc -l))); done; echo "$count"' 2>/dev/null | tr -dc '0-9' || echo 0)
   if [ "${static_count:-0}" -gt 0 ]; then
     ok "app container has $static_count static files"
