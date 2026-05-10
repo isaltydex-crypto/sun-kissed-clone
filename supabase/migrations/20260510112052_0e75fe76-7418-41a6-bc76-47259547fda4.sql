@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.record_diagnostic_event(TEXT,TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,TEXT) FROM PUBLIC, anon, authenticated;
