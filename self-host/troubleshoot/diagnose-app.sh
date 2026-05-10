@@ -77,5 +77,5 @@ docker compose run --rm --entrypoint sh app -c '
   echo "exit=$?"
 ' 2>&1
 
-hr "DONE"
-echo "Send the full output of this script to continue debugging."
+hdr "DONE"
+info "Send the saved log file to continue debugging."
