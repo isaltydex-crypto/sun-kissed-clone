@@ -1,9 +1,13 @@
-# PC-side diagnostic for peptivalabgroup.com access issues.
-# Run in PowerShell (no admin required for most checks; DNS flush needs admin).
-# Usage:
+# Standalone PC-side diagnostic — no project files required.
+# Drop this .ps1 anywhere (Desktop, Downloads, USB stick) and run it.
+# Logs to:  %USERPROFILE%\Desktop\pc-access-logs\check-pc-access-<timestamp>.log
+#
+# Usage (regular PowerShell):
 #   powershell -ExecutionPolicy Bypass -File .\check-pc-access.ps1
 #   powershell -ExecutionPolicy Bypass -File .\check-pc-access.ps1 -Domain example.com
-#   powershell -ExecutionPolicy Bypass -File .\check-pc-access.ps1 -Fix   # attempts repairs (admin)
+#
+# Auto-repair (must launch PowerShell as Administrator):
+#   powershell -ExecutionPolicy Bypass -File .\check-pc-access.ps1 -Fix
 
 [CmdletBinding()]
 param(
@@ -12,7 +16,11 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
-$logDir  = Join-Path $PSScriptRoot "logs"
+
+# --- Log location: Desktop\pc-access-logs --------------------------------
+$desktop = [Environment]::GetFolderPath("Desktop")
+if (-not $desktop -or -not (Test-Path $desktop)) { $desktop = Join-Path $env:USERPROFILE "Desktop" }
+$logDir  = Join-Path $desktop "pc-access-logs"
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 $stamp   = Get-Date -Format "yyyyMMdd-HHmmss"
 $logFile = Join-Path $logDir "check-pc-access-$stamp.log"
@@ -45,9 +53,10 @@ Info "Log file:  $logFile"
 Info "Admin:     $isAdmin"
 Info "Host:      $env:COMPUTERNAME"
 Info "User:      $env:USERNAME"
+Info "OS:        $((Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue).Caption)"
 
 Hdr "1. Local network"
-$out = Run "ipconfig /all" { ipconfig /all }
+Run "ipconfig /all" { ipconfig /all } | Out-Null
 $dnsServers = (Get-DnsClientServerAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
     Where-Object { $_.ServerAddresses }) | ForEach-Object { $_.ServerAddresses } | Select-Object -Unique
 if ($dnsServers) { Ok ("DNS servers: " + ($dnsServers -join ", ")) } else { Warn "No DNS servers detected" }
@@ -65,12 +74,12 @@ try {
     if ($ipv6) { Info "AAAA $Domain -> $ipv6" } else { Info "AAAA: none" }
 } catch { Info "AAAA lookup: none / failed" }
 
-Run "Public DNS cross-check (1.1.1.1)" { Resolve-DnsName -Name $Domain -Type A -Server 1.1.1.1 }
-Run "Public DNS cross-check (8.8.8.8)" { Resolve-DnsName -Name $Domain -Type A -Server 8.8.8.8 }
+Run "Public DNS cross-check (1.1.1.1)" { Resolve-DnsName -Name $Domain -Type A -Server 1.1.1.1 } | Out-Null
+Run "Public DNS cross-check (8.8.8.8)" { Resolve-DnsName -Name $Domain -Type A -Server 8.8.8.8 } | Out-Null
 
 Hdr "3. DNS cache for $Domain"
 $cache = Get-DnsClientCache -ErrorAction SilentlyContinue | Where-Object { $_.Entry -like "*$Domain*" }
-if ($cache) { $cache | Format-Table -AutoSize | Out-String | Tee-Object -FilePath $logFile -Append | Out-Host }
+if ($cache) { ($cache | Format-Table -AutoSize | Out-String) | Tee-Object -FilePath $logFile -Append | Out-Host }
 else        { Info "No cached entries for $Domain" }
 
 Hdr "4. hosts file overrides"
@@ -82,9 +91,9 @@ if ($hostMatches) {
 } else { Ok "No hosts file overrides" }
 
 Hdr "5. Connectivity"
-Run "Ping (4 packets)" { Test-Connection -ComputerName $Domain -Count 4 -ErrorAction SilentlyContinue }
-Run "TCP 443"          { Test-NetConnection -ComputerName $Domain -Port 443 -InformationLevel Detailed }
-Run "TCP 80"           { Test-NetConnection -ComputerName $Domain -Port 80  -InformationLevel Detailed }
+Run "Ping (4 packets)" { Test-Connection -ComputerName $Domain -Count 4 -ErrorAction SilentlyContinue } | Out-Null
+Run "TCP 443"          { Test-NetConnection -ComputerName $Domain -Port 443 -InformationLevel Detailed }   | Out-Null
+Run "TCP 80"           { Test-NetConnection -ComputerName $Domain -Port 80  -InformationLevel Detailed }   | Out-Null
 
 Hdr "6. HTTPS request"
 try {
@@ -115,17 +124,17 @@ if ($env:HTTP_PROXY -or $env:HTTPS_PROXY) {
 }
 
 Hdr "9. Traceroute (max 20 hops)"
-Run "tracert" { tracert -h 20 -w 2000 $Domain }
+Run "tracert" { tracert -h 20 -w 2000 $Domain } | Out-Null
 
 if ($Fix) {
-    Hdr "10. Repairs (admin required)"
+    Hdr "10. Repairs"
     if (-not $isAdmin) {
         Fail "Re-run PowerShell as Administrator to apply fixes."
     } else {
-        Run "ipconfig /flushdns"      { ipconfig /flushdns }
-        Run "ipconfig /registerdns"   { ipconfig /registerdns }
-        Run "netsh winsock reset"     { netsh winsock reset }
-        Run "netsh int ip reset"      { netsh int ip reset }
+        Run "ipconfig /flushdns"      { ipconfig /flushdns }     | Out-Null
+        Run "ipconfig /registerdns"   { ipconfig /registerdns }  | Out-Null
+        Run "netsh winsock reset"     { netsh winsock reset }    | Out-Null
+        Run "netsh int ip reset"      { netsh int ip reset }     | Out-Null
         Warn "Reboot recommended after winsock/ip reset."
     }
 } else {
@@ -142,3 +151,4 @@ if ($Fix) {
 
 Hdr "Done"
 Info "Full log: $logFile"
+try { Start-Process explorer.exe $logDir } catch {}
