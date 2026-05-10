@@ -211,6 +211,7 @@ services:
     depends_on: [kong, ws-gateway]
     environment:
       NODE_ENV: production
+      HOST: 0.0.0.0
       PORT: 3000
       PUBLIC_SITE_URL: https://${SITE_DOMAIN}
       # Server-side Supabase (use internal Kong, faster + no TLS overhead)
