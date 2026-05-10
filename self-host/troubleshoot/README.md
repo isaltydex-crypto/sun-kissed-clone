@@ -66,6 +66,19 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
+### `check-caddy-dns.sh`
+**Use when:** Caddy returns **502 Bad Gateway** and its logs show `dial tcp: lookup app on 127.0.0.11:53: no such host` (or any upstream hostname it can't resolve).
+
+**What it does:**
+- Lists the Docker networks attached to `caddy` and `app`, and confirms they share `pvl`
+- Lists every container on the `pvl` network with its IP
+- Resolves `app` from inside the Caddy container via Docker's embedded DNS (127.0.0.11)
+- Probes `http://app:3000` from inside Caddy to confirm TCP reachability
+- Greps recent Caddy logs for upstream / dial / 502 errors
+- Prints remediation hints (most often: `docker compose up -d --force-recreate caddy app`)
+
+---
+
 ### `diagnose-app.sh`
 **Use when:** only the `app` container is misbehaving (crash loop, 502 from Caddy, healthcheck failing) and you want a deep-dive on just that service.
 
