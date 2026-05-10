@@ -139,15 +139,17 @@ fi
 # ---------------------------------------------------------------------------
 hr "3. App health endpoint"
 # Port 3000 isn't published on the host (only caddy is); probe from inside
-# the app container itself.
-if docker compose exec -T app wget -qO- --timeout=5 http://127.0.0.1:3000/api/public/health >/dev/null 2>&1 \
-   || docker compose exec -T app sh -c 'command -v curl >/dev/null && curl -fsS -m 5 http://127.0.0.1:3000/api/public/health' >/dev/null 2>&1; then
+# the app container via node, which is guaranteed to exist.
+PROBE='const t=setTimeout(()=>{console.error("timeout");process.exit(2)},5000);
+fetch("http://127.0.0.1:3000/api/public/health").then(r=>{clearTimeout(t);process.exit(r.ok?0:1)}).catch(e=>{clearTimeout(t);console.error(e.message);process.exit(1)});'
+if docker compose exec -T app node -e "$PROBE" >/dev/null 2>&1; then
   ok "app responds on /api/public/health (in-container)"
 elif curl -fsS -m 5 "${APP_INTERNAL_URL%/}/api/public/health" >/dev/null 2>&1; then
   ok "app responds on /api/public/health ($APP_INTERNAL_URL)"
 else
-  crit "app health endpoint unreachable (tried in-container + $APP_INTERNAL_URL)"
-  post_event "external" "critical" "app.unreachable" "app health endpoint unreachable"
+  out=$(docker compose exec -T app node -e "$PROBE" 2>&1 || true)
+  crit "app health endpoint unreachable — $out"
+  post_event "external" "critical" "app.unreachable" "app health endpoint unreachable: $out"
 fi
 
 # ---------------------------------------------------------------------------
