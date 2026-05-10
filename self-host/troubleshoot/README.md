@@ -74,6 +74,34 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
+### `check-pc-access.ps1` (Windows / PowerShell — runs on your PC, not the VPS)
+**Use when:** the site loads from your phone / other devices but **not from a specific PC** (timeout, DNS fail, cert error, blank page only on that machine).
+
+**What it does (read-only by default):**
+- Resolves the domain via your local DNS and cross-checks against `1.1.1.1` and `8.8.8.8` (catches stale/poisoned ISP DNS)
+- Dumps the local DNS cache entries for the domain
+- Scans `C:\Windows\System32\drivers\etc\hosts` for stray overrides
+- Pings, plus TCP connect tests on 443 and 80
+- Performs an HTTPS HEAD request and prints status + response headers
+- Inspects the served TLS certificate (subject, issuer, validity, thumbprint)
+- Reports any system / environment proxy that might intercept traffic
+- Runs `tracert` to show where packets die
+- Logs everything to `self-host/troubleshoot/logs/check-pc-access-<timestamp>.log`
+
+**Run it (from the project folder on the affected PC):**
+```powershell
+powershell -ExecutionPolicy Bypass -File .\self-host\troubleshoot\check-pc-access.ps1
+```
+
+**With auto-repair (admin PowerShell):** flushes DNS, re-registers DNS, resets Winsock and the IP stack (reboot recommended afterwards):
+```powershell
+powershell -ExecutionPolicy Bypass -File .\self-host\troubleshoot\check-pc-access.ps1 -Fix
+```
+
+**Override the domain:** `-Domain example.com`
+
+---
+
 ### `check-caddy-dns.sh`
 **Use when:** Caddy returns **502 Bad Gateway** and its logs show `dial tcp: lookup app on 127.0.0.11:53: no such host` (or any upstream hostname it can't resolve).
 
