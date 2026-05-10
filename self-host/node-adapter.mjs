@@ -7,8 +7,8 @@
 import { createServer } from "node:http";
 import { Readable } from "node:stream";
 import { pathToFileURL } from "node:url";
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { createReadStream, existsSync, statSync } from "node:fs";
+import { extname, join, normalize, resolve, sep } from "node:path";
 
 const candidates = [
   ".output/server/index.mjs",
@@ -25,6 +25,61 @@ if (!entry) {
 }
 console.log("[adapter] loading", entry);
 
+const staticRoots = [
+  ".output/public",
+  ".output/client",
+  "dist/client",
+  "dist/public",
+  "public",
+]
+  .map((p) => resolve(p))
+  .filter((p) => existsSync(p));
+console.log("[adapter] static roots", staticRoots.length ? staticRoots.join(", ") : "<none>");
+
+const mimeTypes = {
+  ".css": "text/css; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".mjs": "application/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".map": "application/json; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".ico": "image/x-icon",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".txt": "text/plain; charset=utf-8",
+  ".webmanifest": "application/manifest+json; charset=utf-8",
+};
+
+function findStaticFile(pathname) {
+  let decoded;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return null;
+  }
+
+  const relativePath = normalize(decoded).replace(/^[/\\]+/, "");
+  if (!relativePath || relativePath.startsWith("..") || relativePath.includes(`${sep}..${sep}`)) {
+    return null;
+  }
+
+  for (const root of staticRoots) {
+    const filePath = resolve(join(root, relativePath));
+    if (filePath !== root && !filePath.startsWith(root + sep)) continue;
+    try {
+      const stat = statSync(filePath);
+      if (stat.isFile()) return { filePath, stat };
+    } catch {
+      // Try the next static root.
+    }
+  }
+  return null;
+}
+
 const mod = await import(pathToFileURL(entry).href);
 const handler = mod.default ?? mod;
 if (typeof handler?.fetch !== "function") {
@@ -38,6 +93,19 @@ const host = process.env.HOST || "0.0.0.0";
 const server = createServer(async (req, res) => {
   try {
     const url = `http://${req.headers.host || `${host}:${port}`}${req.url}`;
+    const requestUrl = new URL(url);
+    if (req.method && ["GET", "HEAD"].includes(req.method)) {
+      const staticFile = findStaticFile(requestUrl.pathname);
+      if (staticFile) {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", mimeTypes[extname(staticFile.filePath).toLowerCase()] || "application/octet-stream");
+        res.setHeader("Content-Length", String(staticFile.stat.size));
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        if (req.method === "HEAD") return res.end();
+        createReadStream(staticFile.filePath).pipe(res);
+        return;
+      }
+    }
     const headers = new Headers();
     for (const [k, v] of Object.entries(req.headers)) {
       if (v == null) continue;

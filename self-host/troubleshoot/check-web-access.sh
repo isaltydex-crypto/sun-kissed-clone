@@ -39,6 +39,10 @@ is_expected_http_code() {
   return 1
 }
 
+asset_paths_from_html() {
+  sed -nE 's/.*<(script|link|img)[^>]+(src|href)="([^"]+)".*/\3/p' | grep -E '^/|^https?://' | head -n 20 || true
+}
+
 info "SITE_DOMAIN=${SITE_DOMAIN_VALUE:-<unset>}"
 info "WWW_DOMAIN=${WWW_DOMAIN_VALUE:-<unset>}"
 info "CHAT_DOMAIN=${CHAT_DOMAIN_VALUE:-<unset>}"
@@ -133,7 +137,57 @@ if [ "${#DOMAINS[@]}" -gt 0 ]; then
 fi
 
 # ---------------------------------------------------------------------------
-hdr "8. Localhost probes on this VPS"
+hdr "8. App static files inside container"
+if docker compose ps app 2>/dev/null | grep -q app; then
+  docker compose exec -T app sh -lc 'echo "--- static dirs ---"; for d in .output/public .output/client dist/client dist/public public; do [ -d "$d" ] && { echo "$d"; find "$d" -maxdepth 2 -type f | head -n 20; }; done' 2>&1 || true
+  static_count=$(docker compose exec -T app sh -lc 'count=0; for d in .output/public .output/client dist/client dist/public public; do [ -d "$d" ] && count=$((count + $(find "$d" -type f | wc -l))); done; echo "$count"' 2>/dev/null | tr -dc '0-9' || echo 0)
+  if [ "${static_count:-0}" -gt 0 ]; then
+    ok "app container has $static_count static files"
+  else
+    fail "app container has no static CSS/JS/image files"
+  fi
+else
+  warn "app container not found; skipping static file check"
+fi
+
+# ---------------------------------------------------------------------------
+if [ -n "$SITE_DOMAIN_VALUE" ]; then
+  hdr "9. Homepage assets (CSS/JS/images)"
+  html_file="/tmp/_homepage_${SITE_DOMAIN_VALUE//[^A-Za-z0-9]/_}.html"
+  html_code=$(curl -ksS --max-time 10 -o "$html_file" -w '%{http_code}' "https://$SITE_DOMAIN_VALUE" || echo 000)
+  echo "homepage status: $html_code"
+  if ! is_expected_http_code "$SITE_DOMAIN_VALUE" "$html_code"; then
+    warn "homepage returned $html_code; skipping asset probes"
+  else
+    assets=$(asset_paths_from_html < "$html_file")
+    if [ -z "$assets" ]; then
+      warn "no asset URLs found in homepage HTML"
+    else
+      bad_assets=0
+      while IFS= read -r asset; do
+        [ -z "$asset" ] && continue
+        case "$asset" in
+          http://*|https://*) asset_url="$asset" ;;
+          *) asset_url="https://$SITE_DOMAIN_VALUE$asset" ;;
+        esac
+        asset_code=$(curl -kIsS --max-time 10 -o /tmp/_asset_head.out -w '%{http_code}' "$asset_url" || echo 000)
+        content_type=$(grep -i '^content-type:' /tmp/_asset_head.out | tail -n1 | tr -d '\r' || true)
+        echo "$asset_code $content_type $asset_url"
+        if ! is_expected_http_code "$SITE_DOMAIN_VALUE" "$asset_code"; then
+          bad_assets=$((bad_assets + 1))
+        fi
+      done <<< "$assets"
+      if [ "$bad_assets" -gt 0 ]; then
+        fail "$bad_assets homepage assets failed; app may render unstyled or with broken images"
+      else
+        ok "homepage CSS/JS/image assets respond"
+      fi
+    fi
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+hdr "10. Localhost probes on this VPS"
 for scheme in http https; do
   if [ "$scheme" = "https" ]; then
     local_code=$(curl -kI --resolve "$PROBE_DOMAIN:443:127.0.0.1" --max-time 10 -o /tmp/_local_https.out -w '%{http_code}' "https://$PROBE_DOMAIN" || echo 000)
@@ -155,13 +209,13 @@ for scheme in http https; do
 done
 
 # ---------------------------------------------------------------------------
-hdr "9. Public IP of this VPS"
+hdr "11. Public IP of this VPS"
 pub_ip=$(curl -4 -s --max-time 5 ifconfig.me || echo "?")
 echo "public IP: $pub_ip"
 info "VPS public IP: $pub_ip"
 
 if [ "${#DOMAINS[@]}" -gt 0 ] && [ "$pub_ip" != "?" ]; then
-  hdr "10. DNS vs VPS IP comparison"
+  hdr "12. DNS vs VPS IP comparison"
   for domain in "${DOMAINS[@]}"; do
     ips=$(dig +short A "$domain" 2>/dev/null || true)
     echo "--- $domain ---"
