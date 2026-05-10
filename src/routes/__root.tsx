@@ -96,6 +96,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isAdmin = pathname.startsWith("/admin");
+  if (typeof window !== "undefined") {
+    // Lazy install: avoids SSR work and only runs in the browser.
+    void import("@/lib/diagnostics-client").then((m) => m.installClientDiagnostics());
+  }
   return (
     <AdminAuthProvider>
       <SiteContentProvider>
