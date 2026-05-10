@@ -21,9 +21,30 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Load .env so we get INTERNAL_NOTIFY_TOKEN, SMTP_HOST, etc.
+# Load .env safely — values may contain $(...), spaces, <>, etc. that would
+# break `source`. Parse line-by-line and export literal KEY=VALUE pairs only.
 if [ -f .env ]; then
-  set -a; . ./.env; set +a
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      ''|\#*) continue ;;
+    esac
+    case "$line" in
+      *=*)
+        key="${line%%=*}"
+        val="${line#*=}"
+        # strip surrounding quotes if present
+        case "$val" in
+          \"*\") val="${val#\"}"; val="${val%\"}" ;;
+          \'*\') val="${val#\'}"; val="${val%\'}" ;;
+        esac
+        # only export shell-safe variable names
+        case "$key" in
+          [A-Za-z_]*[!A-Za-z0-9_]*) ;;
+          [A-Za-z_]*) export "$key=$val" ;;
+        esac
+        ;;
+    esac
+  done < .env
 fi
 
 HOSTNAME_S="$(hostname 2>/dev/null || echo unknown)"
@@ -117,10 +138,15 @@ fi
 
 # ---------------------------------------------------------------------------
 hr "3. App health endpoint"
-if curl -fsS -m 5 "${APP_INTERNAL_URL%/}/api/public/health" >/dev/null 2>&1; then
-  ok "app responds on /api/public/health"
+# Port 3000 isn't published on the host (only caddy is); probe from inside
+# the app container itself.
+if docker compose exec -T app wget -qO- --timeout=5 http://127.0.0.1:3000/api/public/health >/dev/null 2>&1 \
+   || docker compose exec -T app sh -c 'command -v curl >/dev/null && curl -fsS -m 5 http://127.0.0.1:3000/api/public/health' >/dev/null 2>&1; then
+  ok "app responds on /api/public/health (in-container)"
+elif curl -fsS -m 5 "${APP_INTERNAL_URL%/}/api/public/health" >/dev/null 2>&1; then
+  ok "app responds on /api/public/health ($APP_INTERNAL_URL)"
 else
-  crit "app health endpoint unreachable at $APP_INTERNAL_URL"
+  crit "app health endpoint unreachable (tried in-container + $APP_INTERNAL_URL)"
   post_event "external" "critical" "app.unreachable" "app health endpoint unreachable"
 fi
 
