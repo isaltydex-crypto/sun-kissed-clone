@@ -61,6 +61,13 @@ const corsHeaders = {
 
 const PAYMENTO_GATEWAY_URL = "https://app.paymento.io/gateway";
 
+function dbErrorDetail(
+  err: { message?: string; code?: string; details?: string; hint?: string } | null | undefined,
+): string {
+  if (!err) return "no row returned";
+  return [err.message, err.code, err.details, err.hint].filter(Boolean).join(" | ");
+}
+
 export const Route = createFileRoute("/api/crypto/create-invoice")({
   server: {
     handlers: {
@@ -147,13 +154,8 @@ export const Route = createFileRoute("/api/crypto/create-invoice")({
             err: orderErr,
             orderId: parsed.orderId,
           });
-          const detail = orderErr
-            ? [orderErr.message, orderErr.code, orderErr.details, orderErr.hint]
-                .filter(Boolean)
-                .join(" | ")
-            : "no row returned";
           return Response.json(
-            { error: `Could not create order: ${detail}` },
+            { error: `Could not create order: ${dbErrorDetail(orderErr)}` },
             { status: 500, headers: corsHeaders },
           );
         }
@@ -166,7 +168,18 @@ export const Route = createFileRoute("/api/crypto/create-invoice")({
           quantity: i.quantity,
           line_total_ore: Math.round(i.price * 100) * i.quantity,
         }));
-        await supabaseAdmin.from("order_items").insert(itemRows);
+        const { error: itemsErr } = await supabaseAdmin.from("order_items").insert(itemRows);
+        if (itemsErr) {
+          console.error("[crypto.create-invoice] order item insert failed", {
+            err: itemsErr,
+            orderId: parsed.orderId,
+          });
+          await supabaseAdmin.from("orders").delete().eq("id", (orderRow as { id: string }).id);
+          return Response.json(
+            { error: `Could not create order items: ${dbErrorDetail(itemsErr)}` },
+            { status: 500, headers: corsHeaders },
+          );
+        }
 
         // Create the payment request at Paymento.
         // https://docs.paymento.io/api-documention/payment-request
