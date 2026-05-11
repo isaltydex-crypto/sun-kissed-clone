@@ -143,8 +143,17 @@ export const Route = createFileRoute("/api/crypto/create-invoice")({
           .single();
 
         if (orderErr || !orderRow) {
+          console.error("[crypto.create-invoice] order insert failed", {
+            err: orderErr,
+            orderId: parsed.orderId,
+          });
+          const detail = orderErr
+            ? [orderErr.message, orderErr.code, orderErr.details, orderErr.hint]
+                .filter(Boolean)
+                .join(" | ")
+            : "no row returned";
           return Response.json(
-            { error: orderErr?.message ?? "Could not create order" },
+            { error: `Could not create order: ${detail}` },
             { status: 500, headers: corsHeaders },
           );
         }
