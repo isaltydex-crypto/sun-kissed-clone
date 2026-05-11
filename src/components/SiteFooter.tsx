@@ -29,6 +29,8 @@ export function SiteFooter() {
             <li><Link to="/faq" className="hover:text-sun">{c.menu.faq}</Link></li>
             <li><Link to="/kontakt" className="hover:text-sun">{c.menu.contact}</Link></li>
             <li><Link to="/om-oss" className="hover:text-sun">{c.menu.about}</Link></li>
+            <li><Link to="/kopvillkor" className="hover:text-sun">Köpvillkor</Link></li>
+            <li><Link to="/integritetspolicy" className="hover:text-sun">Integritetspolicy</Link></li>
           </ul>
         </div>
         <div>
