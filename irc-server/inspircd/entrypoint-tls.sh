@@ -32,4 +32,14 @@ else
   echo "[entrypoint-tls] continuing without TLS — 6697 bind will fail to load"
 fi
 
-exec /entrypoint.sh "$@"
+# inspircd refuses to run as root. We started as root only to chown the cert;
+# now drop to uid 10000 (the inspircd user in the upstream image) before
+# handing off. Try su-exec, then gosu, then plain `su` as fallbacks.
+if command -v su-exec >/dev/null 2>&1; then
+  exec su-exec 10000:10000 /entrypoint.sh "$@"
+elif command -v gosu >/dev/null 2>&1; then
+  exec gosu 10000:10000 /entrypoint.sh "$@"
+else
+  echo "[entrypoint-tls] no su-exec/gosu found — falling back to --runasroot"
+  exec /entrypoint.sh --runasroot "$@"
+fi
