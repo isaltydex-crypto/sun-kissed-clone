@@ -305,8 +305,31 @@ function CheckoutPage() {
                   : "Bekräfta beställning"}
               </button>
             </div>
+            <div>
+              <label className="flex items-start gap-3 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  {...form.register("acceptTerms")}
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-border text-ocean-deep focus:ring-ocean"
+                />
+                <span>
+                  Jag har läst och godkänner{" "}
+                  <Link to="/kopvillkor" target="_blank" className="text-ocean underline">
+                    köpvillkoren
+                  </Link>{" "}
+                  samt{" "}
+                  <Link to="/integritetspolicy" target="_blank" className="text-ocean underline">
+                    integritetspolicyn
+                  </Link>
+                  .
+                </span>
+              </label>
+              {errors.acceptTerms && (
+                <p className={errorClass}>{errors.acceptTerms.message as string}</p>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Genom att bekräfta godkänner du våra villkor. Betalningen hanteras säkert via Paymento.
+              Betalningen hanteras säkert via vår betalleverantör.
             </p>
           </form>
 
