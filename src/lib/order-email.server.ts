@@ -115,15 +115,38 @@ export async function sendOrderConfirmationEmail(input: OrderEmailInput): Promis
   // Defaults can be overridden via NOTIFY_EMAIL_TO (comma-separated).
   const adminList =
     process.env.NOTIFY_EMAIL_TO ?? "logistic.plq@proton.me, it.plg@proton.me";
-  const bcc = adminList
+  const adminEmails = adminList
     .split(",")
     .map((e) => e.trim())
-    .filter(Boolean)
-    .map((email) => ({ email }));
+    .filter(Boolean);
+
+  // Prefer SMTP (e.g. Brevo SMTP relay) when SMTP_HOST is configured —
+  // fully independent of Lovable Cloud. Fall back to Brevo REST API.
+  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    const { sendNotification } = await import("./notify.server");
+    return sendNotification({
+      to: input.customer.email,
+      subject: rendered.subject,
+      text: rendered.text,
+      html: rendered.html,
+      // notify.server.ts uses a single "to"; pass admin BCC via header-less
+      // approach by sending a separate admin copy.
+    }).then(async (ok) => {
+      if (ok && adminEmails.length) {
+        await sendNotification({
+          to: adminEmails.join(", "),
+          subject: `[admin] ${rendered.subject}`,
+          text: rendered.text,
+          html: rendered.html,
+        });
+      }
+      return ok;
+    });
+  }
 
   return sendBrevoEmail({
     to: [{ email: input.customer.email, name: input.customer.name }],
-    bcc,
+    bcc: adminEmails.map((email) => ({ email })),
     subject: rendered.subject,
     htmlContent: rendered.html,
     textContent: rendered.text,
