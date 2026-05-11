@@ -13,7 +13,9 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ProdukterRouteImport } from './routes/produkter'
 import { Route as OmOssRouteImport } from './routes/om-oss'
+import { Route as KopvillkorRouteImport } from './routes/kopvillkor'
 import { Route as KontaktRouteImport } from './routes/kontakt'
+import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -59,9 +61,19 @@ const OmOssRoute = OmOssRouteImport.update({
   path: '/om-oss',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KopvillkorRoute = KopvillkorRouteImport.update({
+  id: '/kopvillkor',
+  path: '/kopvillkor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KontaktRoute = KontaktRouteImport.update({
   id: '/kontakt',
   path: '/kontakt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegritetspolicyRoute = IntegritetspolicyRouteImport.update({
+  id: '/integritetspolicy',
+  path: '/integritetspolicy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -190,7 +202,9 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/checkout': typeof CheckoutRouteWithChildren
   '/faq': typeof FaqRoute
+  '/integritetspolicy': typeof IntegritetspolicyRoute
   '/kontakt': typeof KontaktRoute
+  '/kopvillkor': typeof KopvillkorRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -221,7 +235,9 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRouteWithChildren
   '/checkout': typeof CheckoutRouteWithChildren
   '/faq': typeof FaqRoute
+  '/integritetspolicy': typeof IntegritetspolicyRoute
   '/kontakt': typeof KontaktRoute
+  '/kopvillkor': typeof KopvillkorRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -253,7 +269,9 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/checkout': typeof CheckoutRouteWithChildren
   '/faq': typeof FaqRoute
+  '/integritetspolicy': typeof IntegritetspolicyRoute
   '/kontakt': typeof KontaktRoute
+  '/kopvillkor': typeof KopvillkorRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -286,7 +304,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/checkout'
     | '/faq'
+    | '/integritetspolicy'
     | '/kontakt'
+    | '/kopvillkor'
     | '/om-oss'
     | '/produkter'
     | '/robots.txt'
@@ -317,7 +337,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/checkout'
     | '/faq'
+    | '/integritetspolicy'
     | '/kontakt'
+    | '/kopvillkor'
     | '/om-oss'
     | '/produkter'
     | '/robots.txt'
@@ -348,7 +370,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/checkout'
     | '/faq'
+    | '/integritetspolicy'
     | '/kontakt'
+    | '/kopvillkor'
     | '/om-oss'
     | '/produkter'
     | '/robots.txt'
@@ -380,7 +404,9 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   CheckoutRoute: typeof CheckoutRouteWithChildren
   FaqRoute: typeof FaqRoute
+  IntegritetspolicyRoute: typeof IntegritetspolicyRoute
   KontaktRoute: typeof KontaktRoute
+  KopvillkorRoute: typeof KopvillkorRoute
   OmOssRoute: typeof OmOssRoute
   ProdukterRoute: typeof ProdukterRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
@@ -426,11 +452,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OmOssRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kopvillkor': {
+      id: '/kopvillkor'
+      path: '/kopvillkor'
+      fullPath: '/kopvillkor'
+      preLoaderRoute: typeof KopvillkorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/kontakt': {
       id: '/kontakt'
       path: '/kontakt'
       fullPath: '/kontakt'
       preLoaderRoute: typeof KontaktRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/integritetspolicy': {
+      id: '/integritetspolicy'
+      path: '/integritetspolicy'
+      fullPath: '/integritetspolicy'
+      preLoaderRoute: typeof IntegritetspolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -649,7 +689,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   CheckoutRoute: CheckoutRouteWithChildren,
   FaqRoute: FaqRoute,
+  IntegritetspolicyRoute: IntegritetspolicyRoute,
   KontaktRoute: KontaktRoute,
+  KopvillkorRoute: KopvillkorRoute,
   OmOssRoute: OmOssRoute,
   ProdukterRoute: ProdukterRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,

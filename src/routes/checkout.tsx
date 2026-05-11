@@ -38,6 +38,9 @@ const schema = z.object({
     .max(20, "Telefonnummer för långt")
     .regex(/^[0-9+\s-]+$/, "Ogiltigt telefonnummer"),
   notes: z.string().trim().max(500).optional().or(z.literal("")),
+  acceptTerms: z.literal(true, {
+    errorMap: () => ({ message: "Du måste godkänna villkoren för att fortsätta" }),
+  }),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -94,16 +97,19 @@ function CheckoutPage() {
       city: "",
       phone: "",
       notes: "",
+      acceptTerms: false as unknown as true,
     },
   });
 
   const onSubmit = async (data: FormValues) => {
     setSubmitError(null);
     const orderId = `PL-${Date.now().toString(36).toUpperCase()}`;
+    const { acceptTerms: _accepted, ...customer } = data;
+    void _accepted;
     const order = {
       id: orderId,
       createdAt: new Date().toISOString(),
-      customer: data,
+      customer,
       items,
       subtotal,
       shipping,
@@ -127,7 +133,7 @@ function CheckoutPage() {
           amount: total,
           currency: "SEK",
           payCurrency,
-          customer: { ...data, notes: data.notes || undefined },
+          customer: { ...customer, notes: customer.notes || undefined },
           items: items.map((i) => ({
             slug: i.slug,
             name: i.name,
@@ -299,8 +305,31 @@ function CheckoutPage() {
                   : "Bekräfta beställning"}
               </button>
             </div>
+            <div>
+              <label className="flex items-start gap-3 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  {...form.register("acceptTerms")}
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-border text-ocean-deep focus:ring-ocean"
+                />
+                <span>
+                  Jag har läst och godkänner{" "}
+                  <Link to="/kopvillkor" target="_blank" className="text-ocean underline">
+                    köpvillkoren
+                  </Link>{" "}
+                  samt{" "}
+                  <Link to="/integritetspolicy" target="_blank" className="text-ocean underline">
+                    integritetspolicyn
+                  </Link>
+                  .
+                </span>
+              </label>
+              {errors.acceptTerms && (
+                <p className={errorClass}>{errors.acceptTerms.message as string}</p>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Genom att bekräfta godkänner du våra villkor. Betalningen hanteras säkert via Paymento.
+              Betalningen hanteras säkert via vår betalleverantör.
             </p>
           </form>
 
