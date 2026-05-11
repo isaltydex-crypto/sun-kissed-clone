@@ -28,8 +28,12 @@ if [ ! -f .env ]; then
   fail ".env not found in $(pwd)"
   exit 1
 fi
-# shellcheck disable=SC1091
-set -a; . ./.env; set +a
+# NB: do NOT `source .env` — values may contain $(...), <>, &, spaces, etc.
+# Pull only the keys this script inspects, parsed literally.
+_envget() { grep -E "^$1=" .env | tail -n1 | sed -E "s/^$1=//; s/^[\"']//; s/[\"']\$//"; }
+for _k in IRC_GATEWAY_URL IRC_SERVER IRC_BOT_NICK GATEWAY_TOKEN IRC_CHANNEL_PREFIX IRC_OPER_PASSWORD IRC_SERVER_PASSWORD CHAT_DOMAIN; do
+  if [ -z "${!_k:-}" ]; then export "$_k=$(_envget "$_k")"; fi
+done
 
 check_var() {
   local name="$1"; local val="${!1:-}"
