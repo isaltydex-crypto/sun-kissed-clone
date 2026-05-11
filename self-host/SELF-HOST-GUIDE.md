@@ -176,8 +176,8 @@ openssl rand -hex 32       # → ADMIN_SESSION_SECRET (signs login cookie)
 openssl rand -base64 48    # → BACKUP_ENCRYPTION_PASSPHRASE
 openssl rand -hex 32       # → INTERNAL_NOTIFY_TOKEN (lets backups send alerts)
 
-# Crypto checkout (skip if not using NOWPayments)
-openssl rand -hex 32       # → CRYPTO_INTERNAL_TOKEN
+# Crypto checkout (Paymento) — no extra secrets to generate.
+# You only paste the API key + HMAC secret from the Paymento dashboard (§7.7).
 ```
 
 **Then generate the two Supabase API keys** from your `JWT_SECRET`:
@@ -398,25 +398,29 @@ setup wizard generates the exact values) so your mail doesn't go to spam.
 The `backup` service in `docker-compose.yml` runs this automatically — you
 do **not** need a host-side cron job. See §13 for the off-site copy.
 
-### 7.7 NOWPayments — crypto checkout 🟡
+### 7.7 Paymento — crypto checkout 🟡
 
-Skip if you don't accept BTC / ETH / USDC / USDT — checkout falls back to
-other payment methods.
+Skip if you don't accept crypto — checkout falls back to other payment methods.
 
-1. Sign up at <https://nowpayments.io>, complete basic KYB.
-2. **Store settings → Payout wallets** — add a receiving wallet for each
-   coin you want. Coins without a payout wallet are hidden at checkout.
-3. **Store settings → API keys** → *Create*. Copy the key.
-4. **Store settings → IPN settings**:
-   - **IPN callback URL:** `https://peptivalabgroup.com/api/public/crypto/webhook`
-   - Click *Generate* next to **IPN Secret key** and copy it.
+Paymento is a non-custodial crypto payment gateway: payments land directly
+in the wallet addresses you configure on the Paymento dashboard, no
+intermediary holds funds.
+
+1. Sign up at <https://app.paymento.io> and complete KYB.
+2. **Wallets** — add a receiving address for each coin/chain you want to
+   accept. Coins without an address are hidden on the hosted gateway.
+3. **API → API Keys** → *Create*. Copy the **Api-key** value.
+4. **API → Payment Settings** ("Set Payment Settings"):
+   - **IPN URL:** `https://peptivalabgroup.com/api/public/crypto/webhook`
+   - **Return URL:** `https://peptivalabgroup.com/checkout/bekraftelse`
+   - Copy the **HMAC Secret Key** (used to sign callbacks).
 
 | Variable                       | Value                                               |
 | ------------------------------ | --------------------------------------------------- |
-| `NOWPAYMENTS_API_KEY`          | from step 3                                         |
-| `NOWPAYMENTS_IPN_SECRET`       | from step 4                                         |
-| `NOWPAYMENTS_BASE_URL`         | `https://api.nowpayments.io/v1` (default)           |
-| `CRYPTO_INTERNAL_TOKEN`        | from §6                                             |
+| `PAYMENTO_API_KEY`             | from step 3                                         |
+| `PAYMENTO_HMAC_SECRET`         | from step 4 (HMAC secret)                           |
+| `PAYMENTO_BASE_URL`            | `https://api.paymento.io/v1` (default — leave blank)|
+| `PAYMENTO_SPEED`               | `0` = accept on mempool, `1` = wait for confirmations (default `1`) |
 | `VITE_PAYMENTS_API_BASE_URL`   | `https://peptivalabgroup.com`                       |
 | `CRYPTO_SUCCESS_URL`           | `https://peptivalabgroup.com/checkout/bekraftelse`  |
 | `CRYPTO_CANCEL_URL`            | `https://peptivalabgroup.com/checkout`              |
@@ -425,6 +429,10 @@ The frontend calls `${VITE_PAYMENTS_API_BASE_URL}/api/crypto/create-invoice`
 and `/api/crypto/order/:id`. Hosting payments routes on a different
 subdomain (e.g. `api.peptivalabgroup.com`)? Point `VITE_PAYMENTS_API_BASE_URL`
 there and add a matching DNS record + Caddy entry.
+
+After every IPN callback the server **also** calls Paymento's
+`/v1/payment/verify` endpoint before flipping the order to `paid`, so
+spoofed callbacks can't credit an order even if the HMAC ever leaks.
 
 ### 7.8 Analytics 🟢
 
@@ -721,7 +729,7 @@ bash self-host/troubleshoot/check-web-access.sh
 | Caddy keeps retrying TLS               | DNS not propagated yet, or port 80 blocked (UFW or provider firewall)               |
 | IRC bridge "auth failed"               | `GATEWAY_TOKEN` (ws-gateway) must equal `IRC_BOT_PASSWORD` (app)                    |
 | `/admin` login fails after `.env` edit | `docker compose up -d app` (NOT `restart` — restart keeps old env)                  |
-| Crypto webhook 401                     | `NOWPAYMENTS_IPN_SECRET` mismatch with the value in NOWPayments dashboard           |
+| Crypto webhook 401                     | `PAYMENTO_HMAC_SECRET` mismatch with the value in Paymento dashboard                |
 | 502 Bad Gateway from Caddy             | `bash self-host/troubleshoot/check-caddy-dns.sh`                                    |
 | One specific PC can't reach the site   | Run `self-host/troubleshoot/check-pc-access.ps1` on that PC                         |
 | Anything else                          | `bash self-host/menu.sh` and pick the relevant diagnostic                           |
@@ -754,7 +762,7 @@ Tick these before announcing go-live:
 - [ ] `ADMIN_TOTP_SECRET` set, tested with authenticator app
 - [ ] `GATEWAY_TOKEN` identical in app and ws-gateway env
 - [ ] SMTP test: submit `/kontakt` form → email arrives
-- [ ] NOWPayments sandbox order flips to `paid` (skip if no crypto)
+- [ ] Paymento test order flips to `paid` (skip if no crypto)
 - [ ] `BACKUP_ENCRYPTION_PASSPHRASE` saved off-server in password manager
 - [ ] `OFFSITE_REMOTE` configured + first sync verified
 - [ ] Test restore (`verify-latest.sh`) passed
