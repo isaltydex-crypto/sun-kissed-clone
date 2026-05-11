@@ -206,6 +206,9 @@ services:
         VITE_SUPABASE_PUBLISHABLE_KEY: ${ANON_KEY}
         VITE_PLAUSIBLE_DOMAIN: ${VITE_PLAUSIBLE_DOMAIN:-}
         VITE_PLAUSIBLE_SRC: ${VITE_PLAUSIBLE_SRC:-https://plausible.io/js/script.js}
+        # Frontend points at its own origin by default; checkout calls
+        # ${VITE_PAYMENTS_API_BASE_URL}/api/crypto/create-invoice.
+        VITE_PAYMENTS_API_BASE_URL: ${VITE_PAYMENTS_API_BASE_URL:-https://${SITE_DOMAIN}}
     restart: unless-stopped
     logging: *default-logging
     depends_on: [kong, ws-gateway]

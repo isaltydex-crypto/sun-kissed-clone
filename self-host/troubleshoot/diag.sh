@@ -181,8 +181,10 @@ fi
 # Paymento (only if key configured)
 if [ -n "${PAYMENTO_API_KEY:-}" ]; then
   base="${PAYMENTO_BASE_URL:-https://api.paymento.io/v1}"
-  # No public health endpoint; HEAD against the host should answer < 500.
-  status=$(curl -fsS -o /dev/null -w '%{http_code}' -m 5 "$base" 2>/dev/null || echo 000)
+  # No public health endpoint; any HTTP response < 500 means reachable.
+  # Drop -f so curl doesn't exit non-zero on 4xx (which made the previous
+  # `|| echo 000` append "000" after the real status, e.g. "404000").
+  status=$(curl -sS -o /dev/null -w '%{http_code}' -m 5 "$base" 2>/dev/null || echo 000)
   if [ "$status" != "000" ] && [ "$status" -lt 500 ]; then
     ok "Paymento API reachable (HTTP $status)"
   else

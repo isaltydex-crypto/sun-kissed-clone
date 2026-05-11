@@ -25,8 +25,11 @@ hdr "1. config"
 if [ ! -f .env ]; then
   fail ".env not found in $(pwd)"; exit 1
 fi
-# shellcheck disable=SC1091
-set -a; . ./.env; set +a
+# NB: do NOT `source .env` — values may contain $(...), <>, &, spaces, etc.
+# that bash would interpret. Read the keys we need with grep instead.
+_envget() { grep -E "^$1=" .env | tail -n1 | sed -E "s/^$1=//; s/^[\"']//; s/[\"']\$//"; }
+CHAT_DOMAIN="${CHAT_DOMAIN:-$(_envget CHAT_DOMAIN)}"
+IRC_SERVER_PASSWORD="${IRC_SERVER_PASSWORD:-$(_envget IRC_SERVER_PASSWORD)}"
 
 HOST="${HOST:-${CHAT_DOMAIN:-}}"
 PORT="${PORT:-6697}"
