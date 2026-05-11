@@ -111,14 +111,15 @@ export function renderOrderEmail(input: OrderEmailInput): {
 
 export async function sendOrderConfirmationEmail(input: OrderEmailInput): Promise<boolean> {
   const rendered = renderOrderEmail(input);
-  const adminTo = process.env.NOTIFY_EMAIL_TO;
-  const bcc = adminTo
-    ? adminTo
-        .split(",")
-        .map((e) => e.trim())
-        .filter(Boolean)
-        .map((email) => ({ email }))
-    : undefined;
+  // Admin recipients receive a BCC copy of every order confirmation.
+  // Defaults can be overridden via NOTIFY_EMAIL_TO (comma-separated).
+  const adminList =
+    process.env.NOTIFY_EMAIL_TO ?? "logistic.plq@proton.me, it.plg@proton.me";
+  const bcc = adminList
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean)
+    .map((email) => ({ email }));
 
   return sendBrevoEmail({
     to: [{ email: input.customer.email, name: input.customer.name }],
