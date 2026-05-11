@@ -97,6 +97,7 @@ function CheckoutPage() {
       city: "",
       phone: "",
       notes: "",
+      acceptTerms: false as unknown as true,
     },
   });
 
