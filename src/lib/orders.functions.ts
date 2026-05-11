@@ -84,6 +84,28 @@ export const recordOrder = createServerFn({ method: "POST" })
     const { error: itemsErr } = await supabaseAdmin.from("order_items").insert(itemRows);
     if (itemsErr) throw new Error(itemsErr.message);
 
+    // Fire-and-forget order confirmation email via Brevo. Failure must not
+    // break order persistence — the order is already saved at this point.
+    try {
+      const { sendOrderConfirmationEmail } = await import("./order-email.server");
+      await sendOrderConfirmationEmail({
+        orderNumber: order.order_number,
+        customer: { email: data.customer.email, name: data.customer.name },
+        items: data.items.map((i) => ({
+          productName: i.productName,
+          quantity: i.quantity,
+          unitPriceOre: i.unitPriceOre,
+        })),
+        subtotalOre: data.subtotalOre,
+        shippingOre: data.shippingOre,
+        discountOre: data.discountOre,
+        totalOre: data.totalOre,
+        currency: data.currency,
+      });
+    } catch (err) {
+      console.error("[orders] order confirmation email failed:", err);
+    }
+
     return { id: order.id, orderNumber: order.order_number };
   });
 
