@@ -13,9 +13,8 @@ services:
     volumes:
       - ./inspircd/inspircd.conf:/inspircd/conf/inspircd.conf:ro
       - inspircd-data:/inspircd/data
-    ports:
-      - "6697:6697"  # TLS — for HexChat / mIRC
-      # 6667 stays inside the docker network for the ws-gateway only.
+    # 6667 stays inside the docker network for the ws-gateway only.
+    # 6697 (TLS) is disabled until tls.conf is generated — see inspircd.conf.
     expose:
       - "6667"
 
