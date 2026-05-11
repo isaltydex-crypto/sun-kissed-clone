@@ -38,6 +38,9 @@ const schema = z.object({
     .max(20, "Telefonnummer för långt")
     .regex(/^[0-9+\s-]+$/, "Ogiltigt telefonnummer"),
   notes: z.string().trim().max(500).optional().or(z.literal("")),
+  acceptTerms: z.literal(true, {
+    errorMap: () => ({ message: "Du måste godkänna villkoren för att fortsätta" }),
+  }),
 });
 
 type FormValues = z.infer<typeof schema>;
