@@ -8,7 +8,7 @@
 #   1. Container health: status, restart count, recent crashes.
 #      Auto-fixes: restarts containers stuck in restart loops, regenerates
 #      placeholder ADMIN_SESSION_SECRET if literal "$(openssl ...)" is present.
-#   2. External service probes: SMTP TCP, IRC TCP, NowPayments HTTP, app
+#   2. External service probes: SMTP TCP, IRC TCP, Paymento HTTP, app
 #      health endpoint.
 #   3. Posts a summary event to /api/internal/diag for the dashboard.
 #   4. Sends an email alert (via existing notify pipeline) for any critical
