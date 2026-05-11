@@ -247,6 +247,14 @@ services:
       # Bcrypt hash of admin password (recommended). Falls back to plaintext
       # ADMIN_CHAT_PASSWORD when empty.
       ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-}
+      # Paymento crypto checkout (optional). Leave PAYMENTO_API_KEY empty to
+      # disable crypto payments — the rest of the app keeps working.
+      PAYMENTO_API_KEY: ${PAYMENTO_API_KEY:-}
+      PAYMENTO_HMAC_SECRET: ${PAYMENTO_HMAC_SECRET:-}
+      PAYMENTO_BASE_URL: ${PAYMENTO_BASE_URL:-https://api.paymento.io/v1}
+      PAYMENTO_SPEED: ${PAYMENTO_SPEED:-1}
+      CRYPTO_SUCCESS_URL: ${CRYPTO_SUCCESS_URL:-}
+      CRYPTO_CANCEL_URL: ${CRYPTO_CANCEL_URL:-}
     networks: [pvl]
 
   # --------------------------------------------------------------------------
