@@ -12,8 +12,6 @@ import {
 import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
 
 const COINS: { value: PayCurrency; label: string; sub: string }[] = [
-  { value: "btc", label: "Bitcoin", sub: "BTC" },
-  { value: "eth", label: "Ethereum", sub: "ETH" },
   { value: "usdc", label: "USD Coin", sub: "USDC" },
   { value: "usdt", label: "Tether", sub: "USDT" },
 ];
@@ -59,7 +57,7 @@ export const Route = createFileRoute("/checkout")({
 function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
-  const [payCurrency, setPayCurrency] = useState<PayCurrency>("btc");
+  const [payCurrency, setPayCurrency] = useState<PayCurrency>("usdc");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [discountInput, setDiscountInput] = useState("");
   const [discount, setDiscount] = useState<AppliedDiscount | null>(null);
