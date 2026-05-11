@@ -74,6 +74,20 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
+### `fix-checkout-db.sh`
+**Use when:** checkout shows `Failed to create invoice (500)` / `Could not create order`, especially after adding Paymento to an existing self-host install.
+
+**What it does:**
+- Checks that the checkout database tables (`orders`, `order_items`, `discount_codes`, audit and diagnostics tables) exist
+- Applies the idempotent app schema from `initdb/zz-app-schema.sql` if anything is missing
+- Restarts the REST API container so it reloads the schema cache
+- Runs a rollback-only smoke test that inserts an order and item, then rolls it back
+- Confirms whether `PAYMENTO_API_KEY` is present inside the app container
+
+**Typical fixes it points to:** the existing database volume was created before order/payment tables were added, or `.env` was changed but the app container was not recreated.
+
+---
+
 ### `check-pc-access.ps1` (Windows / PowerShell — **standalone**, runs on the affected PC)
 **Use when:** the site loads from your phone / other devices but **not from a specific PC**.
 
