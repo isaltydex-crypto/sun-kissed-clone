@@ -106,6 +106,21 @@ powershell -ExecutionPolicy Bypass -File .\check-pc-access.ps1 -Fix
 
 ---
 
+### `check-irc-client.sh`
+**Use when:** Revolution IRC (or HexChat / mIRC) won't connect to `chat.<domain>:6697` and you need the EXACT error the server returns.
+
+**What it does:**
+- Reads `CHAT_DOMAIN` and `IRC_SERVER_PASSWORD` from `.env` (override with `HOST=`, `PORT=`, `PASS=`, `NICK=` env vars)
+- Resolves DNS for the chat host
+- Confirms TCP reachability on port 6697
+- Performs a real TLS handshake with `openssl s_client` and checks cert validity
+- Sends the same `PASS` / `NICK` / `USER` sequence Revolution IRC sends, captures every byte the server returns
+- Interprets the response and prints a one-line cause: 001 success, 464 bad password, 432 bad nick, 433 nick in use, throttle/ban, generic ERROR, or "zero bytes after TLS"
+
+**Typical fixes it points to:** `IRC_SERVER_PASSWORD` mismatch with what's typed in Revolution IRC, expired/wrong TLS cert on `chat.<domain>`, port 6697 blocked by firewall, or InspIRCd crashed.
+
+---
+
 ### `check-irc.sh`
 **Use when:** the live chat widget shows "ansluter…" forever, admins don't receive visitor messages, or you want to confirm the InspIRCd + ws-gateway + bridge chain is healthy.
 
