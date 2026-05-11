@@ -12,8 +12,6 @@ import {
 import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
 
 const COINS: { value: PayCurrency; label: string; sub: string }[] = [
-  { value: "btc", label: "Bitcoin", sub: "BTC" },
-  { value: "eth", label: "Ethereum", sub: "ETH" },
   { value: "usdc", label: "USD Coin", sub: "USDC" },
   { value: "usdt", label: "Tether", sub: "USDT" },
 ];
