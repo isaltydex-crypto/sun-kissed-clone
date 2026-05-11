@@ -133,7 +133,7 @@ function CheckoutPage() {
           amount: total,
           currency: "SEK",
           payCurrency,
-          customer: { ...data, notes: data.notes || undefined },
+          customer: { ...customer, notes: customer.notes || undefined },
           items: items.map((i) => ({
             slug: i.slug,
             name: i.name,
