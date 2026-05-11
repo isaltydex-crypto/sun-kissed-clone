@@ -176,8 +176,8 @@ openssl rand -hex 32       # → ADMIN_SESSION_SECRET (signs login cookie)
 openssl rand -base64 48    # → BACKUP_ENCRYPTION_PASSPHRASE
 openssl rand -hex 32       # → INTERNAL_NOTIFY_TOKEN (lets backups send alerts)
 
-# Crypto checkout (skip if not using NOWPayments)
-openssl rand -hex 32       # → CRYPTO_INTERNAL_TOKEN
+# Crypto checkout (Paymento) — no extra secrets to generate.
+# You only paste the API key + HMAC secret from the Paymento dashboard (§7.7).
 ```
 
 **Then generate the two Supabase API keys** from your `JWT_SECRET`:
