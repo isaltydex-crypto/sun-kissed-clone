@@ -57,7 +57,7 @@ export const Route = createFileRoute("/checkout")({
 function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
-  const [payCurrency, setPayCurrency] = useState<PayCurrency>("btc");
+  const [payCurrency, setPayCurrency] = useState<PayCurrency>("usdc");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [discountInput, setDiscountInput] = useState("");
   const [discount, setDiscount] = useState<AppliedDiscount | null>(null);
