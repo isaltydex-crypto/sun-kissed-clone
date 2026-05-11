@@ -93,7 +93,7 @@ export const Route = createFileRoute("/api/public/crypto/webhook")({
           .maybeSingle();
 
         if (!existing) {
-          // Acknowledge so NOWPayments doesn't keep retrying for ever, but log.
+          // Acknowledge so Paymento doesn't keep retrying for ever, but log.
           console.warn("[crypto.webhook] order not found:", orderNumber);
           return new Response("ok", { status: 200 });
         }

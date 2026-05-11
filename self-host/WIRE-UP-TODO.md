@@ -13,7 +13,7 @@ Jump to the relevant section there:
 - Email (SMTP / SPF / DKIM / DMARC) → §7.5
 - Backups + off-site → §6 + §7.6 + §13
 - HTTPS & firewall → §4 + §7.2
-- NOWPayments → §7.7
+- Paymento → §7.7
 - Analytics → §7.8
 - SEO → §7.9
 - Uptime monitoring → §14

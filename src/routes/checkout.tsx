@@ -117,7 +117,7 @@ function CheckoutPage() {
       // ignore
     }
 
-    // If a payments server is configured, create a NOWPayments invoice
+    // If a payments server is configured, create a Paymento invoice
     // through it and redirect the customer to the hosted checkout.
     if (PAYMENTS_API_BASE_URL) {
       try {
@@ -300,7 +300,7 @@ function CheckoutPage() {
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Genom att bekräfta godkänner du våra villkor. Betalningen hanteras säkert via NOWPayments.
+              Genom att bekräfta godkänner du våra villkor. Betalningen hanteras säkert via Paymento.
             </p>
           </form>
 
