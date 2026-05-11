@@ -729,7 +729,7 @@ bash self-host/troubleshoot/check-web-access.sh
 | Caddy keeps retrying TLS               | DNS not propagated yet, or port 80 blocked (UFW or provider firewall)               |
 | IRC bridge "auth failed"               | `GATEWAY_TOKEN` (ws-gateway) must equal `IRC_BOT_PASSWORD` (app)                    |
 | `/admin` login fails after `.env` edit | `docker compose up -d app` (NOT `restart` — restart keeps old env)                  |
-| Crypto webhook 401                     | `NOWPAYMENTS_IPN_SECRET` mismatch with the value in NOWPayments dashboard           |
+| Crypto webhook 401                     | `PAYMENTO_HMAC_SECRET` mismatch with the value in Paymento dashboard                |
 | 502 Bad Gateway from Caddy             | `bash self-host/troubleshoot/check-caddy-dns.sh`                                    |
 | One specific PC can't reach the site   | Run `self-host/troubleshoot/check-pc-access.ps1` on that PC                         |
 | Anything else                          | `bash self-host/menu.sh` and pick the relevant diagnostic                           |
