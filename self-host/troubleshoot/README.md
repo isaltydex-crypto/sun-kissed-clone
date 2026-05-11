@@ -88,6 +88,22 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
+### `fix-irc-tls.sh`
+**Use when:** RevolutionIRC / HexChat / mIRC can't connect to `chat.<domain>:6697` because TLS isn't running yet on the IRC server.
+
+**What it does:**
+- Reads `CHAT_DOMAIN` from `self-host/.env`
+- Finds the Caddy data volume (`*_caddy_data`)
+- Confirms Caddy has issued a Let's Encrypt cert for `CHAT_DOMAIN` (fails fast with instructions if not)
+- Writes `CHAT_DOMAIN` and `CADDY_DATA_VOLUME` into `irc-server/.env`
+- Recreates the `ircd` container so it picks up the shared cert volume and the TLS entrypoint
+- Tails ircd logs to confirm the GnuTLS module loaded and the cert was installed
+- Runs an external `openssl s_client` handshake against `${CHAT_DOMAIN}:6697`
+
+**Typical fixes it points to:** Caddy hasn't issued the cert yet (visit `https://chat.<domain>` once), firewall is blocking 6697 (`ufw allow 6697/tcp`), or the irc-server compose file hasn't been pulled yet.
+
+---
+
 ### `check-pc-access.ps1` (Windows / PowerShell — **standalone**, runs on the affected PC)
 **Use when:** the site loads from your phone / other devices but **not from a specific PC**.
 
