@@ -104,10 +104,12 @@ function CheckoutPage() {
   const onSubmit = async (data: FormValues) => {
     setSubmitError(null);
     const orderId = `PL-${Date.now().toString(36).toUpperCase()}`;
+    const { acceptTerms: _accepted, ...customer } = data;
+    void _accepted;
     const order = {
       id: orderId,
       createdAt: new Date().toISOString(),
-      customer: data,
+      customer,
       items,
       subtotal,
       shipping,
