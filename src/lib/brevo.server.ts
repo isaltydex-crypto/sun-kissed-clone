@@ -1,10 +1,10 @@
 // ============================================================================
-// Brevo email sender — server-only. Calls Brevo's transactional email API via
-// the Lovable connector gateway. Both LOVABLE_API_KEY and BREVO_API_KEY are
-// injected automatically when the Brevo connector is linked.
+// Brevo email sender — server-only. Calls Brevo's transactional email API
+// directly (no Lovable gateway). Requires BREVO_DIRECT_API_KEY env var
+// containing your raw Brevo API key (xkeysib-...) from app.brevo.com.
 // ============================================================================
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/brevo";
+const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
 export interface BrevoRecipient {
   email: string;
@@ -24,7 +24,6 @@ export interface BrevoSendInput {
 
 function parseSender(raw: string | undefined): BrevoRecipient | null {
   if (!raw) return null;
-  // Match "Name <email@host>"
   const m = raw.match(/^\s*(.*?)\s*<\s*([^>]+)\s*>\s*$/);
   if (m) return { name: m[1] || undefined, email: m[2] };
   if (raw.includes("@")) return { email: raw.trim() };
@@ -32,14 +31,11 @@ function parseSender(raw: string | undefined): BrevoRecipient | null {
 }
 
 export async function sendBrevoEmail(input: BrevoSendInput): Promise<boolean> {
-  const lovableKey = process.env.LOVABLE_API_KEY;
-  const brevoKey = process.env.BREVO_API_KEY;
-  if (!lovableKey) {
-    console.warn("[brevo] LOVABLE_API_KEY missing — skipping email:", input.subject);
-    return false;
-  }
-  if (!brevoKey) {
-    console.warn("[brevo] BREVO_API_KEY missing — skipping email:", input.subject);
+  // Prefer the direct key; fall back to the connector-gateway key name for
+  // backward compatibility if someone manually set it to a raw Brevo key.
+  const apiKey = process.env.BREVO_DIRECT_API_KEY || process.env.BREVO_API_KEY;
+  if (!apiKey) {
+    console.warn("[brevo] BREVO_DIRECT_API_KEY missing — skipping email:", input.subject);
     return false;
   }
 
@@ -61,12 +57,12 @@ export async function sendBrevoEmail(input: BrevoSendInput): Promise<boolean> {
   };
 
   try {
-    const res = await fetch(`${GATEWAY_URL}/smtp/email`, {
+    const res = await fetch(BREVO_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${lovableKey}`,
-        "X-Connection-Api-Key": brevoKey,
+        "accept": "application/json",
+        "api-key": apiKey,
       },
       body: JSON.stringify(body),
     });
