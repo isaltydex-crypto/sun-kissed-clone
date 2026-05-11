@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Payments API client
 //
-// Point this at your own server that integrates with NOWPayments.
+// Point this at your own server that integrates with Paymento.
 // Set VITE_PAYMENTS_API_BASE_URL in your environment, e.g.
 //   VITE_PAYMENTS_API_BASE_URL=https://api.your-domain.com
 //
@@ -13,21 +13,25 @@
 //         orderId: string,
 //         amount: number,           // total in your store currency
 //         currency: string,         // e.g. "SEK"
-//         payCurrency: "btc" | "eth" | "usdc" | "usdt",
+//         payCurrency?: "btc" | "eth" | "usdc" | "usdt",
+//                                   // optional pre-selected coin (Paymento
+//                                   // lets the buyer pick on its hosted page)
 //         customer: { email, firstName, lastName, address,
 //                     postalCode, city, phone, notes? },
 //         items: { slug, name, price, quantity }[],
-//         successUrl: string,       // where NOWPayments returns on success
-//         cancelUrl:  string        // where NOWPayments returns on cancel
+//         successUrl: string,       // ReturnUrl after payment
+//         cancelUrl:  string        // shown if the buyer cancels
 //       }
 //     Response JSON:
 //       { invoiceUrl: string, invoiceId: string }
+//       — invoiceUrl is https://app.paymento.io/gateway?token=<token>
+//       — invoiceId  is the Paymento payment-request token
 //
 //   GET  {BASE_URL}/api/crypto/order/:orderId
 //     Response JSON:
 //       { status: "pending" | "paid" | "failed" | "expired", ... }
 //
-//   POST {BASE_URL}/api/crypto/webhook   (called by NOWPayments — server-side only)
+//   POST {BASE_URL}/api/public/crypto/webhook   (called by Paymento IPN)
 // ─────────────────────────────────────────────────────────────
 
 export const PAYMENTS_API_BASE_URL: string =
