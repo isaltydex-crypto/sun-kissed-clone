@@ -278,6 +278,12 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION public.record_diagnostic_event(text,text,text,text,text,jsonb,text,text,text,text)
   FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.record_diagnostic_event(text,text,text,text,text,jsonb,text,text,text,text)
+  TO service_role;
+
+GRANT USAGE ON SCHEMA public TO service_role;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO service_role;
 
 -- ---------------------------------------------------------------------------
 -- Realtime publication (so chat_messages broadcasts via Supabase Realtime)
