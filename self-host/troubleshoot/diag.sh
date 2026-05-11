@@ -178,14 +178,16 @@ else
   post_event "external" "warn" "irc.unreachable" "IRC port 6697 unreachable"
 fi
 
-# NowPayments (only if key configured)
-if [ -n "${NOWPAYMENTS_API_KEY:-}" ]; then
-  status=$(curl -fsS -o /dev/null -w '%{http_code}' -m 5 https://api.nowpayments.io/v1/status 2>/dev/null || echo 000)
-  if [ "$status" = "200" ]; then
-    ok "NowPayments API reachable"
+# Paymento (only if key configured)
+if [ -n "${PAYMENTO_API_KEY:-}" ]; then
+  base="${PAYMENTO_BASE_URL:-https://api.paymento.io/v1}"
+  # No public health endpoint; HEAD against the host should answer < 500.
+  status=$(curl -fsS -o /dev/null -w '%{http_code}' -m 5 "$base" 2>/dev/null || echo 000)
+  if [ "$status" != "000" ] && [ "$status" -lt 500 ]; then
+    ok "Paymento API reachable (HTTP $status)"
   else
-    warn "NowPayments API status=$status"
-    post_event "external" "warn" "nowpayments.degraded" "NowPayments status=$status"
+    warn "Paymento API status=$status"
+    post_event "external" "warn" "paymento.degraded" "Paymento status=$status"
   fi
 fi
 
