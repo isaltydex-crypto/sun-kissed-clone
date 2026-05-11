@@ -3,6 +3,10 @@ services:
     image: inspircd/inspircd-docker:3
     container_name: pvl-ircd
     restart: unless-stopped
+    # Need root so entrypoint-tls.sh can chown the cert; the upstream
+    # /entrypoint.sh drops privileges to the inspircd user before exec'ing inspircd.
+    user: "0:0"
+    entrypoint: ["/usr/local/bin/entrypoint-tls.sh"]
     environment:
       INSP_NET_NAME: peptivalab
       INSP_NET_SUFFIX: .peptivalab.local
@@ -10,13 +14,19 @@ services:
       INSP_OPER_PASSWORD: ${IRC_OPER_PASSWORD}
       INSP_SERVER_PASSWORD: ${IRC_SERVER_PASSWORD}
       INSP_ENABLE_DNS: "false"
+      CHAT_DOMAIN: ${CHAT_DOMAIN}
     volumes:
       - ./inspircd/inspircd.conf:/inspircd/conf/inspircd.conf:ro
+      - ./inspircd/tls.conf:/inspircd/conf/tls.conf:ro
+      - ./inspircd/entrypoint-tls.sh:/usr/local/bin/entrypoint-tls.sh:ro
       - inspircd-data:/inspircd/data
-    # 6667 stays inside the docker network for the ws-gateway only.
-    # 6697 (TLS) is disabled until tls.conf is generated — see inspircd.conf.
+      # Caddy's cert store — declared as external below.
+      - caddy_data:/caddy-data:ro
     expose:
       - "6667"
+    ports:
+      # External TLS port for IRC clients (RevolutionIRC, HexChat, mIRC).
+      - "6697:6697"
 
   ws-gateway:
     build: ./ws-gateway
@@ -35,3 +45,10 @@ services:
 
 volumes:
   inspircd-data:
+  # The caddy_data volume is created and managed by the self-host compose
+  # project. We mount it read-only to read the TLS cert for $CHAT_DOMAIN.
+  # Set CADDY_DATA_VOLUME in irc-server/.env to the actual volume name —
+  # check with `docker volume ls | grep caddy_data` (e.g. self-host_caddy_data).
+  caddy_data:
+    external: true
+    name: ${CADDY_DATA_VOLUME:-self-host_caddy_data}
