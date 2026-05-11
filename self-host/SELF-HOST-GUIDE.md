@@ -398,25 +398,29 @@ setup wizard generates the exact values) so your mail doesn't go to spam.
 The `backup` service in `docker-compose.yml` runs this automatically — you
 do **not** need a host-side cron job. See §13 for the off-site copy.
 
-### 7.7 NOWPayments — crypto checkout 🟡
+### 7.7 Paymento — crypto checkout 🟡
 
-Skip if you don't accept BTC / ETH / USDC / USDT — checkout falls back to
-other payment methods.
+Skip if you don't accept crypto — checkout falls back to other payment methods.
 
-1. Sign up at <https://nowpayments.io>, complete basic KYB.
-2. **Store settings → Payout wallets** — add a receiving wallet for each
-   coin you want. Coins without a payout wallet are hidden at checkout.
-3. **Store settings → API keys** → *Create*. Copy the key.
-4. **Store settings → IPN settings**:
-   - **IPN callback URL:** `https://peptivalabgroup.com/api/public/crypto/webhook`
-   - Click *Generate* next to **IPN Secret key** and copy it.
+Paymento is a non-custodial crypto payment gateway: payments land directly
+in the wallet addresses you configure on the Paymento dashboard, no
+intermediary holds funds.
+
+1. Sign up at <https://app.paymento.io> and complete KYB.
+2. **Wallets** — add a receiving address for each coin/chain you want to
+   accept. Coins without an address are hidden on the hosted gateway.
+3. **API → API Keys** → *Create*. Copy the **Api-key** value.
+4. **API → Payment Settings** ("Set Payment Settings"):
+   - **IPN URL:** `https://peptivalabgroup.com/api/public/crypto/webhook`
+   - **Return URL:** `https://peptivalabgroup.com/checkout/bekraftelse`
+   - Copy the **HMAC Secret Key** (used to sign callbacks).
 
 | Variable                       | Value                                               |
 | ------------------------------ | --------------------------------------------------- |
-| `NOWPAYMENTS_API_KEY`          | from step 3                                         |
-| `NOWPAYMENTS_IPN_SECRET`       | from step 4                                         |
-| `NOWPAYMENTS_BASE_URL`         | `https://api.nowpayments.io/v1` (default)           |
-| `CRYPTO_INTERNAL_TOKEN`        | from §6                                             |
+| `PAYMENTO_API_KEY`             | from step 3                                         |
+| `PAYMENTO_HMAC_SECRET`         | from step 4 (HMAC secret)                           |
+| `PAYMENTO_BASE_URL`            | `https://api.paymento.io/v1` (default — leave blank)|
+| `PAYMENTO_SPEED`               | `0` = accept on mempool, `1` = wait for confirmations (default `1`) |
 | `VITE_PAYMENTS_API_BASE_URL`   | `https://peptivalabgroup.com`                       |
 | `CRYPTO_SUCCESS_URL`           | `https://peptivalabgroup.com/checkout/bekraftelse`  |
 | `CRYPTO_CANCEL_URL`            | `https://peptivalabgroup.com/checkout`              |
@@ -425,6 +429,10 @@ The frontend calls `${VITE_PAYMENTS_API_BASE_URL}/api/crypto/create-invoice`
 and `/api/crypto/order/:id`. Hosting payments routes on a different
 subdomain (e.g. `api.peptivalabgroup.com`)? Point `VITE_PAYMENTS_API_BASE_URL`
 there and add a matching DNS record + Caddy entry.
+
+After every IPN callback the server **also** calls Paymento's
+`/v1/payment/verify` endpoint before flipping the order to `paid`, so
+spoofed callbacks can't credit an order even if the HMAC ever leaks.
 
 ### 7.8 Analytics 🟢
 
