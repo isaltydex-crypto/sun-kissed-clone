@@ -6,7 +6,7 @@ services:
     # Need root so entrypoint-tls.sh can chown the cert; the upstream
     # /entrypoint.sh drops privileges to the inspircd user before exec'ing inspircd.
     user: "0:0"
-    entrypoint: ["/usr/local/bin/entrypoint-tls.sh"]
+    entrypoint: ["/bin/sh", "/usr/local/bin/entrypoint-tls.sh"]
     environment:
       INSP_NET_NAME: peptivalab
       INSP_NET_SUFFIX: .peptivalab.local
