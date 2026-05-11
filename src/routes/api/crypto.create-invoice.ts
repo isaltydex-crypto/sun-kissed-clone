@@ -2,13 +2,18 @@
  * POST /api/crypto/create-invoice
  *
  * Called by the storefront checkout. Persists the order as `pending`,
- * creates a NOWPayments hosted invoice, and returns its URL.
+ * creates a Paymento payment request, and returns the hosted gateway URL.
  *
  * Required env on the server:
- *   NOWPAYMENTS_API_KEY        — from nowpayments.io dashboard
- *   NOWPAYMENTS_BASE_URL       — defaults to https://api.nowpayments.io/v1
- *   CRYPTO_SUCCESS_URL         — optional override of body.successUrl
- *   CRYPTO_CANCEL_URL          — optional override of body.cancelUrl
+ *   PAYMENTO_API_KEY     — merchant API key from app.paymento.io
+ *   PAYMENTO_BASE_URL    — defaults to https://api.paymento.io/v1
+ *   PAYMENTO_SPEED       — 0 = High (mempool), 1 = Low (confirmed). Default 1.
+ *   CRYPTO_SUCCESS_URL   — optional override of body.successUrl (used as ReturnUrl)
+ *   CRYPTO_CANCEL_URL    — optional override of body.cancelUrl (informational only)
+ *
+ * The IPN URL is configured per-merchant in the Paymento dashboard
+ * ("Set Payment Settings"). Point it at:
+ *   https://<your-domain>/api/public/crypto/webhook
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
@@ -29,7 +34,9 @@ const BodySchema = z.object({
   orderId: z.string().min(3).max(80),
   amount: z.number().min(0),
   currency: z.string().length(3).default("SEK"),
-  payCurrency: z.enum(["btc", "eth", "usdc", "usdt"]),
+  // Kept for UI compatibility; Paymento lets the buyer pick the coin on the
+  // hosted gateway, so we only forward it as additionalData metadata.
+  payCurrency: z.enum(["btc", "eth", "usdc", "usdt"]).optional(),
   customer: z.object({
     email: z.string().email().max(255),
     firstName: z.string().min(1).max(80),
@@ -52,6 +59,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type",
 } as const;
 
+const PAYMENTO_GATEWAY_URL = "https://app.paymento.io/gateway";
+
 export const Route = createFileRoute("/api/crypto/create-invoice")({
   server: {
     handlers: {
@@ -67,7 +76,7 @@ export const Route = createFileRoute("/api/crypto/create-invoice")({
           );
         }
 
-        const apiKey = process.env.NOWPAYMENTS_API_KEY;
+        const apiKey = process.env.PAYMENTO_API_KEY;
         if (!apiKey) {
           return Response.json(
             { error: "Crypto payments are not configured on this server." },
@@ -75,8 +84,9 @@ export const Route = createFileRoute("/api/crypto/create-invoice")({
           );
         }
         const baseUrl =
-          process.env.NOWPAYMENTS_BASE_URL?.replace(/\/$/, "") ??
-          "https://api.nowpayments.io/v1";
+          process.env.PAYMENTO_BASE_URL?.replace(/\/$/, "") ??
+          "https://api.paymento.io/v1";
+        const speed = Number(process.env.PAYMENTO_SPEED ?? "1");
 
         // Recompute totals server-side from the line items (in öre).
         const subtotalOre = parsed.items.reduce(
@@ -101,8 +111,8 @@ export const Route = createFileRoute("/api/crypto/create-invoice")({
         const totalOre = Math.max(0, subtotalOre + shippingOre - discountOre);
         const totalSek = totalOre / 100;
 
-        // Persist the order (pending). We use order_number = parsed.orderId so
-        // the IPN webhook can find it via NOWPayments' order_id field.
+        // Persist the order (pending). order_number = parsed.orderId so the
+        // IPN webhook can find it via Paymento's OrderId field.
         const { data: orderRow, error: orderErr } = await supabaseAdmin
           .from("orders")
           .insert({
@@ -121,11 +131,12 @@ export const Route = createFileRoute("/api/crypto/create-invoice")({
             discount_ore: discountOre,
             total_ore: totalOre,
             currency: parsed.currency,
-            payment_method: `crypto:${parsed.payCurrency}`,
+            payment_method: parsed.payCurrency ? `crypto:${parsed.payCurrency}` : "crypto",
             payment_status: "pending",
             metadata: {
               discount: discountInfo,
-              pay_currency: parsed.payCurrency,
+              pay_currency: parsed.payCurrency ?? null,
+              provider: "paymento",
             } as never,
           })
           .select("id")
@@ -148,57 +159,77 @@ export const Route = createFileRoute("/api/crypto/create-invoice")({
         }));
         await supabaseAdmin.from("order_items").insert(itemRows);
 
-        // Call NOWPayments to create an invoice.
-        let invoice: { id: string | number; invoice_url: string };
+        // Create the payment request at Paymento.
+        // https://docs.paymento.io/api-documention/payment-request
+        let token: string;
         try {
-          const res = await fetch(`${baseUrl}/invoice`, {
+          const res = await fetch(`${baseUrl}/payment/request`, {
             method: "POST",
             headers: {
-              "x-api-key": apiKey,
+              "Api-key": apiKey,
               "Content-Type": "application/json",
+              Accept: "text/plain",
             },
             body: JSON.stringify({
-              price_amount: totalSek,
-              price_currency: parsed.currency.toLowerCase(),
-              pay_currency: parsed.payCurrency,
-              order_id: parsed.orderId,
-              order_description: `peptivaLab order ${parsed.orderId}`,
-              ipn_callback_url: `${new URL(parsed.successUrl).origin}/api/public/crypto/webhook`,
-              success_url: process.env.CRYPTO_SUCCESS_URL || parsed.successUrl,
-              cancel_url: process.env.CRYPTO_CANCEL_URL || parsed.cancelUrl,
+              fiatAmount: totalSek.toFixed(2),
+              fiatCurrency: parsed.currency.toUpperCase(),
+              ReturnUrl: process.env.CRYPTO_SUCCESS_URL || parsed.successUrl,
+              orderId: parsed.orderId,
+              Speed: Number.isFinite(speed) ? speed : 1,
+              EmailAddress: parsed.customer.email,
+              additionalData: [
+                { key: "order_number", value: parsed.orderId },
+                ...(parsed.payCurrency
+                  ? [{ key: "preferred_coin", value: parsed.payCurrency }]
+                  : []),
+              ],
             }),
           });
           if (!res.ok) {
             const text = await res.text().catch(() => "");
             return Response.json(
-              { error: `NOWPayments error (${res.status}): ${text}` },
+              { error: `Paymento error (${res.status}): ${text}` },
               { status: 502, headers: corsHeaders },
             );
           }
-          invoice = (await res.json()) as { id: string | number; invoice_url: string };
+          const json = (await res.json()) as {
+            success: boolean;
+            message?: string;
+            body?: string;
+          };
+          if (!json.success || !json.body) {
+            return Response.json(
+              { error: `Paymento rejected request: ${json.message || "unknown"}` },
+              { status: 502, headers: corsHeaders },
+            );
+          }
+          token = String(json.body).trim();
         } catch (err) {
           return Response.json(
-            { error: err instanceof Error ? err.message : "NOWPayments request failed" },
+            { error: err instanceof Error ? err.message : "Paymento request failed" },
             { status: 502, headers: corsHeaders },
           );
         }
 
-        // Store the invoice id on the order so we can correlate later.
+        const invoiceUrl = `${PAYMENTO_GATEWAY_URL}?token=${encodeURIComponent(token)}`;
+
+        // Store the Paymento token on the order so we can correlate later.
         await supabaseAdmin
           .from("orders")
           .update({
             metadata: {
               discount: discountInfo,
-              pay_currency: parsed.payCurrency,
-              nowpayments_invoice_id: String(invoice.id),
+              pay_currency: parsed.payCurrency ?? null,
+              provider: "paymento",
+              paymento_token: token,
             } as never,
           })
           .eq("id", (orderRow as { id: string }).id);
 
         return Response.json(
           {
-            invoiceUrl: invoice.invoice_url,
-            invoiceId: String(invoice.id),
+            invoiceUrl,
+            invoiceId: token,
             totals: {
               subtotal: subtotalOre / 100,
               shipping: shippingOre / 100,
