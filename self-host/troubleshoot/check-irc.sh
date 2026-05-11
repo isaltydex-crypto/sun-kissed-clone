@@ -31,7 +31,7 @@ fi
 # NB: do NOT `source .env` — values may contain $(...), <>, &, spaces, etc.
 # Pull only the keys this script inspects, parsed literally.
 _envget() { grep -E "^$1=" .env | tail -n1 | sed -E "s/^$1=//; s/^[\"']//; s/[\"']\$//"; }
-for _k in IRC_GATEWAY_URL IRC_SERVER IRC_BOT_NICK GATEWAY_TOKEN IRC_CHANNEL_PREFIX IRC_OPER_PASSWORD IRC_SERVER_PASSWORD CHAT_DOMAIN; do
+for _k in IRC_GATEWAY_URL IRC_SERVER IRC_BOT_NICK IRC_BOT_PASSWORD GATEWAY_TOKEN IRC_CHANNEL_PREFIX IRC_OPER_PASSWORD IRC_SERVER_PASSWORD CHAT_DOMAIN; do
   if [ -z "${!_k:-}" ]; then export "$_k=$(_envget "$_k")"; fi
 done
 
