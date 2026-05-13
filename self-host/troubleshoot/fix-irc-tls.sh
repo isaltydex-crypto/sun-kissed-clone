@@ -106,18 +106,23 @@ _set_env_var() {  # $1=key  $2=value  $3=file
   fi
 }
 
-_set_env_var CHAT_DOMAIN          "$CHAT_DOMAIN" "$IRC_ENV"
-_set_env_var CADDY_DATA_VOLUME    "$CADDY_VOL"   "$IRC_ENV"
+_set_env_var IRC_OPER_PASSWORD    "$IRC_OPER_PASSWORD"   "$IRC_ENV"
+_set_env_var IRC_SERVER_PASSWORD  "$IRC_SERVER_PASSWORD" "$IRC_ENV"
+_set_env_var GATEWAY_TOKEN        "$GATEWAY_TOKEN"       "$IRC_ENV"
+_set_env_var CHAT_DOMAIN          "$CHAT_DOMAIN"         "$IRC_ENV"
+_set_env_var CADDY_DATA_VOLUME    "$CADDY_VOL"           "$IRC_ENV"
 ok "irc-server/.env updated"
 
 # ---------------------------------------------------------------------------
-hdr "5. recreate ircd container"
+hdr "5. recreate IRC containers"
 cd "$IRC_DIR"
-echo "+ docker compose down ircd"
-docker compose down ircd || true
-echo "+ docker compose up -d --force-recreate ircd"
-if docker compose up -d --force-recreate ircd; then
-  ok "ircd recreated"
+echo "+ docker compose stop ws-gateway ircd"
+docker compose stop ws-gateway ircd || true
+echo "+ docker compose rm -f ws-gateway ircd"
+docker compose rm -f ws-gateway ircd || true
+echo "+ docker compose up -d --force-recreate ircd ws-gateway"
+if docker compose up -d --force-recreate ircd ws-gateway; then
+  ok "ircd and ws-gateway recreated"
 else
   fail "docker compose up failed — see log"
   exit 1
