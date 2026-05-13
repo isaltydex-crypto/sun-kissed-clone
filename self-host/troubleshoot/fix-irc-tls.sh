@@ -204,9 +204,13 @@ if command -v openssl >/dev/null 2>&1; then
 
   if echo "$SERVER_OUT" | grep -q ' 001 '; then
     ok "IRC PASS/NICK/USER login succeeded — server side is accepting clients"
+    info "If HexChat still says 'connection aborted', edit the HexChat server to use SSL/TLS:"
+    info "  Server entry: ${CHAT_DOMAIN}/+6697  (the + means SSL in HexChat)"
+    info "  Or check: Use SSL for all the servers on this network"
+    info "  Server password: exact IRC_SERVER_PASSWORD from self-host/.env"
   elif echo "$SERVER_OUT" | grep -qi 'ERROR :Closing link.*Bad password\| 464 \|password mismatch\|password incorrect'; then
     fail "IRC login failed: bad server password"
-    info "Type the exact IRC_SERVER_PASSWORD from self-host/.env into Revolution IRC's Server password field."
+    info "Type the exact IRC_SERVER_PASSWORD from self-host/.env into HexChat/Revolution IRC's Server password field."
   elif echo "$SERVER_OUT" | grep -q ' 432 '; then
     fail "IRC login failed: nickname rejected"
   elif echo "$SERVER_OUT" | grep -q ' 433 '; then
@@ -223,5 +227,6 @@ fi
 hdr "DONE"
 info "Connect from RevolutionIRC / HexChat / mIRC:"
 info "  server:   $CHAT_DOMAIN"
+info "  HexChat:  ${CHAT_DOMAIN}/+6697   (or enable 'Use SSL' for the network)"
 info "  port:     6697   (TLS / SSL: ON)"
 info "  password: value of IRC_SERVER_PASSWORD"
