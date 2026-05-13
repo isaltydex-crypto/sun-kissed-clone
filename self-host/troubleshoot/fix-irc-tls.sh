@@ -6,9 +6,10 @@
 #   1. Find Caddy's data volume (looks for *_caddy_data).
 #   2. Verify Caddy has a cert for $CHAT_DOMAIN (visit https://$CHAT_DOMAIN once
 #      if not — Caddy provisions lazily on the first request).
-#   3. Write CHAT_DOMAIN + CADDY_DATA_VOLUME into irc-server/.env.
-#   4. Recreate the ircd container so the new compose mounts / entrypoint apply.
-#   5. Tail the logs and confirm the GnuTLS module loaded and 6697 is bound.
+#   3. Sync IRC secrets from self-host/.env into irc-server/.env so the
+#      password Revolution IRC uses matches the daemon that owns port 6697.
+#   4. Recreate ircd + ws-gateway so the new compose mounts / env apply.
+#   5. Verify TLS and perform a full PASS/NICK/USER IRC login simulation.
 #
 # Run from anywhere on the VPS:
 #   bash self-host/troubleshoot/fix-irc-tls.sh
@@ -27,17 +28,37 @@ fi
 info "irc-server dir: $IRC_DIR"
 
 # ---------------------------------------------------------------------------
-hdr "1. read CHAT_DOMAIN from self-host/.env"
+hdr "1. read IRC settings from self-host/.env"
 if [ ! -f .env ]; then
   fail "self-host/.env not found"
   exit 1
 fi
-CHAT_DOMAIN="$(grep -E '^CHAT_DOMAIN=' .env | tail -n1 | sed -E 's/^CHAT_DOMAIN=//; s/^[\"'\'']//; s/[\"'\'']$//')"
+_envget() { grep -E "^$1=" .env | tail -n1 | sed -E "s/^$1=//; s/^[\"']//; s/[\"']\$//"; }
+CHAT_DOMAIN="$(_envget CHAT_DOMAIN)"
+IRC_OPER_PASSWORD="$(_envget IRC_OPER_PASSWORD)"
+IRC_SERVER_PASSWORD="$(_envget IRC_SERVER_PASSWORD)"
+GATEWAY_TOKEN="$(_envget GATEWAY_TOKEN)"
 if [ -z "${CHAT_DOMAIN:-}" ]; then
   fail "CHAT_DOMAIN not set in self-host/.env"
   exit 1
 fi
 ok "CHAT_DOMAIN=$CHAT_DOMAIN"
+
+_check_secret() {
+  local name="$1" value="$2"
+  if [ -z "$value" ]; then
+    fail "$name is empty in self-host/.env"
+    exit 1
+  fi
+  if [ "${value#CHANGEME}" != "$value" ] || [ "${value#change-me}" != "$value" ]; then
+    fail "$name is still a placeholder in self-host/.env"
+    exit 1
+  fi
+  ok "$name set (${#value} chars)"
+}
+_check_secret IRC_OPER_PASSWORD "$IRC_OPER_PASSWORD"
+_check_secret IRC_SERVER_PASSWORD "$IRC_SERVER_PASSWORD"
+_check_secret GATEWAY_TOKEN "$GATEWAY_TOKEN"
 
 # ---------------------------------------------------------------------------
 hdr "2. locate Caddy data volume"
