@@ -267,13 +267,23 @@ services:
     image: inspircd/inspircd-docker:3
     restart: unless-stopped
     logging: *default-logging
+    user: "0:0"
+    entrypoint: ["/bin/sh", "/usr/local/bin/entrypoint-tls.sh"]
     environment:
       INSP_NET_NAME: peptivalab
+      INSP_NET_SUFFIX: .peptivalab.local
       INSP_OPER_PASSWORD: ${IRC_OPER_PASSWORD}
       INSP_SERVER_PASSWORD: ${IRC_SERVER_PASSWORD}
+      INSP_ENABLE_DNS: "false"
+      CHAT_DOMAIN: ${CHAT_DOMAIN}
     volumes:
       - ircd_data:/inspircd/data
       - ../irc-server/inspircd/inspircd.conf:/inspircd/conf/inspircd.conf:ro
+      - ../irc-server/inspircd/tls.conf:/inspircd/conf/tls.conf:ro
+      - ../irc-server/inspircd/entrypoint-tls.sh:/usr/local/bin/entrypoint-tls.sh:ro
+      - caddy_data:/caddy-data:ro
+    expose:
+      - "6667"
     ports:
       - "6697:6697"   # public IRC over TLS for HexChat etc.
     networks: [pvl]
@@ -286,8 +296,9 @@ services:
     environment:
       IRC_HOST: ircd
       IRC_PORT: 6667
+      IRC_SERVER_PASSWORD: ${IRC_SERVER_PASSWORD}
       GATEWAY_TOKEN: ${GATEWAY_TOKEN}
-      PORT: 8080
+      LISTEN_PORT: 8080
     networks: [pvl]
 
   # --------------------------------------------------------------------------
