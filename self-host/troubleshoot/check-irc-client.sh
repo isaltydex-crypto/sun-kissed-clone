@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # ============================================================================
-# check-irc-client.sh — simulate a Revolution IRC client and report the
-# EXACT error returned by the server.
+# check-irc-client.sh — simulate a HexChat/Revolution IRC client and report
+# the EXACT error returned by the server.
 #
-# This connects to the IRC server the same way Revolution IRC does:
+# This connects to the IRC server the same way HexChat/Revolution IRC should:
 #   - TLS to chat.<domain>:6697
 #   - sends PASS <IRC_SERVER_PASSWORD>
 #   - sends NICK / USER
@@ -93,16 +93,20 @@ echo "--- end raw server response ---"
 # ---------------------------------------------------------------------------
 hdr "6. interpretation"
 if echo "$SERVER_OUT" | grep -q ' 001 '; then
-  ok "Server sent 001 — login SUCCESSFUL. Revolution IRC should connect fine."
+  ok "Server sent 001 — login SUCCESSFUL. The server side is accepting IRC clients."
   WELCOME="$(echo "$SERVER_OUT" | grep ' 001 ' | head -1)"
   info "welcome line: $WELCOME"
+  info "If HexChat still says 'connection aborted', edit the HexChat server to use SSL/TLS:"
+  info "  Server entry: ${HOST}/+${PORT}  (the + means SSL in HexChat)"
+  info "  Or check: Use SSL for all the servers on this network"
+  info "  Server password: exact IRC_SERVER_PASSWORD from self-host/.env"
 elif echo "$SERVER_OUT" | grep -qi 'ERROR :Closing link.*Bad password\| 464 \|password mismatch\|password incorrect'; then
-  fail "REVOLUTION IRC ERROR CAUSE: bad server password (PASS rejected)"
-  info "fix: make sure the password in Revolution IRC's 'Server password' field"
+  fail "CLIENT ERROR CAUSE: bad server password (PASS rejected)"
+  info "fix: make sure the password in HexChat/Revolution IRC's 'Server password' field"
   info "     exactly matches IRC_SERVER_PASSWORD in self-host/.env (no quotes, no spaces)"
   echo "$SERVER_OUT" | grep -iE 'ERROR|464|password' | head -5
 elif echo "$SERVER_OUT" | grep -q ' 432 '; then
-  fail "REVOLUTION IRC ERROR CAUSE: erroneous nickname ($NICK rejected)"
+  fail "CLIENT ERROR CAUSE: erroneous nickname ($NICK rejected)"
   echo "$SERVER_OUT" | grep ' 432 ' | head -1
 elif echo "$SERVER_OUT" | grep -q ' 433 '; then
   warn "Nickname already in use ($NICK). Pick a different one in Revolution IRC."
