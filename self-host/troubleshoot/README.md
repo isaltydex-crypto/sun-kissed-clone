@@ -95,12 +95,13 @@ rm self-host/troubleshoot/logs/*.log
 - Reads `CHAT_DOMAIN` from `self-host/.env`
 - Finds the Caddy data volume (`*_caddy_data`)
 - Confirms Caddy has issued a Let's Encrypt cert for `CHAT_DOMAIN` (fails fast with instructions if not)
-- Writes `CHAT_DOMAIN` and `CADDY_DATA_VOLUME` into `irc-server/.env`
-- Recreates the `ircd` container so it picks up the shared cert volume and the TLS entrypoint
-- Tails ircd logs to confirm the GnuTLS module loaded and the cert was installed
-- Runs an external `openssl s_client` handshake against `${CHAT_DOMAIN}:6697`
+- Syncs `IRC_OPER_PASSWORD`, `IRC_SERVER_PASSWORD`, `GATEWAY_TOKEN`, `CHAT_DOMAIN`, and `CADDY_DATA_VOLUME` into `irc-server/.env`
+- Recreates the `ircd` and `ws-gateway` containers so they pick up the shared cert volume, TLS entrypoint, and current secrets
+- Confirms the TLS cert/key are readable inside `ircd` and that the TLS bind config is present
+- Runs an external `openssl s_client` certificate-validating handshake against `${CHAT_DOMAIN}:6697`
+- Sends a full `PASS` / `NICK` / `USER` IRC login sequence and reports the exact server-side failure if welcome `001` is not returned
 
-**Typical fixes it points to:** Caddy hasn't issued the cert yet (visit `https://chat.<domain>` once), firewall is blocking 6697 (`ufw allow 6697/tcp`), or the irc-server compose file hasn't been pulled yet.
+**Typical fixes it points to:** Caddy hasn't issued the cert yet (visit `https://chat.<domain>` once), firewall is blocking 6697 (`ufw allow 6697/tcp`), Revolution IRC has the wrong server password, or the IRC containers were still running with stale `.env` values.
 
 ---
 

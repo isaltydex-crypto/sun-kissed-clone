@@ -6,9 +6,10 @@
 #   1. Find Caddy's data volume (looks for *_caddy_data).
 #   2. Verify Caddy has a cert for $CHAT_DOMAIN (visit https://$CHAT_DOMAIN once
 #      if not — Caddy provisions lazily on the first request).
-#   3. Write CHAT_DOMAIN + CADDY_DATA_VOLUME into irc-server/.env.
-#   4. Recreate the ircd container so the new compose mounts / entrypoint apply.
-#   5. Tail the logs and confirm the GnuTLS module loaded and 6697 is bound.
+#   3. Sync IRC secrets from self-host/.env into irc-server/.env so the
+#      password Revolution IRC uses matches the daemon that owns port 6697.
+#   4. Recreate ircd + ws-gateway so the new compose mounts / env apply.
+#   5. Verify TLS and perform a full PASS/NICK/USER IRC login simulation.
 #
 # Run from anywhere on the VPS:
 #   bash self-host/troubleshoot/fix-irc-tls.sh
@@ -27,17 +28,37 @@ fi
 info "irc-server dir: $IRC_DIR"
 
 # ---------------------------------------------------------------------------
-hdr "1. read CHAT_DOMAIN from self-host/.env"
+hdr "1. read IRC settings from self-host/.env"
 if [ ! -f .env ]; then
   fail "self-host/.env not found"
   exit 1
 fi
-CHAT_DOMAIN="$(grep -E '^CHAT_DOMAIN=' .env | tail -n1 | sed -E 's/^CHAT_DOMAIN=//; s/^[\"'\'']//; s/[\"'\'']$//')"
+_envget() { grep -E "^$1=" .env | tail -n1 | sed -E "s/^$1=//; s/^[\"']//; s/[\"']\$//"; }
+CHAT_DOMAIN="$(_envget CHAT_DOMAIN)"
+IRC_OPER_PASSWORD="$(_envget IRC_OPER_PASSWORD)"
+IRC_SERVER_PASSWORD="$(_envget IRC_SERVER_PASSWORD)"
+GATEWAY_TOKEN="$(_envget GATEWAY_TOKEN)"
 if [ -z "${CHAT_DOMAIN:-}" ]; then
   fail "CHAT_DOMAIN not set in self-host/.env"
   exit 1
 fi
 ok "CHAT_DOMAIN=$CHAT_DOMAIN"
+
+_check_secret() {
+  local name="$1" value="$2"
+  if [ -z "$value" ]; then
+    fail "$name is empty in self-host/.env"
+    exit 1
+  fi
+  if [ "${value#CHANGEME}" != "$value" ] || [ "${value#change-me}" != "$value" ]; then
+    fail "$name is still a placeholder in self-host/.env"
+    exit 1
+  fi
+  ok "$name set (${#value} chars)"
+}
+_check_secret IRC_OPER_PASSWORD "$IRC_OPER_PASSWORD"
+_check_secret IRC_SERVER_PASSWORD "$IRC_SERVER_PASSWORD"
+_check_secret GATEWAY_TOKEN "$GATEWAY_TOKEN"
 
 # ---------------------------------------------------------------------------
 hdr "2. locate Caddy data volume"
@@ -85,18 +106,23 @@ _set_env_var() {  # $1=key  $2=value  $3=file
   fi
 }
 
-_set_env_var CHAT_DOMAIN          "$CHAT_DOMAIN" "$IRC_ENV"
-_set_env_var CADDY_DATA_VOLUME    "$CADDY_VOL"   "$IRC_ENV"
+_set_env_var IRC_OPER_PASSWORD    "$IRC_OPER_PASSWORD"   "$IRC_ENV"
+_set_env_var IRC_SERVER_PASSWORD  "$IRC_SERVER_PASSWORD" "$IRC_ENV"
+_set_env_var GATEWAY_TOKEN        "$GATEWAY_TOKEN"       "$IRC_ENV"
+_set_env_var CHAT_DOMAIN          "$CHAT_DOMAIN"         "$IRC_ENV"
+_set_env_var CADDY_DATA_VOLUME    "$CADDY_VOL"           "$IRC_ENV"
 ok "irc-server/.env updated"
 
 # ---------------------------------------------------------------------------
-hdr "5. recreate ircd container"
+hdr "5. recreate IRC containers"
 cd "$IRC_DIR"
-echo "+ docker compose down ircd"
-docker compose down ircd || true
-echo "+ docker compose up -d --force-recreate ircd"
-if docker compose up -d --force-recreate ircd; then
-  ok "ircd recreated"
+echo "+ docker compose stop ws-gateway ircd"
+docker compose stop ws-gateway ircd || true
+echo "+ docker compose rm -f ws-gateway ircd"
+docker compose rm -f ws-gateway ircd || true
+echo "+ docker compose up -d --force-recreate ircd ws-gateway"
+if docker compose up -d --force-recreate ircd ws-gateway; then
+  ok "ircd and ws-gateway recreated"
 else
   fail "docker compose up failed — see log"
   exit 1
@@ -120,16 +146,24 @@ else
   warn "entrypoint-tls did not report 'cert installed' — check log"
 fi
 
-if docker compose logs --tail=200 ircd 2>&1 | grep -qiE 'm_ssl_gnutls\.so|Loading module:.*ssl_gnutls'; then
-  ok "GnuTLS module loaded"
+IRCD_CID="$(docker compose ps -q ircd 2>/dev/null || true)"
+if [ -n "$IRCD_CID" ] && docker exec "$IRCD_CID" test -r /inspircd/conf/tls/cert.pem \
+   && docker exec "$IRCD_CID" test -r /inspircd/conf/tls/key.pem; then
+  ok "TLS cert/key are readable inside ircd"
 else
-  fail "GnuTLS module did not load — see log"
+  fail "TLS cert/key are not readable inside ircd — see log"
 fi
 
-if docker compose logs --tail=200 ircd 2>&1 | grep -qE 'Bound to.*:6697|listening on.*6697'; then
-  ok "ircd is bound to :6697"
+if [ -n "$IRCD_CID" ] && docker exec "$IRCD_CID" sh -c 'grep -R "m_ssl_gnutls\|ssl=\"gnutls\"" /inspircd/conf >/dev/null'; then
+  ok "InspIRCd config includes GnuTLS + 6697 TLS bind"
 else
-  warn "no explicit 'bound to 6697' line — inspircd doesn't always log it"
+  fail "InspIRCd config does not include the 6697 TLS bind — see log"
+fi
+
+if ss -ltn 2>/dev/null | grep -q ':6697 '; then
+  ok "host port 6697 is listening"
+else
+  warn "host port 6697 not visible via ss; external TLS probe below is authoritative"
 fi
 
 # ---------------------------------------------------------------------------
@@ -137,10 +171,16 @@ hdr "7. external TLS handshake"
 # openssl s_client is the cleanest probe for an IRC TLS port.
 if command -v openssl >/dev/null 2>&1; then
   echo "+ openssl s_client -connect ${CHAT_DOMAIN}:6697 -servername ${CHAT_DOMAIN}"
-  if echo "QUIT" | timeout 8 openssl s_client \
+  TLS_OUT="$(echo "QUIT" | timeout 8 openssl s_client \
        -connect "${CHAT_DOMAIN}:6697" \
-       -servername "${CHAT_DOMAIN}" 2>&1 | grep -qE 'Verify return code: 0|CONNECTED'; then
-    ok "TLS handshake on :6697 succeeded"
+       -servername "${CHAT_DOMAIN}" \
+       -verify_return_error 2>&1 || true)"
+  echo "$TLS_OUT"
+  if echo "$TLS_OUT" | grep -q 'Verify return code: 0 (ok)'; then
+    ok "TLS handshake on :6697 succeeded with a valid cert"
+  elif echo "$TLS_OUT" | grep -q 'CONNECTED'; then
+    fail "TLS connected but certificate validation failed — Revolution IRC may reject it"
+    echo "$TLS_OUT" | grep -E 'verify error|Verify return code|subject=|issuer=' || true
   else
     fail "TLS handshake on :6697 failed — see log"
     info "If this is the only failure, check that port 6697 is open in your"
@@ -148,6 +188,36 @@ if command -v openssl >/dev/null 2>&1; then
   fi
 else
   warn "openssl not installed — skipping external TLS probe"
+fi
+
+# ---------------------------------------------------------------------------
+hdr "8. full IRC login simulation"
+if command -v openssl >/dev/null 2>&1; then
+  NICK="revfix$$"
+  IRC_CMDS="$(printf 'PASS %s\r\nNICK %s\r\nUSER %s 0 * :revolution-fix\r\nQUIT :bye\r\n' \
+    "$IRC_SERVER_PASSWORD" "$NICK" "$NICK")"
+  echo "--- raw server response ---"
+  SERVER_OUT="$(printf '%s' "$IRC_CMDS" | timeout 12 openssl s_client \
+    -quiet -connect "${CHAT_DOMAIN}:6697" -servername "${CHAT_DOMAIN}" 2>&1 || true)"
+  echo "$SERVER_OUT"
+  echo "--- end raw server response ---"
+
+  if echo "$SERVER_OUT" | grep -q ' 001 '; then
+    ok "IRC PASS/NICK/USER login succeeded — server side is accepting clients"
+  elif echo "$SERVER_OUT" | grep -qi 'ERROR :Closing link.*Bad password\| 464 \|password mismatch\|password incorrect'; then
+    fail "IRC login failed: bad server password"
+    info "Type the exact IRC_SERVER_PASSWORD from self-host/.env into Revolution IRC's Server password field."
+  elif echo "$SERVER_OUT" | grep -q ' 432 '; then
+    fail "IRC login failed: nickname rejected"
+  elif echo "$SERVER_OUT" | grep -q ' 433 '; then
+    warn "IRC login reached the server, but nickname is already in use"
+  elif echo "$SERVER_OUT" | grep -qi 'ERROR'; then
+    fail "IRC login failed with server ERROR — see raw response in log"
+  else
+    fail "TLS works, but IRC login did not reach welcome 001 — see raw response in log"
+  fi
+else
+  warn "openssl not installed — skipping IRC login simulation"
 fi
 
 hdr "DONE"
