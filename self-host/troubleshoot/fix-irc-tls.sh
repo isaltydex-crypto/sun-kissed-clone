@@ -146,16 +146,24 @@ else
   warn "entrypoint-tls did not report 'cert installed' — check log"
 fi
 
-if docker compose logs --tail=200 ircd 2>&1 | grep -qiE 'm_ssl_gnutls\.so|Loading module:.*ssl_gnutls'; then
-  ok "GnuTLS module loaded"
+IRCD_CID="$(docker compose ps -q ircd 2>/dev/null || true)"
+if [ -n "$IRCD_CID" ] && docker exec "$IRCD_CID" test -r /inspircd/conf/tls/cert.pem \
+   && docker exec "$IRCD_CID" test -r /inspircd/conf/tls/key.pem; then
+  ok "TLS cert/key are readable inside ircd"
 else
-  fail "GnuTLS module did not load — see log"
+  fail "TLS cert/key are not readable inside ircd — see log"
 fi
 
-if docker compose logs --tail=200 ircd 2>&1 | grep -qE 'Bound to.*:6697|listening on.*6697'; then
-  ok "ircd is bound to :6697"
+if [ -n "$IRCD_CID" ] && docker exec "$IRCD_CID" sh -c 'grep -R "m_ssl_gnutls\|ssl=\"gnutls\"" /inspircd/conf >/dev/null'; then
+  ok "InspIRCd config includes GnuTLS + 6697 TLS bind"
 else
-  warn "no explicit 'bound to 6697' line — inspircd doesn't always log it"
+  fail "InspIRCd config does not include the 6697 TLS bind — see log"
+fi
+
+if ss -ltn 2>/dev/null | grep -q ':6697 '; then
+  ok "host port 6697 is listening"
+else
+  warn "host port 6697 not visible via ss; external TLS probe below is authoritative"
 fi
 
 # ---------------------------------------------------------------------------
@@ -163,10 +171,16 @@ hdr "7. external TLS handshake"
 # openssl s_client is the cleanest probe for an IRC TLS port.
 if command -v openssl >/dev/null 2>&1; then
   echo "+ openssl s_client -connect ${CHAT_DOMAIN}:6697 -servername ${CHAT_DOMAIN}"
-  if echo "QUIT" | timeout 8 openssl s_client \
+  TLS_OUT="$(echo "QUIT" | timeout 8 openssl s_client \
        -connect "${CHAT_DOMAIN}:6697" \
-       -servername "${CHAT_DOMAIN}" 2>&1 | grep -qE 'Verify return code: 0|CONNECTED'; then
-    ok "TLS handshake on :6697 succeeded"
+       -servername "${CHAT_DOMAIN}" \
+       -verify_return_error 2>&1 || true)"
+  echo "$TLS_OUT"
+  if echo "$TLS_OUT" | grep -q 'Verify return code: 0 (ok)'; then
+    ok "TLS handshake on :6697 succeeded with a valid cert"
+  elif echo "$TLS_OUT" | grep -q 'CONNECTED'; then
+    fail "TLS connected but certificate validation failed — Revolution IRC may reject it"
+    echo "$TLS_OUT" | grep -E 'verify error|Verify return code|subject=|issuer=' || true
   else
     fail "TLS handshake on :6697 failed — see log"
     info "If this is the only failure, check that port 6697 is open in your"
@@ -174,6 +188,36 @@ if command -v openssl >/dev/null 2>&1; then
   fi
 else
   warn "openssl not installed — skipping external TLS probe"
+fi
+
+# ---------------------------------------------------------------------------
+hdr "8. full IRC login simulation"
+if command -v openssl >/dev/null 2>&1; then
+  NICK="revfix$$"
+  IRC_CMDS="$(printf 'PASS %s\r\nNICK %s\r\nUSER %s 0 * :revolution-fix\r\nQUIT :bye\r\n' \
+    "$IRC_SERVER_PASSWORD" "$NICK" "$NICK")"
+  echo "--- raw server response ---"
+  SERVER_OUT="$(printf '%s' "$IRC_CMDS" | timeout 12 openssl s_client \
+    -quiet -connect "${CHAT_DOMAIN}:6697" -servername "${CHAT_DOMAIN}" 2>&1 || true)"
+  echo "$SERVER_OUT"
+  echo "--- end raw server response ---"
+
+  if echo "$SERVER_OUT" | grep -q ' 001 '; then
+    ok "IRC PASS/NICK/USER login succeeded — server side is accepting clients"
+  elif echo "$SERVER_OUT" | grep -qi 'ERROR :Closing link.*Bad password\| 464 \|password mismatch\|password incorrect'; then
+    fail "IRC login failed: bad server password"
+    info "Type the exact IRC_SERVER_PASSWORD from self-host/.env into Revolution IRC's Server password field."
+  elif echo "$SERVER_OUT" | grep -q ' 432 '; then
+    fail "IRC login failed: nickname rejected"
+  elif echo "$SERVER_OUT" | grep -q ' 433 '; then
+    warn "IRC login reached the server, but nickname is already in use"
+  elif echo "$SERVER_OUT" | grep -qi 'ERROR'; then
+    fail "IRC login failed with server ERROR — see raw response in log"
+  else
+    fail "TLS works, but IRC login did not reach welcome 001 — see raw response in log"
+  fi
+else
+  warn "openssl not installed — skipping IRC login simulation"
 fi
 
 hdr "DONE"
