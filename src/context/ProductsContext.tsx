@@ -55,16 +55,19 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       hydrated,
       refresh,
       addProduct: async (p) => {
-        await createProduct({ data: toInput(p) });
-        await refresh();
+        const res = await createProduct({ data: toInput(p) });
+        setProducts((current) => [...current.filter((item) => item.slug !== res.product.slug), res.product]);
+        void refresh();
       },
       updateProduct: async (originalSlug, patch) => {
-        await updateProductFn({ data: { ...toInput(patch), originalSlug } });
-        await refresh();
+        const res = await updateProductFn({ data: { ...toInput(patch), originalSlug } });
+        setProducts((current) => current.map((item) => (item.slug === originalSlug ? res.product : item)));
+        void refresh();
       },
       removeProduct: async (slug) => {
         await deleteProductFn({ data: { slug } });
-        await refresh();
+        setProducts((current) => current.filter((item) => item.slug !== slug));
+        void refresh();
       },
     }),
     [products, hydrated, refresh],

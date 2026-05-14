@@ -105,6 +105,19 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
+### `fix-products-db.sh`
+**Use when:** `/admin/produkter` won't add or update products, or saving appears to do nothing.
+
+**What it does:**
+- Confirms the database is reachable
+- Creates or repairs the `products` table, columns, unique slug constraint, updated-at trigger, public read policy, and service-role privileges
+- Runs a rollback-only product insert smoke test
+- Restarts the REST API and recreates the app container so schema/env changes are picked up
+
+**Typical fixes it points to:** the self-hosted database volume was created before the products table migration existed, or the app container is still running an older build.
+
+---
+
 ### `check-pc-access.ps1` (Windows / PowerShell — **standalone**, runs on the affected PC)
 **Use when:** the site loads from your phone / other devices but **not from a specific PC**.
 

@@ -54,17 +54,21 @@ export const createProduct = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => ProductInput.parse(input))
   .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin.from("products").insert({
-      slug: data.slug,
-      name: data.name,
-      tagline: data.tagline,
-      price_ore: data.price * 100,
-      old_price_ore: data.oldPrice != null ? data.oldPrice * 100 : null,
-      image: data.image,
-      badge: data.badge || null,
-    } as never);
+    const { data: created, error } = await supabaseAdmin
+      .from("products")
+      .insert({
+        slug: data.slug,
+        name: data.name,
+        tagline: data.tagline,
+        price_ore: data.price * 100,
+        old_price_ore: data.oldPrice != null ? data.oldPrice * 100 : null,
+        image: data.image,
+        badge: data.badge || null,
+      } as never)
+      .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order")
+      .single();
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, product: rowToProduct(created as Row) };
   });
 
 const UpdateInput = ProductInput.extend({ originalSlug: z.string().min(1).max(120) });
@@ -73,7 +77,7 @@ export const updateProductFn = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => UpdateInput.parse(input))
   .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin
+    const { data: updated, error } = await supabaseAdmin
       .from("products")
       .update({
         slug: data.slug,
@@ -84,9 +88,12 @@ export const updateProductFn = createServerFn({ method: "POST" })
         image: data.image,
         badge: data.badge || null,
       } as never)
-      .eq("slug", data.originalSlug);
+      .eq("slug", data.originalSlug)
+      .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order")
+      .maybeSingle();
     if (error) throw new Error(error.message);
-    return { ok: true };
+    if (!updated) throw new Error("Produkten kunde inte hittas. Ladda om sidan och försök igen.");
+    return { ok: true, product: rowToProduct(updated as Row) };
   });
 
 export const deleteProductFn = createServerFn({ method: "POST" })
