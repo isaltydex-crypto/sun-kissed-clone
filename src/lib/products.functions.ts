@@ -32,6 +32,23 @@ type Row = {
   sort_order: number;
 };
 
+function normalizeProductImageUrl(image: string): string {
+  const siteBase = (process.env.PUBLIC_SITE_URL || "").replace(/\/+$/, "");
+  if (!siteBase || !image) return image;
+  try {
+    const url = new URL(image);
+    if (
+      url.pathname.startsWith("/storage/v1/object/public/product-images/") ||
+      url.pathname.startsWith("/storage/v1/render/image/public/product-images/")
+    ) {
+      return `${siteBase}${url.pathname}${url.search}`;
+    }
+  } catch {
+    // Relative and seed images are already served by the app.
+  }
+  return image;
+}
+
 function rowToProduct(r: Row): Product {
   return {
     slug: r.slug,
@@ -39,7 +56,7 @@ function rowToProduct(r: Row): Product {
     tagline: r.tagline,
     price: Math.round(r.price_ore / 100),
     oldPrice: r.old_price_ore != null ? Math.round(r.old_price_ore / 100) : undefined,
-    image: r.image,
+    image: normalizeProductImageUrl(r.image),
     badge: r.badge ?? undefined,
   };
 }
