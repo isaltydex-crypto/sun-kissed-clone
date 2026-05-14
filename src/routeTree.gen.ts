@@ -17,7 +17,6 @@ import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as KopvillkorRouteImport } from './routes/kopvillkor'
 import { Route as KontaktRouteImport } from './routes/kontakt'
 import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
-import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -81,11 +80,6 @@ const KontaktRoute = KontaktRouteImport.update({
 const IntegritetspolicyRoute = IntegritetspolicyRouteImport.update({
   id: '/integritetspolicy',
   path: '/integritetspolicy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FaqRoute = FaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutRoute = CheckoutRouteImport.update({
@@ -213,7 +207,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/checkout': typeof CheckoutRouteWithChildren
-  '/faq': typeof FaqRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/kontakt': typeof KontaktRoute
   '/kopvillkor': typeof KopvillkorRoute
@@ -248,7 +241,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/checkout': typeof CheckoutRouteWithChildren
-  '/faq': typeof FaqRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/kontakt': typeof KontaktRoute
   '/kopvillkor': typeof KopvillkorRoute
@@ -284,7 +276,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/checkout': typeof CheckoutRouteWithChildren
-  '/faq': typeof FaqRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/kontakt': typeof KontaktRoute
   '/kopvillkor': typeof KopvillkorRoute
@@ -321,7 +312,6 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/checkout'
-    | '/faq'
     | '/integritetspolicy'
     | '/kontakt'
     | '/kopvillkor'
@@ -356,7 +346,6 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/checkout'
-    | '/faq'
     | '/integritetspolicy'
     | '/kontakt'
     | '/kopvillkor'
@@ -391,7 +380,6 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/checkout'
-    | '/faq'
     | '/integritetspolicy'
     | '/kontakt'
     | '/kopvillkor'
@@ -427,7 +415,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   CheckoutRoute: typeof CheckoutRouteWithChildren
-  FaqRoute: typeof FaqRoute
   IntegritetspolicyRoute: typeof IntegritetspolicyRoute
   KontaktRoute: typeof KontaktRoute
   KopvillkorRoute: typeof KopvillkorRoute
@@ -505,13 +492,6 @@ declare module '@tanstack/react-router' {
       path: '/integritetspolicy'
       fullPath: '/integritetspolicy'
       preLoaderRoute: typeof IntegritetspolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/faq': {
-      id: '/faq'
-      path: '/faq'
-      fullPath: '/faq'
-      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -727,7 +707,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   CheckoutRoute: CheckoutRouteWithChildren,
-  FaqRoute: FaqRoute,
   IntegritetspolicyRoute: IntegritetspolicyRoute,
   KontaktRoute: KontaktRoute,
   KopvillkorRoute: KopvillkorRoute,

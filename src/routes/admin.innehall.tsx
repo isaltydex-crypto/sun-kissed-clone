@@ -95,25 +95,6 @@ function AdminContentPage() {
           <TextField label="Knapp 1" value={content.home.primaryCta} onChange={(v) => updateField("home", "primaryCta", v)} />
           <TextField label="Knapp 2" value={content.home.secondaryCta} onChange={(v) => updateField("home", "secondaryCta", v)} />
           <TextField label="Betyg-text" value={content.home.rating} onChange={(v) => updateField("home", "rating", v)} />
-          <TextField label="Produkter — eyebrow" value={content.home.productsEyebrow} onChange={(v) => updateField("home", "productsEyebrow", v)} />
-          <TextField label="Produkter — rubrik" value={content.home.productsTitle} onChange={(v) => updateField("home", "productsTitle", v)} />
-          <TextArea label="Produkter — text" value={content.home.productsSubtitle} onChange={(v) => updateField("home", "productsSubtitle", v)} />
-          <TextField label="Ritual — eyebrow" value={content.home.ritualEyebrow} onChange={(v) => updateField("home", "ritualEyebrow", v)} />
-          <TextField label="Ritual — rubrik" value={content.home.ritualTitle} onChange={(v) => updateField("home", "ritualTitle", v)} />
-          <RepeaterField
-            label="Ritual-steg"
-            items={content.home.ritualSteps}
-            empty={{ n: "", t: "", d: "" }}
-            onChange={(v) => updateField("home", "ritualSteps", v)}
-            fields={[
-              { key: "n", label: "Nr" },
-              { key: "t", label: "Titel" },
-              { key: "d", label: "Beskrivning", textarea: true },
-            ]}
-          />
-          <TextField label="CTA — rubrik" value={content.home.ctaTitle} onChange={(v) => updateField("home", "ctaTitle", v)} />
-          <TextArea label="CTA — text" value={content.home.ctaSubtitle} onChange={(v) => updateField("home", "ctaSubtitle", v)} />
-          <TextField label="CTA — knapp" value={content.home.ctaButton} onChange={(v) => updateField("home", "ctaButton", v)} />
         </Section>
 
         <Section title="Om oss" status={status.about} onSave={() => saveSection("about")}>
@@ -143,21 +124,6 @@ function AdminContentPage() {
           <TextField label="Öppettider" value={content.contact.hours} onChange={(v) => updateField("contact", "hours", v)} />
         </Section>
 
-        <Section title="FAQ" status={status.faq} onSave={() => saveSection("faq")}>
-          <TextField label="Hero-rubrik" value={content.faq.heroTitle} onChange={(v) => updateField("faq", "heroTitle", v)} />
-          <TextArea label="Hero-text" value={content.faq.heroSubtitle} onChange={(v) => updateField("faq", "heroSubtitle", v)} />
-          <RepeaterField
-            label="Frågor & svar"
-            items={content.faq.items}
-            empty={{ q: "", a: "" }}
-            onChange={(v) => updateField("faq", "items", v)}
-            fields={[
-              { key: "q", label: "Fråga" },
-              { key: "a", label: "Svar", textarea: true },
-            ]}
-          />
-        </Section>
-
         <Section title="Produktsida" status={status.products} onSave={() => saveSection("products")}>
           <TextField label="Hero-rubrik" value={content.products.heroTitle} onChange={(v) => updateField("products", "heroTitle", v)} />
           <TextArea label="Hero-text" value={content.products.heroSubtitle} onChange={(v) => updateField("products", "heroSubtitle", v)} />
@@ -167,8 +133,6 @@ function AdminContentPage() {
           <TextArea label="Beskrivning" value={content.footer.blurb} onChange={(v) => updateField("footer", "blurb", v)} />
           <TextField label="Butik-rubrik" value={content.footer.shopHeading} onChange={(v) => updateField("footer", "shopHeading", v)} />
           <TextField label="Hjälp-rubrik" value={content.footer.helpHeading} onChange={(v) => updateField("footer", "helpHeading", v)} />
-          <TextField label="Nyhetsbrev — rubrik" value={content.footer.newsletterHeading} onChange={(v) => updateField("footer", "newsletterHeading", v)} />
-          <TextField label="Nyhetsbrev — text" value={content.footer.newsletterBlurb} onChange={(v) => updateField("footer", "newsletterBlurb", v)} />
           <TextField label="Copyright (använd {year})" value={content.footer.copyright} onChange={(v) => updateField("footer", "copyright", v)} />
         </Section>
 

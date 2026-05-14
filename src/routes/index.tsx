@@ -3,9 +3,7 @@ import { pageHead } from "@/lib/seo";
 import { Star, Truck, Shield, Leaf, FlaskConical } from "lucide-react";
 import logo from "@/assets/logo.png";
 import hero from "@/assets/hero-products.jpg";
-import { useProducts } from "@/context/ProductsContext";
 import { useSiteContent } from "@/context/SiteContentContext";
-import { ProductCard } from "@/components/ProductCard";
 
 export const Route = createFileRoute("/")({
   head: () =>
@@ -19,7 +17,6 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const { products } = useProducts();
   const c = useSiteContent();
   return (
     <>
@@ -98,49 +95,6 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Products */}
-      <section className="bg-background py-20 md:py-28">
-        <div className="mx-auto max-w-3xl px-4 text-center md:px-8">
-          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sun-deep">{c.home.productsEyebrow}</span>
-          <h2 className="mt-3 text-3xl font-bold text-ocean-deep md:text-4xl">{c.home.productsTitle}</h2>
-          <p className="mt-4 text-muted-foreground">{c.home.productsSubtitle}</p>
-        </div>
-        <div className="mx-auto mt-14 max-w-6xl px-4 md:px-8">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {products.map((p) => <ProductCard key={p.slug} product={p} />)}
-          </div>
-        </div>
-      </section>
-
-      {/* Ritual */}
-      <section className="bg-sand py-20 md:py-28">
-        <div className="mx-auto max-w-2xl px-4 text-center md:px-8">
-          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sun-deep">{c.home.ritualEyebrow}</span>
-          <h2 className="mt-3 text-3xl font-bold text-ocean-deep md:text-4xl">{c.home.ritualTitle}</h2>
-        </div>
-        <div className="mx-auto mt-14 max-w-3xl space-y-10 px-4 md:px-8">
-          {c.home.ritualSteps.map((s) => (
-            <div key={s.n} className="flex gap-6 border-b border-border pb-8 last:border-b-0">
-              <div className="text-3xl font-light text-sun-deep">{s.n}</div>
-              <div>
-                <h3 className="text-xl font-semibold text-ocean-deep">{s.t}</h3>
-                <p className="mt-2 text-muted-foreground">{s.d}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="bg-background py-24">
-        <div className="mx-auto max-w-2xl px-4 text-center md:px-8">
-          <h2 className="text-3xl font-bold text-ocean-deep md:text-4xl">{c.home.ctaTitle}</h2>
-          <p className="mt-4 text-muted-foreground">{c.home.ctaSubtitle}</p>
-          <Link to="/produkter" className="mt-8 inline-block rounded-full bg-ocean-deep px-8 py-3 text-sm font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean">
-            {c.home.ctaButton}
-          </Link>
-        </div>
-      </section>
     </>
   );
 }
