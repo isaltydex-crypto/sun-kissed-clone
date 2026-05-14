@@ -320,3 +320,77 @@ function RepeaterField<T extends Record<string, string>>({
     </div>
   );
 }
+
+function ImageField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [err, setErr] = useState<string | null>(null);
+  return (
+    <div className="block">
+      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-start">
+        <div className="flex h-24 w-32 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-sand">
+          {value ? (
+            <img src={value} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <span className="text-[10px] text-muted-foreground">Standardbild</span>
+          )}
+        </div>
+        <div className="flex-1 space-y-2">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs font-medium hover:bg-muted">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                if (!file.type.startsWith("image/")) {
+                  setErr("Endast bildfiler tillåts.");
+                  return;
+                }
+                if (file.size > 4 * 1024 * 1024) {
+                  setErr("Bilden får vara högst 4 MB.");
+                  return;
+                }
+                setErr(null);
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(String(reader.result));
+                  reader.onerror = () => reject(reader.error);
+                  reader.readAsDataURL(file);
+                });
+                onChange(dataUrl);
+              }}
+            />
+            Välj bild från datorn
+          </label>
+          <input
+            value={value.startsWith("data:") ? "" : value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="… eller klistra in en bild-URL"
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean"
+          />
+          {value && (
+            <button
+              type="button"
+              onClick={() => onChange("")}
+              className="text-xs text-muted-foreground hover:text-destructive"
+            >
+              Återställ till standardbild
+            </button>
+          )}
+          {err && <p className="text-xs text-destructive">{err}</p>}
+          <p className="text-[11px] text-muted-foreground">JPG/PNG/WebP, max 4 MB.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
