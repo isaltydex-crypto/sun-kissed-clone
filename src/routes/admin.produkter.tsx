@@ -3,6 +3,8 @@ import { useState, type ReactNode } from "react";
 import { Pencil, Trash2, Plus, X, Save, LogOut } from "lucide-react";
 import { useProducts } from "@/context/ProductsContext";
 import { useAdminAuth } from "@/context/AdminAuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { createProductImageUploadUrl } from "@/lib/product-images.functions";
 import type { Product } from "@/data/products";
 
 export const Route = createFileRoute("/admin/produkter")({
