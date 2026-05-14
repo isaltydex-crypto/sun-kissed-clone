@@ -80,6 +80,7 @@ function AdminProductsPage() {
   const { logout } = useAdminAuth();
   const { products, addProduct, updateProduct, removeProduct } = useProducts();
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(empty);
   const [creating, setCreating] = useState(false);
