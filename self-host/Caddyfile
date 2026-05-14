@@ -71,6 +71,10 @@
 
   @supabase_api path /auth/v1/* /rest/v1/* /realtime/v1/* /storage/v1/*
   handle @supabase_api {
+    # These API/storage responses are intentionally consumed by the main shop
+    # domain. The global security snippet sets CORP to same-origin, which makes
+    # uploaded product images appear broken when rendered from the shop.
+    header Cross-Origin-Resource-Policy "cross-origin"
     # Storage uploads (product images, etc.) can exceed the global 2MB cap.
     request_body {
       max_size 60MB
