@@ -70,13 +70,6 @@ function ContactPage() {
               </div>
             </div>
             <div className="flex gap-4">
-              <MapPin className="h-6 w-6 flex-shrink-0 text-sun-deep" />
-              <div>
-                <h3 className="font-semibold text-ocean">Adress</h3>
-                <p className="whitespace-pre-wrap text-muted-foreground">{c.address}</p>
-              </div>
-            </div>
-            <div className="flex gap-4">
               <Clock className="h-6 w-6 flex-shrink-0 text-sun-deep" />
               <div>
                 <h3 className="font-semibold text-ocean">Öppettider</h3>
