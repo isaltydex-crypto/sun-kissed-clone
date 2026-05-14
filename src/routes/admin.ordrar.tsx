@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { Package } from "lucide-react";
+import { Package, Download } from "lucide-react";
 import { listOrders, updateOrderStatus } from "@/lib/orders.functions";
 
 export const Route = createFileRoute("/admin/ordrar")({
@@ -38,16 +38,65 @@ function AdminOrdersPage() {
     }
   };
 
+  const downloadCsv = () => {
+    const rows = [
+      [
+        "order_number","created_at","customer_name","customer_email","customer_phone",
+        "address","postal_code","city","notes",
+        "items","subtotal","shipping","discount","total","currency",
+        "payment_method","payment_status","fulfillment_status",
+      ],
+      ...data.orders.map((o: any) => {
+        const addr = o.shipping_address || {};
+        const items = (o.order_items || [])
+          .map((it: any) => `${it.quantity}x ${it.product_name} @${(it.unit_price_ore/100).toFixed(2)}`)
+          .join(" | ");
+        return [
+          o.order_number, o.created_at, o.customer_name, o.customer_email, o.customer_phone ?? "",
+          addr.address ?? "", addr.postal_code ?? "", addr.city ?? "", addr.notes ?? "",
+          items,
+          (o.subtotal_ore/100).toFixed(2),
+          (o.shipping_ore/100).toFixed(2),
+          (o.discount_ore/100).toFixed(2),
+          (o.total_ore/100).toFixed(2),
+          o.currency,
+          o.payment_method ?? "",
+          o.payment_status,
+          o.fulfillment_status,
+        ];
+      }),
+    ];
+    const csv = rows
+      .map((r) => r.map((c) => {
+        const s = String(c ?? "");
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      }).join(","))
+      .join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ordrar-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <section className="mx-auto max-w-6xl px-4 py-10">
       <header className="mb-8 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ocean-deep text-primary-foreground">
           <Package className="h-5 w-5" aria-hidden="true" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-semibold text-ocean-deep">Ordrar</h1>
-          <p className="text-sm text-muted-foreground">{data.orders.length} senaste</p>
+          <p className="text-sm text-muted-foreground">{data.orders.length} senaste — sparas på servern</p>
         </div>
+        <button
+          onClick={downloadCsv}
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-muted"
+        >
+          <Download className="h-4 w-4" /> Ladda ner CSV
+        </button>
       </header>
 
       <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
