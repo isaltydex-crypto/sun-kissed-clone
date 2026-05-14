@@ -61,11 +61,28 @@
   reverse_proxy ws-gateway:8080
 }
 
-# ----- Supabase Studio (DB admin) — basic auth on top of its own login ----
+# ----- Supabase API + Studio on the same domain ---------------------------
+# - /auth/v1/*, /rest/v1/*, /realtime/v1/*, /storage/v1/*  →  Kong (no basicauth;
+#   Supabase enforces its own JWT auth). These paths are called by the browser
+#   (VITE_SUPABASE_URL points here) so they MUST be reachable without basic auth.
+# - Everything else (the Studio UI itself) is gated by basic auth.
 {$STUDIO_DOMAIN} {
   import security_headers
-  basicauth {
-    {$DASHBOARD_USERNAME} {$DASHBOARD_PASSWORD}
+
+  @supabase_api path /auth/v1/* /rest/v1/* /realtime/v1/* /storage/v1/*
+  handle @supabase_api {
+    # Storage uploads (product images, etc.) can exceed the global 2MB cap.
+    request_body {
+      max_size 60MB
+    }
+    reverse_proxy kong:8000
   }
-  reverse_proxy studio:3000
+
+  handle {
+    basicauth {
+      {$DASHBOARD_USERNAME} {$DASHBOARD_PASSWORD}
+    }
+    reverse_proxy studio:3000
+  }
 }
+
