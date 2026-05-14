@@ -23,7 +23,7 @@ export const Route = createFileRoute("/llms.txt")({
 - [Startsida](${SITE_URL}/) — översikt och utvalda produkter
 - [Produkter](${SITE_URL}/produkter) — hela sortimentet av peptidhudvård
 - [Om oss](${SITE_URL}/om-oss) — företagets historia, filosofi och vetenskap
-- [Vanliga frågor](${SITE_URL}/faq) — svar om peptider, leverans och retur
+
 - [Kontakt](${SITE_URL}/kontakt) — kundservice
 - [Köpvillkor](${SITE_URL}/kopvillkor) — villkor, leverans, retur, ångerrätt
 - [Integritetspolicy](${SITE_URL}/integritetspolicy) — GDPR och personuppgifter
