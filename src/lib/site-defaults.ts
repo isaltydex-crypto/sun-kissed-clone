@@ -18,6 +18,7 @@ export type SiteDefaults = {
     contact: string;
   };
   home: {
+    heroImage: string;
     eyebrow: string;
     title: string;
     subtitle: string;
@@ -94,6 +95,7 @@ export const siteDefaults: SiteDefaults = {
     contact: "Kontakt",
   },
   home: {
+    heroImage: "",
     eyebrow: "Klinisk peptidhudvård",
     title: "Vetenskap för en synligt friskare hud.",
     subtitle:

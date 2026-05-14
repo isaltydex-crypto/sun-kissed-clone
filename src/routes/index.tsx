@@ -72,7 +72,7 @@ function HomePage() {
       <section className="bg-background pb-16 md:pb-24">
         <div className="mx-auto max-w-5xl px-4">
           <img
-            src={hero}
+            src={c.home.heroImage || hero}
             alt="PeptivaLab Group peptidserum och krämer"
             width={1600}
             height={1024}
