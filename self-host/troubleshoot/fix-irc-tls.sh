@@ -154,8 +154,8 @@ else
   fail "TLS cert/key are not readable inside ircd — see log"
 fi
 
-if [ -n "$IRCD_CID" ] && docker exec "$IRCD_CID" sh -c 'grep -R "m_ssl_gnutls\|ssl=\"gnutls\"" /inspircd/conf >/dev/null'; then
-  ok "InspIRCd config includes GnuTLS + 6697 TLS bind"
+if [ -n "$IRCD_CID" ] && docker exec "$IRCD_CID" sh -c 'grep -R "module name=\"ssl_gnutls\"\|sslprofile=\"gnutls\"" /inspircd/conf >/dev/null'; then
+  ok "InspIRCd config includes GnuTLS profile + 6697 TLS bind"
 else
   fail "InspIRCd config does not include the 6697 TLS bind — see log"
 fi

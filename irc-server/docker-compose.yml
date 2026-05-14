@@ -12,7 +12,7 @@ services:
       INSP_NET_SUFFIX: .peptivalab.local
       INSP_OPER_NAME: admin
       INSP_OPER_PASSWORD: ${IRC_OPER_PASSWORD}
-      INSP_SERVER_PASSWORD: ${IRC_SERVER_PASSWORD}
+      INSP_CONNECT_PASSWORD: ${IRC_SERVER_PASSWORD}
       INSP_ENABLE_DNS: "false"
       CHAT_DOMAIN: ${CHAT_DOMAIN}
     volumes:
