@@ -38,16 +38,6 @@ function AboutPage() {
             <p className="mt-4 whitespace-pre-wrap text-muted-foreground">{c.philosophyBody}</p>
           </div>
         </div>
-        <div className="mx-auto mt-16 max-w-5xl px-4 md:px-8">
-          <div className="grid gap-6 rounded-2xl bg-sand p-8 sm:grid-cols-3">
-            {c.stats.map((s) => (
-              <div key={s.l} className="text-center">
-                <div className="text-3xl font-bold text-ocean">{s.n}</div>
-                <div className="mt-1 text-sm text-muted-foreground">{s.l}</div>
-              </div>
-            ))}
-          </div>
-        </div>
       </section>
     </>
   );
