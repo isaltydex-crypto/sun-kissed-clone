@@ -174,6 +174,39 @@ CREATE INDEX IF NOT EXISTS admin_actions_action_idx ON public.admin_actions (act
 ALTER TABLE public.admin_actions ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------------------------------------------------------
+-- products (catalog managed from /admin/produkter)
+-- Lives in the DB so it survives `docker compose build app` and app restarts —
+-- only `docker compose down -v` (which wipes the pg_data volume) drops it.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.products (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug text NOT NULL UNIQUE,
+  name text NOT NULL,
+  tagline text NOT NULL DEFAULT '',
+  price_ore integer NOT NULL DEFAULT 0,
+  old_price_ore integer,
+  image text NOT NULL DEFAULT '',
+  badge text,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS products_sort_idx ON public.products (sort_order, created_at);
+
+DROP TRIGGER IF EXISTS products_touch_updated_at ON public.products;
+CREATE TRIGGER products_touch_updated_at
+  BEFORE UPDATE ON public.products
+  FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
+
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Products are viewable by everyone" ON public.products;
+CREATE POLICY "Products are viewable by everyone"
+  ON public.products FOR SELECT
+  USING (true);
+
+-- ---------------------------------------------------------------------------
 -- discount_codes
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.discount_codes (
