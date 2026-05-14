@@ -2,8 +2,6 @@
  * Products: server-backed CRUD so the catalog is shared across all devices.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { mkdir, readFile, rename, writeFile } from "fs/promises";
-import { dirname } from "path";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { adminAuthMiddleware } from "@/server/admin-middleware";
@@ -64,6 +62,10 @@ async function writeProductsSnapshot(products: Product[]) {
   const file = snapshotFile();
   if (!file) return;
   try {
+    const [{ mkdir, rename, writeFile }, { dirname }] = await Promise.all([
+      import("fs/promises"),
+      import("path"),
+    ]);
     await mkdir(dirname(file), { recursive: true });
     const tmp = `${file}.${process.pid}.tmp`;
     await writeFile(tmp, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), products }, null, 2), "utf8");
@@ -77,6 +79,7 @@ async function readProductsSnapshot(): Promise<Product[] | null> {
   const file = snapshotFile();
   if (!file) return null;
   try {
+    const { readFile } = await import("fs/promises");
     const parsed = ProductSnapshot.parse(JSON.parse(await readFile(file, "utf8")));
     return parsed.products.map((p) => ({
       slug: p.slug,
