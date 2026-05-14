@@ -4,6 +4,13 @@ import { Lock } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { getTotpStatus } from "@/lib/admin-2fa.functions";
 
+function getAdminRedirectTarget(redirect: string | undefined) {
+  if (!redirect || !redirect.startsWith("/admin") || redirect.startsWith("/admin/login")) {
+    return "/admin/produkter";
+  }
+  return redirect;
+}
+
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
     meta: [
@@ -33,16 +40,19 @@ function AdminLoginPage() {
       .catch(() => setTotpRequired(false));
   }, []);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const target = getAdminRedirectTarget(redirect);
+    void navigate({ to: target as "/admin/produkter", replace: true });
+  }, [isAuthenticated, navigate, redirect]);
+
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     setBusy(true);
     const result = await login(password, totpRequired ? code : undefined);
     setBusy(false);
-    if (result.ok) {
-      const target = redirect && redirect.startsWith("/admin") ? redirect : "/admin/produkter";
-      navigate({ to: target as "/admin/produkter", replace: true });
-    } else {
+    if (!result.ok) {
       setError(result.error);
     }
   };
