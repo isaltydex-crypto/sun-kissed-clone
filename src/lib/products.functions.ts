@@ -155,7 +155,9 @@ export const createProduct = createServerFn({ method: "POST" })
       .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order")
       .single();
     if (error) throw new Error(error.message);
-    return { ok: true, product: rowToProduct(created as Row) };
+    const product = rowToProduct(created as Row);
+    await persistCurrentProductsSnapshot();
+    return { ok: true, product };
   });
 
 const UpdateInput = ProductInput.extend({ originalSlug: z.string().min(1).max(120) });
@@ -180,7 +182,9 @@ export const updateProductFn = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!updated) throw new Error("Produkten kunde inte hittas. Ladda om sidan och försök igen.");
-    return { ok: true, product: rowToProduct(updated as Row) };
+    const product = rowToProduct(updated as Row);
+    await persistCurrentProductsSnapshot();
+    return { ok: true, product };
   });
 
 export const deleteProductFn = createServerFn({ method: "POST" })
@@ -189,5 +193,6 @@ export const deleteProductFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { error } = await supabaseAdmin.from("products").delete().eq("slug", data.slug);
     if (error) throw new Error(error.message);
+    await persistCurrentProductsSnapshot();
     return { ok: true };
   });
