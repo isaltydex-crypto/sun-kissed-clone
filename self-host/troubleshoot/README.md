@@ -89,19 +89,19 @@ rm self-host/troubleshoot/logs/*.log
 ---
 
 ### `fix-irc-tls.sh`
-**Use when:** RevolutionIRC / HexChat / mIRC can't connect to `chat.<domain>:6697` because TLS isn't running yet on the IRC server.
+**Use when:** `docker compose up -d app` fails with `Bind for 0.0.0.0:6697 failed: port is already allocated`, or RevolutionIRC / HexChat / mIRC can't connect to `chat.<domain>:6697`.
 
 **What it does:**
 - Reads `CHAT_DOMAIN` from `self-host/.env`
+- Stops and removes stale standalone IRC containers (`pvl-ircd`, `pvl-ws-gateway`) that conflict with the integrated self-host IRC service on port `6697`
 - Finds the Caddy data volume (`*_caddy_data`)
 - Confirms Caddy has issued a Let's Encrypt cert for `CHAT_DOMAIN` (fails fast with instructions if not)
-- Syncs `IRC_OPER_PASSWORD`, `IRC_SERVER_PASSWORD`, `GATEWAY_TOKEN`, `CHAT_DOMAIN`, and `CADDY_DATA_VOLUME` into `irc-server/.env`
-- Recreates the `ircd` and `ws-gateway` containers so they pick up the shared cert volume, TLS entrypoint, and current secrets
+- Recreates the integrated self-host `ircd` and `ws-gateway` containers so they pick up the shared cert volume, TLS entrypoint, and current secrets
 - Confirms the TLS cert/key are readable inside `ircd` and that the TLS bind config is present
 - Runs an external `openssl s_client` certificate-validating handshake against `${CHAT_DOMAIN}:6697`
 - Sends a full `PASS` / `NICK` / `USER` IRC login sequence and reports the exact server-side failure if welcome `001` is not returned
 
-**Typical fixes it points to:** Caddy hasn't issued the cert yet (visit `https://chat.<domain>` once), firewall is blocking 6697 (`ufw allow 6697/tcp`), Revolution IRC has the wrong server password, or the IRC containers were still running with stale `.env` values.
+**Typical fixes it points to:** the old standalone `irc-server/docker-compose.yml` stack is still running and owns `6697`, Caddy hasn't issued the cert yet (visit `https://chat.<domain>` once), firewall is blocking 6697 (`ufw allow 6697/tcp`), Revolution IRC has the wrong server password, or the IRC containers were still running with stale `.env` values.
 
 ---
 
