@@ -1,58 +1,73 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { products as seedProducts, type Product } from "@/data/products";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import type { Product } from "@/data/products";
+import {
+  listProducts,
+  createProduct,
+  updateProductFn,
+  deleteProductFn,
+} from "@/lib/products.functions";
 
 type ProductsContextValue = {
   products: Product[];
   hydrated: boolean;
-  addProduct: (p: Product) => void;
-  updateProduct: (slug: string, patch: Partial<Product>) => void;
-  removeProduct: (slug: string) => void;
-  resetToDefaults: () => void;
+  refresh: () => Promise<void>;
+  addProduct: (p: Product) => Promise<void>;
+  updateProduct: (originalSlug: string, patch: Product) => Promise<void>;
+  removeProduct: (slug: string) => Promise<void>;
 };
 
 const ProductsContext = createContext<ProductsContextValue | null>(null);
-const STORAGE_KEY = "peptivalab.products.v1";
+
+function toInput(p: Product) {
+  return {
+    slug: p.slug,
+    name: p.name,
+    tagline: p.tagline ?? "",
+    price: Math.round(p.price),
+    oldPrice: p.oldPrice != null ? Math.round(p.oldPrice) : null,
+    image: p.image ?? "",
+    badge: p.badge ?? null,
+  };
+}
 
 export function ProductsProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<Product[]>(seedProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Product[];
-        if (Array.isArray(parsed) && parsed.length > 0) setProducts(parsed);
-      }
-    } catch {
-      // ignore
+      const res = await listProducts();
+      setProducts(res.products);
+    } catch (err) {
+      console.error("listProducts failed", err);
+    } finally {
+      setHydrated(true);
     }
-    setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-    } catch {
-      // ignore
-    }
-  }, [products, hydrated]);
+    void refresh();
+  }, [refresh]);
 
   const value = useMemo<ProductsContextValue>(
     () => ({
       products,
       hydrated,
-      addProduct: (p) =>
-        setProducts((prev) =>
-          prev.some((x) => x.slug === p.slug) ? prev : [...prev, p],
-        ),
-      updateProduct: (slug, patch) =>
-        setProducts((prev) => prev.map((p) => (p.slug === slug ? { ...p, ...patch } : p))),
-      removeProduct: (slug) => setProducts((prev) => prev.filter((p) => p.slug !== slug)),
-      resetToDefaults: () => setProducts(seedProducts),
+      refresh,
+      addProduct: async (p) => {
+        await createProduct({ data: toInput(p) });
+        await refresh();
+      },
+      updateProduct: async (originalSlug, patch) => {
+        await updateProductFn({ data: { ...toInput(patch), originalSlug } });
+        await refresh();
+      },
+      removeProduct: async (slug) => {
+        await deleteProductFn({ data: { slug } });
+        await refresh();
+      },
     }),
-    [products, hydrated],
+    [products, hydrated, refresh],
   );
 
   return <ProductsContext.Provider value={value}>{children}</ProductsContext.Provider>;
