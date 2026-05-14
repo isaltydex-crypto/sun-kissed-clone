@@ -269,8 +269,13 @@ services:
       # products table is ever empty after an app rebuild / DB hiccup, the app
       # restores the latest saved products from this file automatically.
       PRODUCTS_SNAPSHOT_FILE: /var/log/peptiva/products-snapshot.json
+      # Directory for locally-uploaded product images (fallback when Supabase
+      # Storage isn't reachable from the browser). Served publicly via
+      # /api/public/uploads/products/<name>.
+      LOCAL_UPLOADS_DIR: /var/lib/peptiva/uploads
     volumes:
       - app_logs:/var/log/peptiva
+      - app_uploads:/var/lib/peptiva/uploads
     networks: [pvl]
 
   # --------------------------------------------------------------------------
