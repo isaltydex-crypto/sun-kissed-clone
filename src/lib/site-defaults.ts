@@ -18,6 +18,7 @@ export type SiteDefaults = {
     contact: string;
   };
   home: {
+    heroImage: string;
     eyebrow: string;
     title: string;
     subtitle: string;
