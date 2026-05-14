@@ -26,6 +26,10 @@ function safeName(name: string): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${cleanExt}`;
 }
 
+function storagePublicPath(path: string): string {
+  return `/storage/v1/object/public/${BUCKET}/${path.split("/").map(encodeURIComponent).join("/")}`;
+}
+
 export const createProductImageUploadUrl = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => Input.parse(input))
@@ -43,8 +47,9 @@ export const createProductImageUploadUrl = createServerFn({ method: "POST" })
     // (e.g. http://kong:8000 in self-host) that the browser cannot reach.
     // Rewrite the host to the externally-reachable URL when one is provided.
     const publicBase = (process.env.SUPABASE_PUBLIC_URL || "").replace(/\/+$/, "");
-    let publicUrl = pub.publicUrl;
-    if (publicBase) {
+    const siteBase = (process.env.PUBLIC_SITE_URL || "").replace(/\/+$/, "");
+    let publicUrl = siteBase ? `${siteBase}${storagePublicPath(path)}` : pub.publicUrl;
+    if (!siteBase && publicBase) {
       try {
         const u = new URL(pub.publicUrl);
         publicUrl = `${publicBase}${u.pathname}${u.search}`;
