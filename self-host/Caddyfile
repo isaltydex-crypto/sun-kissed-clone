@@ -52,6 +52,14 @@
     }
   }
 
+  # Public product images are displayed by the shop. Serving storage reads from
+  # the shop origin avoids browser cross-origin resource-policy blocking and
+  # also lets older saved storage URLs be normalized to this path by the app.
+  @storage_public path /storage/v1/object/public/* /storage/v1/render/image/public/*
+  handle @storage_public {
+    reverse_proxy kong:8000
+  }
+
   reverse_proxy app:3000
 }
 
