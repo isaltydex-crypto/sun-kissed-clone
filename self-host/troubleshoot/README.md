@@ -208,6 +208,28 @@ powershell -ExecutionPolicy Bypass -File .\check-pc-access.ps1 -Fix
 
 ---
 
+### `view-logs.sh`
+**Use when:** you want to browse any log on the server (container stdout, persistent log files, past troubleshoot runs) without remembering each `docker compose logs` / `tail -F` command.
+
+**What it does:**
+- Discovers every available log source:
+  - `docker compose logs` for each compose service
+  - Persistent log files inside the `app` container under `/var/log/peptiva/*.log` (e.g. `admin-actions.log`)
+  - Caddy log files inside the `caddy` container under `/var/log/caddy/*.log`
+  - The 30 most recent `troubleshoot/logs/*.log` files on the host
+- Prints an interactive numbered menu — pick a source, then choose a viewing mode:
+  1. tail last 200 lines
+  2. follow live (Ctrl-C to stop)
+  3. open full log in `less` (q to exit)
+- Everything you view is also appended to this script's own `logs/view-logs-*.log` so you can share it later.
+
+**Run it:**
+```bash
+bash self-host/troubleshoot/view-logs.sh
+```
+
+---
+
 ## Adding a new script
 
 1. Create the script in this folder: `self-host/troubleshoot/<name>.sh`
