@@ -379,10 +379,10 @@ function AdminProductsPage() {
               </button>
               <button
                 onClick={save}
-                disabled={saving}
+                disabled={saving || uploading}
                 className="inline-flex items-center gap-2 rounded-md bg-ocean-deep px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-ocean disabled:opacity-50"
               >
-                <Save className="h-4 w-4" /> {saving ? "Sparar…" : "Spara"}
+                <Save className="h-4 w-4" /> {saving ? "Sparar…" : uploading ? "Vänta…" : "Spara"}
               </button>
             </div>
           </div>
