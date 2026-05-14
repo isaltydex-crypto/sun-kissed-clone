@@ -47,11 +47,22 @@ function toForm(p: Product): FormState {
   };
 }
 
+function normalizeSlug(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[åä]/g, "a")
+    .replace(/ö/g, "o")
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function fromForm(f: FormState): Product | null {
   const price = Number(f.price);
   if (!f.slug.trim() || !f.name.trim() || Number.isNaN(price)) return null;
   const product: Product = {
-    slug: f.slug.trim(),
+    slug: normalizeSlug(f.slug),
     name: f.name.trim(),
     tagline: f.tagline.trim(),
     price,
@@ -104,6 +115,7 @@ function AdminProductsPage() {
       return;
     }
     setSaving(true);
+    setError(null);
     try {
       if (creating) {
         await addProduct(product);
@@ -112,7 +124,18 @@ function AdminProductsPage() {
       }
       cancel();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kunde inte spara.");
+      console.error("Save product failed", err);
+      let msg = err instanceof Error ? err.message : "Kunde inte spara.";
+      // Zod errors arrive as JSON strings — try to make them readable.
+      try {
+        const parsed = JSON.parse(msg);
+        if (Array.isArray(parsed) && parsed[0]?.message) {
+          msg = parsed.map((i: { path?: (string | number)[]; message: string }) =>
+            `${(i.path ?? []).join(".") || "fält"}: ${i.message}`
+          ).join("; ");
+        }
+      } catch { /* not JSON */ }
+      setError(msg);
     } finally {
       setSaving(false);
     }
