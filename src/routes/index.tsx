@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { pageHead } from "@/lib/seo";
 import { Star, Truck, Shield, Leaf, FlaskConical } from "lucide-react";
 import logo from "@/assets/logo.png";
 import hero from "@/assets/hero-products.jpg";
@@ -7,14 +8,13 @@ import { useSiteContent } from "@/context/SiteContentContext";
 import { ProductCard } from "@/components/ProductCard";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "PeptivaLab Group — Premium peptidhudvård för synliga resultat" },
-      { name: "description", content: "Vetenskapligt formulerade peptidserum, boosters och krämer för fastare, slätare hud. Fri frakt över 499 kr." },
-      { property: "og:title", content: "PeptivaLab Group — Premium peptidhudvård" },
-      { property: "og:description", content: "Vetenskapligt formulerade peptidprodukter för fastare, slätare hud." },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      path: "/",
+      title: "PeptivaLab Group — Premium peptidhudvård för synliga resultat",
+      description:
+        "Vetenskapligt formulerade peptidserum, boosters och krämer för fastare, slätare hud. Vegan, dermatologiskt testad. Fri frakt över 499 kr inom Sverige.",
+    }),
   component: HomePage,
 });
 

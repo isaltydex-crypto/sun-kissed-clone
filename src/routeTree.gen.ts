@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ProdukterRouteImport } from './routes/produkter'
 import { Route as OmOssRouteImport } from './routes/om-oss'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as KopvillkorRouteImport } from './routes/kopvillkor'
 import { Route as KontaktRouteImport } from './routes/kontakt'
 import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
@@ -59,6 +60,11 @@ const ProdukterRoute = ProdukterRouteImport.update({
 const OmOssRoute = OmOssRouteImport.update({
   id: '/om-oss',
   path: '/om-oss',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KopvillkorRoute = KopvillkorRouteImport.update({
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/kontakt': typeof KontaktRoute
   '/kopvillkor': typeof KopvillkorRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -238,6 +245,7 @@ export interface FileRoutesByTo {
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/kontakt': typeof KontaktRoute
   '/kopvillkor': typeof KopvillkorRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -272,6 +280,7 @@ export interface FileRoutesById {
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/kontakt': typeof KontaktRoute
   '/kopvillkor': typeof KopvillkorRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/om-oss': typeof OmOssRoute
   '/produkter': typeof ProdukterRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -307,6 +316,7 @@ export interface FileRouteTypes {
     | '/integritetspolicy'
     | '/kontakt'
     | '/kopvillkor'
+    | '/llms.txt'
     | '/om-oss'
     | '/produkter'
     | '/robots.txt'
@@ -340,6 +350,7 @@ export interface FileRouteTypes {
     | '/integritetspolicy'
     | '/kontakt'
     | '/kopvillkor'
+    | '/llms.txt'
     | '/om-oss'
     | '/produkter'
     | '/robots.txt'
@@ -373,6 +384,7 @@ export interface FileRouteTypes {
     | '/integritetspolicy'
     | '/kontakt'
     | '/kopvillkor'
+    | '/llms.txt'
     | '/om-oss'
     | '/produkter'
     | '/robots.txt'
@@ -407,6 +419,7 @@ export interface RootRouteChildren {
   IntegritetspolicyRoute: typeof IntegritetspolicyRoute
   KontaktRoute: typeof KontaktRoute
   KopvillkorRoute: typeof KopvillkorRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   OmOssRoute: typeof OmOssRoute
   ProdukterRoute: typeof ProdukterRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
@@ -450,6 +463,13 @@ declare module '@tanstack/react-router' {
       path: '/om-oss'
       fullPath: '/om-oss'
       preLoaderRoute: typeof OmOssRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kopvillkor': {
@@ -692,6 +712,7 @@ const rootRouteChildren: RootRouteChildren = {
   IntegritetspolicyRoute: IntegritetspolicyRoute,
   KontaktRoute: KontaktRoute,
   KopvillkorRoute: KopvillkorRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   OmOssRoute: OmOssRoute,
   ProdukterRoute: ProdukterRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,

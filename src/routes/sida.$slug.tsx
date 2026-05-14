@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { fetchCustomPage, type CustomPage } from "@/server/site-content.functions";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/sida/$slug")({
   loader: async ({ params }) => {
@@ -7,17 +8,17 @@ export const Route = createFileRoute("/sida/$slug")({
     if (!res.page) throw notFound();
     return { page: res.page };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const page = (loaderData as { page?: CustomPage } | undefined)?.page;
-    return {
-      meta: [
-        { title: page ? `${page.title} — PeptivaLab Group` : "PeptivaLab Group" },
-        ...(page?.meta_description
-          ? [{ name: "description", content: page.meta_description }]
-          : []),
-        ...(page ? [{ property: "og:title", content: page.title }] : []),
-      ],
-    };
+    const slug = (params as { slug?: string } | undefined)?.slug ?? "";
+    return pageHead({
+      path: `/sida/${slug}`,
+      title: page ? `${page.title} — PeptivaLab Group` : "PeptivaLab Group",
+      description:
+        page?.meta_description ||
+        "PeptivaLab Group — premium peptidhudvård utvecklad i Sverige.",
+      type: "article",
+    });
   },
   notFoundComponent: () => (
     <div className="flex min-h-[60vh] items-center justify-center px-4">

@@ -5,14 +5,28 @@ import { useState } from "react";
 import { useSiteContent } from "@/context/SiteContentContext";
 import { submitContact } from "@/lib/contact.functions";
 import { toast } from "sonner";
+import { pageHead, breadcrumbLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/kontakt")({
-  head: () => ({
-    meta: [
-      { title: "Kontakt — PeptivaLab Group" },
-      { name: "description", content: "Kontakta PeptivaLab Groups kundservice." },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      path: "/kontakt",
+      title: "Kontakta PeptivaLab Group — kundservice och support",
+      description:
+        "Kontakta PeptivaLab Groups kundservice via formulär eller e-post. Vi svarar vardagar inom 24 timmar.",
+      jsonLd: [
+        breadcrumbLd([
+          { name: "Hem", path: "/" },
+          { name: "Kontakt", path: "/kontakt" },
+        ]),
+        {
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          name: "Kontakta PeptivaLab Group",
+          inLanguage: "sv-SE",
+        },
+      ],
+    }),
   component: ContactPage,
 });
 

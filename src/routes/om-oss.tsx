@@ -1,13 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSiteContent } from "@/context/SiteContentContext";
+import { pageHead, breadcrumbLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/om-oss")({
-  head: () => ({
-    meta: [
-      { title: "Om oss — PeptivaLab Group" },
-      { name: "description", content: "Lär känna PeptivaLab Group — svensk peptidhudvård utvecklad med dermatologer." },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      path: "/om-oss",
+      title: "Om PeptivaLab Group — svensk peptidhudvård utvecklad med dermatologer",
+      description:
+        "PeptivaLab Group utvecklar klinisk peptidhudvård i Sverige tillsammans med dermatologer. Läs om vår historia, filosofi och vetenskap.",
+      jsonLd: breadcrumbLd([
+        { name: "Hem", path: "/" },
+        { name: "Om oss", path: "/om-oss" },
+      ]),
+    }),
   component: AboutPage,
 });
 
