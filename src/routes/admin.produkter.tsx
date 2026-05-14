@@ -81,11 +81,96 @@ function AdminProductsPage() {
   const { products, addProduct, updateProduct, removeProduct } = useProducts();
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [serverUploading, setServerUploading] = useState(false);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(empty);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [gallery, setGallery] = useState<
+    { name: string; url: string; size: number; mtime: number }[] | null
+  >(null);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+
+  const loadGallery = async () => {
+    setGalleryLoading(true);
+    try {
+      const res = await fetch("/api/admin/product-images", { credentials: "include" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as {
+        images: { name: string; url: string; size: number; mtime: number }[];
+      };
+      setGallery(data.images);
+    } catch (err) {
+      console.error("Load gallery failed", err);
+      setError(
+        err instanceof Error
+          ? `Kunde inte hämta bilder från servern: ${err.message}`
+          : "Kunde inte hämta bilder från servern.",
+      );
+    } finally {
+      setGalleryLoading(false);
+    }
+  };
+
+  const uploadToServer = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setError("Endast bildfiler tillåts.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError("Bilden får vara högst 8 MB.");
+      return;
+    }
+    setError(null);
+    setServerUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/product-images", {
+        method: "POST",
+        credentials: "include",
+        body: fd,
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || `HTTP ${res.status}`);
+      }
+      const data = (await res.json()) as { name: string; url: string };
+      setForm((f) => ({ ...f, image: data.url }));
+      if (gallery) setGallery([{ ...data, size: file.size, mtime: Date.now() }, ...gallery]);
+    } catch (err) {
+      console.error("Server upload failed", err);
+      setError(
+        err instanceof Error
+          ? `Bilden kunde inte laddas upp till servern: ${err.message}`
+          : "Bilden kunde inte laddas upp till servern.",
+      );
+    } finally {
+      setServerUploading(false);
+    }
+  };
+
+  const deleteFromServer = async (name: string) => {
+    if (!confirm(`Ta bort ${name} från servern?`)) return;
+    try {
+      const res = await fetch(
+        `/api/admin/product-images?name=${encodeURIComponent(name)}`,
+        { method: "DELETE", credentials: "include" },
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || `HTTP ${res.status}`);
+      }
+      setGallery((g) => (g ? g.filter((i) => i.name !== name) : g));
+    } catch (err) {
+      console.error("Delete failed", err);
+      setError(
+        err instanceof Error ? `Kunde inte ta bort bilden: ${err.message}` : "Kunde inte ta bort bilden.",
+      );
+    }
+  };
 
   const startCreate = () => {
     setEditingSlug(null);
