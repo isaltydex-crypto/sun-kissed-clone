@@ -8,7 +8,12 @@ import { adminAuthMiddleware } from "@/server/admin-middleware";
 import type { Product } from "@/data/products";
 
 const ProductInput = z.object({
-  slug: z.string().trim().min(1).max(120).regex(/^[a-z0-9-]+$/, "Slug måste vara små bokstäver, siffror och bindestreck"),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(120)
+    .regex(/^[a-z0-9-]+$/, "Slug måste vara små bokstäver, siffror och bindestreck"),
   name: z.string().trim().min(1).max(200),
   tagline: z.string().trim().max(400).default(""),
   price: z.number().int().min(0).max(10_000_000),
@@ -17,9 +22,11 @@ const ProductInput = z.object({
   badge: z.string().trim().max(60).optional().nullable(),
 });
 
-const ProductSnapshot = z.object({
-  products: z.array(ProductInput),
-}).passthrough();
+const ProductSnapshot = z
+  .object({
+    products: z.array(ProductInput),
+  })
+  .passthrough();
 
 type Row = {
   slug: string;
@@ -41,7 +48,10 @@ function normalizeProductImageUrl(image: string): string {
       url.pathname.startsWith("/storage/v1/object/public/product-images/") ||
       url.pathname.startsWith("/storage/v1/render/image/public/product-images/")
     ) {
-      return `${siteBase}${url.pathname}${url.search}`;
+      // Keep storage images relative to the app origin. Absolute URLs saved
+      // before this fix may point at an internal/API/custom domain that does
+      // not match the visitor's current host and can render as a broken image.
+      return `${url.pathname}${url.search}`;
     }
   } catch {
     // Relative and seed images are already served by the app.
@@ -85,7 +95,11 @@ async function writeProductsSnapshot(products: Product[]) {
     ]);
     await mkdir(dirname(file), { recursive: true });
     const tmp = `${file}.${process.pid}.tmp`;
-    await writeFile(tmp, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), products }, null, 2), "utf8");
+    await writeFile(
+      tmp,
+      JSON.stringify({ version: 1, savedAt: new Date().toISOString(), products }, null, 2),
+      "utf8",
+    );
     await rename(tmp, file);
   } catch (err) {
     console.warn("product snapshot write failed", err);
@@ -108,7 +122,10 @@ async function readProductsSnapshot(): Promise<Product[] | null> {
       badge: p.badge ?? undefined,
     }));
   } catch (err) {
-    const code = typeof err === "object" && err !== null && "code" in err ? String((err as { code?: unknown }).code) : "";
+    const code =
+      typeof err === "object" && err !== null && "code" in err
+        ? String((err as { code?: unknown }).code)
+        : "";
     if (code !== "ENOENT") console.warn("product snapshot read failed", err);
     return null;
   }
@@ -129,7 +146,9 @@ async function restoreProductsFromSnapshot() {
     sort_order: index,
   }));
 
-  const { error } = await supabaseAdmin.from("products").upsert(rows as never, { onConflict: "slug" });
+  const { error } = await supabaseAdmin
+    .from("products")
+    .upsert(rows as never, { onConflict: "slug" });
   if (error) throw new Error(error.message);
   return products;
 }

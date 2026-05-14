@@ -35,8 +35,7 @@ export const createProductImageUploadUrl = createServerFn({ method: "POST" })
   .inputValidator((input) => Input.parse(input))
   .handler(async ({ data }) => {
     const path = safeName(data.filename);
-    const { data: signed, error } = await supabaseAdmin
-      .storage
+    const { data: signed, error } = await supabaseAdmin.storage
       .from(BUCKET)
       .createSignedUploadUrl(path);
     if (error || !signed) {
@@ -46,9 +45,12 @@ export const createProductImageUploadUrl = createServerFn({ method: "POST" })
     // The server-side Supabase client may be configured with an internal URL
     // (e.g. http://kong:8000 in self-host) that the browser cannot reach.
     // Rewrite the host to the externally-reachable URL when one is provided.
-    const publicBase = (process.env.SUPABASE_PUBLIC_URL || "").replace(/\/+$/, "");
     const siteBase = (process.env.PUBLIC_SITE_URL || "").replace(/\/+$/, "");
-    let publicUrl = siteBase ? `${siteBase}${storagePublicPath(path)}` : pub.publicUrl;
+    const publicBase = (process.env.SUPABASE_PUBLIC_URL || "").replace(/\/+$/, "");
+    // In self-hosted installs, Caddy proxies /storage from the current shop
+    // origin. Return a relative URL so apex/www/custom-domain visitors always
+    // load images from the same origin that served the page.
+    let publicUrl = siteBase ? storagePublicPath(path) : pub.publicUrl;
     if (!siteBase && publicBase) {
       try {
         const u = new URL(pub.publicUrl);
