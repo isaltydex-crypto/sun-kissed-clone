@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Pencil, Trash2, Plus, X, Save, RotateCcw, LogOut } from "lucide-react";
+import { Pencil, Trash2, Plus, X, Save, LogOut } from "lucide-react";
 import { useProducts } from "@/context/ProductsContext";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import type { Product } from "@/data/products";
@@ -65,7 +65,8 @@ function fromForm(f: FormState): Product | null {
 
 function AdminProductsPage() {
   const { logout } = useAdminAuth();
-  const { products, addProduct, updateProduct, removeProduct, resetToDefaults } = useProducts();
+  const { products, addProduct, updateProduct, removeProduct } = useProducts();
+  const [saving, setSaving] = useState(false);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(empty);
   const [creating, setCreating] = useState(false);
@@ -92,22 +93,29 @@ function AdminProductsPage() {
     setError(null);
   };
 
-  const save = () => {
+  const save = async () => {
     const product = fromForm(form);
     if (!product) {
       setError("Slug, namn och giltigt pris krävs.");
       return;
     }
-    if (creating) {
-      if (products.some((p) => p.slug === product.slug)) {
-        setError("En produkt med denna slug finns redan.");
-        return;
-      }
-      addProduct(product);
-    } else if (editingSlug) {
-      updateProduct(editingSlug, product);
+    if (creating && products.some((p) => p.slug === product.slug)) {
+      setError("En produkt med denna slug finns redan.");
+      return;
     }
-    cancel();
+    setSaving(true);
+    try {
+      if (creating) {
+        await addProduct(product);
+      } else if (editingSlug) {
+        await updateProduct(editingSlug, product);
+      }
+      cancel();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kunde inte spara.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const isEditing = creating || editingSlug !== null;
@@ -129,12 +137,6 @@ function AdminProductsPage() {
             >
               Visa butiken
             </Link>
-            <button
-              onClick={resetToDefaults}
-              className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
-            >
-              <RotateCcw className="h-4 w-4" /> Återställ
-            </button>
             <button
               onClick={startCreate}
               disabled={isEditing}
@@ -322,9 +324,10 @@ function AdminProductsPage() {
               </button>
               <button
                 onClick={save}
-                className="inline-flex items-center gap-2 rounded-md bg-ocean-deep px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-ocean"
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-md bg-ocean-deep px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-ocean disabled:opacity-50"
               >
-                <Save className="h-4 w-4" /> Spara
+                <Save className="h-4 w-4" /> {saving ? "Sparar…" : "Spara"}
               </button>
             </div>
           </div>
@@ -376,7 +379,7 @@ function AdminProductsPage() {
                       </button>
                       <button
                         onClick={() => {
-                          if (confirm(`Ta bort "${p.name}"?`)) removeProduct(p.slug);
+                          if (confirm(`Ta bort "${p.name}"?`)) void removeProduct(p.slug);
                         }}
                         className="inline-flex items-center gap-1 rounded-md border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10"
                       >
