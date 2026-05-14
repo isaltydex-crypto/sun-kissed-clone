@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { adminLogin, adminLogout, adminSessionStatus } from "@/lib/admin-auth.functions";
 
 type AdminAuthValue = {
@@ -13,12 +13,14 @@ const AdminAuthContext = createContext<AdminAuthValue | null>(null);
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [ready, setReady] = useState(false);
+  const authVersionRef = useRef(0);
 
   useEffect(() => {
     let mounted = true;
+    const requestVersion = authVersionRef.current;
     adminSessionStatus()
       .then((s) => {
-        if (mounted) setIsAuthenticated(s.authenticated);
+        if (mounted && requestVersion === authVersionRef.current) setIsAuthenticated(s.authenticated);
       })
       .catch(() => {})
       .finally(() => {
@@ -32,7 +34,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const login: AdminAuthValue["login"] = async (password, code) => {
     try {
       await adminLogin({ data: { password, code } });
+      authVersionRef.current += 1;
       setIsAuthenticated(true);
+      setReady(true);
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : "Inloggning misslyckades." };
@@ -45,7 +49,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore
     }
+    authVersionRef.current += 1;
     setIsAuthenticated(false);
+    setReady(true);
   };
 
   return (
