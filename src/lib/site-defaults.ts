@@ -95,6 +95,7 @@ export const siteDefaults: SiteDefaults = {
     contact: "Kontakt",
   },
   home: {
+    heroImage: "",
     eyebrow: "Klinisk peptidhudvård",
     title: "Vetenskap för en synligt friskare hud.",
     subtitle:
