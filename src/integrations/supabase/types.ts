@@ -324,6 +324,48 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          badge: string | null
+          created_at: string
+          id: string
+          image: string
+          name: string
+          old_price_ore: number | null
+          price_ore: number
+          slug: string
+          sort_order: number
+          tagline: string
+          updated_at: string
+        }
+        Insert: {
+          badge?: string | null
+          created_at?: string
+          id?: string
+          image?: string
+          name: string
+          old_price_ore?: number | null
+          price_ore: number
+          slug: string
+          sort_order?: number
+          tagline?: string
+          updated_at?: string
+        }
+        Update: {
+          badge?: string | null
+          created_at?: string
+          id?: string
+          image?: string
+          name?: string
+          old_price_ore?: number | null
+          price_ore?: number
+          slug?: string
+          sort_order?: number
+          tagline?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           key: string
