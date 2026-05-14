@@ -41,7 +41,10 @@ function normalizeProductImageUrl(image: string): string {
       url.pathname.startsWith("/storage/v1/object/public/product-images/") ||
       url.pathname.startsWith("/storage/v1/render/image/public/product-images/")
     ) {
-      return `${siteBase}${url.pathname}${url.search}`;
+      // Keep storage images relative to the app origin. Absolute URLs saved
+      // before this fix may point at an internal/API/custom domain that does
+      // not match the visitor's current host and can render as a broken image.
+      return `${url.pathname}${url.search}`;
     }
   } catch {
     // Relative and seed images are already served by the app.
