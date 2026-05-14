@@ -82,12 +82,14 @@ function AdminProductsPage() {
   const [form, setForm] = useState<FormState>(empty);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const startCreate = () => {
     setEditingSlug(null);
     setForm(empty);
     setCreating(true);
     setError(null);
+    setNotice(null);
   };
 
   const startEdit = (p: Product) => {
@@ -95,6 +97,7 @@ function AdminProductsPage() {
     setForm(toForm(p));
     setCreating(false);
     setError(null);
+    setNotice(null);
   };
 
   const cancel = () => {
@@ -119,8 +122,10 @@ function AdminProductsPage() {
     try {
       if (creating) {
         await addProduct(product);
+        setNotice(`Produkten "${product.name}" har lagts till.`);
       } else if (editingSlug) {
         await updateProduct(editingSlug, product);
+        setNotice(`Produkten "${product.name}" har sparats.`);
       }
       cancel();
     } catch (err) {
@@ -129,8 +134,9 @@ function AdminProductsPage() {
       // Zod errors arrive as JSON strings — try to make them readable.
       try {
         const parsed = JSON.parse(msg);
-        if (Array.isArray(parsed) && parsed[0]?.message) {
-          msg = parsed.map((i: { path?: (string | number)[]; message: string }) =>
+        const issues = Array.isArray(parsed) ? parsed : parsed?.issues;
+        if (Array.isArray(issues) && issues[0]?.message) {
+          msg = issues.map((i: { path?: (string | number)[]; message: string }) =>
             `${(i.path ?? []).join(".") || "fält"}: ${i.message}`
           ).join("; ");
         }
