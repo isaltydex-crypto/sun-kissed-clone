@@ -47,11 +47,22 @@ function toForm(p: Product): FormState {
   };
 }
 
+function normalizeSlug(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[åä]/g, "a")
+    .replace(/ö/g, "o")
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function fromForm(f: FormState): Product | null {
   const price = Number(f.price);
   if (!f.slug.trim() || !f.name.trim() || Number.isNaN(price)) return null;
   const product: Product = {
-    slug: f.slug.trim(),
+    slug: normalizeSlug(f.slug),
     name: f.name.trim(),
     tagline: f.tagline.trim(),
     price,
