@@ -297,6 +297,7 @@ function AdminProductsPage() {
                         type="file"
                         accept="image/*"
                         className="hidden"
+                        disabled={uploading}
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           e.target.value = "";
@@ -305,21 +306,37 @@ function AdminProductsPage() {
                             setError("Endast bildfiler tillåts.");
                             return;
                           }
-                          if (file.size > 2 * 1024 * 1024) {
-                            setError("Bilden får vara högst 2 MB.");
+                          if (file.size > 5 * 1024 * 1024) {
+                            setError("Bilden får vara högst 5 MB.");
                             return;
                           }
                           setError(null);
-                          const dataUrl = await new Promise<string>((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = () => resolve(String(reader.result));
-                            reader.onerror = () => reject(reader.error);
-                            reader.readAsDataURL(file);
-                          });
-                          setForm((f) => ({ ...f, image: dataUrl }));
+                          setUploading(true);
+                          try {
+                            const signed = await createProductImageUploadUrl({
+                              data: { filename: file.name, contentType: file.type },
+                            });
+                            const { error: upErr } = await supabase.storage
+                              .from(signed.bucket)
+                              .uploadToSignedUrl(signed.path, signed.token, file, {
+                                contentType: file.type,
+                                upsert: false,
+                              });
+                            if (upErr) throw upErr;
+                            setForm((f) => ({ ...f, image: signed.publicUrl }));
+                          } catch (err) {
+                            console.error("Image upload failed", err);
+                            setError(
+                              err instanceof Error
+                                ? `Bilden kunde inte laddas upp: ${err.message}`
+                                : "Bilden kunde inte laddas upp.",
+                            );
+                          } finally {
+                            setUploading(false);
+                          }
                         }}
                       />
-                      Välj bild från datorn
+                      {uploading ? "Laddar upp…" : "Välj bild från datorn"}
                     </label>
                     <input
                       className="input"
