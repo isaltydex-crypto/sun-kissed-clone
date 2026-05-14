@@ -86,10 +86,6 @@ function PrivacyPage() {
                 Berättigat intresse (artikel 6.1.f GDPR) — säkerhet,
                 bedrägeriprevention och förbättring av tjänsten.
               </li>
-              <li>
-                Samtycke (artikel 6.1.a GDPR) — för nyhetsbrev. Du kan
-                återkalla samtycket när som helst.
-              </li>
             </ul>
           </section>
 

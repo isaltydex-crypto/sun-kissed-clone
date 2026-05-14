@@ -8,7 +8,7 @@ const STATIC_PATHS = [
   { path: "/produkter", changefreq: "weekly",  priority: 0.9 },
   { path: "/om-oss",    changefreq: "monthly", priority: 0.6 },
   { path: "/kontakt",   changefreq: "monthly", priority: 0.6 },
-  { path: "/faq",       changefreq: "monthly", priority: 0.5 },
+  
 ];
 
 function xmlEscape(s: string) {

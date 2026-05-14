@@ -21,7 +21,6 @@ export function SiteHeader() {
     { to: "/", label: content.menu.home },
     { to: "/produkter", label: content.menu.products },
     { to: "/om-oss", label: content.menu.about },
-    { to: "/faq", label: content.menu.faq },
     { to: "/kontakt", label: content.menu.contact },
   ];
   const customMenuPages = pages.filter((p) => p.in_menu);
