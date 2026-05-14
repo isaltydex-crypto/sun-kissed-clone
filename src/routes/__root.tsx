@@ -26,18 +26,42 @@ function NotFoundComponent() {
   );
 }
 
+const SITE_URL =
+  (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/+$/, "") ||
+  "https://peptivalabgroup.com";
+
 const ORG_JSON_LD = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": `${SITE_URL}/#organization`,
   name: "PeptivaLab Group",
-  url: "https://peptivalabgroup.com",
-  logo: "https://peptivalabgroup.com/favicon.ico",
+  url: SITE_URL,
+  logo: `${SITE_URL}/og-image.jpg`,
+  description:
+    "Svensk e-handel för premium peptidhudvård — kliniskt formulerade serum, boosters och krämer.",
+  areaServed: "SE",
   sameAs: [] as string[],
   contactPoint: [{
     "@type": "ContactPoint",
     contactType: "customer support",
     availableLanguage: ["sv", "en"],
+    email: "kundservice@peptivalabgroup.com",
   }],
+});
+
+const WEBSITE_JSON_LD = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  url: SITE_URL,
+  name: "PeptivaLab Group",
+  inLanguage: "sv-SE",
+  publisher: { "@id": `${SITE_URL}/#organization` },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${SITE_URL}/produkter?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
+  },
 });
 
 const PLAUSIBLE_DOMAIN =
