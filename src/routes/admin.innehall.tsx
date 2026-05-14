@@ -84,6 +84,11 @@ function AdminContentPage() {
         </Section>
 
         <Section title="Startsida" status={status.home} onSave={() => saveSection("home")}>
+          <ImageField
+            label="Hero-bild"
+            value={content.home.heroImage}
+            onChange={(v) => updateField("home", "heroImage", v)}
+          />
           <TextField label="Eyebrow" value={content.home.eyebrow} onChange={(v) => updateField("home", "eyebrow", v)} />
           <TextField label="Rubrik" value={content.home.title} onChange={(v) => updateField("home", "title", v)} />
           <TextArea label="Underrubrik" value={content.home.subtitle} onChange={(v) => updateField("home", "subtitle", v)} />
