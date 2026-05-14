@@ -118,6 +118,19 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
+### `fix-product-images-bucket.sh`
+**Use when:** uploading a product image in `/admin/produkter` fails with **"Bilden kunde inte laddas upp: The related resource does not exist"**.
+
+**What it does:**
+- Confirms the database is reachable and the `storage.buckets` table exists
+- Creates the public `product-images` bucket (idempotent) and the public-read RLS policy on `storage.objects`
+- Restarts the `storage` and `rest` services so they pick up the new bucket
+
+**Typical fixes it points to:** the self-hosted database volume was created before the storage bucket was added to the init schema. New installs get the bucket automatically from `initdb/zz-app-schema.sql`.
+
+---
+
+
 ### `check-pc-access.ps1` (Windows / PowerShell — **standalone**, runs on the affected PC)
 **Use when:** the site loads from your phone / other devices but **not from a specific PC**.
 
