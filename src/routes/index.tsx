@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { pageHead } from "@/lib/seo";
 import { Star, Truck, Shield, Leaf, FlaskConical } from "lucide-react";
 import logo from "@/assets/logo.png";
-import hero from "@/assets/hero-products.jpg";
+
 import { useSiteContent } from "@/context/SiteContentContext";
 
 export const Route = createFileRoute("/")({
@@ -65,18 +65,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Quiet hero image */}
-      <section className="bg-background pb-16 md:pb-24">
-        <div className="mx-auto max-w-5xl px-4">
-          <img
-            src={c.home.heroImage || hero}
-            alt="PeptivaLab Group peptidserum och krämer"
-            width={1600}
-            height={1024}
-            className="w-full rounded-2xl object-cover shadow-[var(--shadow-warm)]"
-          />
-        </div>
-      </section>
+
 
       {/* Trust strip */}
       <section className="border-y border-border bg-sand">
