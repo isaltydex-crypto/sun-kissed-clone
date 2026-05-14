@@ -163,6 +163,11 @@ docker compose build app
 docker compose up -d app
 ```
 
+This rebuilds only the app image and preserves the database volumes. Do **not**
+use `docker compose down -v`, `docker volume prune`, or `docker system prune --volumes`
+unless you intentionally want to erase products, orders, uploaded images, and
+all other stored data.
+
 (Or wire a GitHub Action to do this on push — see `self-host/deploy.example.yml`.)
 
 ---
