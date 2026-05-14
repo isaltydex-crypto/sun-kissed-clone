@@ -24,6 +24,7 @@ volumes:
   ircd_data: {}
   backups: {}
   app_logs: {}
+  app_uploads: {}
 
 services:
   # --------------------------------------------------------------------------
