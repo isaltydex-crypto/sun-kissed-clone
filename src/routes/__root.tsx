@@ -84,15 +84,19 @@ export const Route = createRootRoute({
       { property: "og:site_name", content: "PeptivaLab Group" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#0c2340" },
+      { property: "og:image", content: `${SITE_URL}/og-image.jpg` },
+      { name: "twitter:image", content: `${SITE_URL}/og-image.jpg` },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" },
+      { rel: "alternate", type: "application/xml", href: `${SITE_URL}/sitemap.xml`, title: "Sitemap" },
     ],
     scripts: [
       { type: "application/ld+json", children: ORG_JSON_LD },
+      { type: "application/ld+json", children: WEBSITE_JSON_LD },
       ...(PLAUSIBLE_DOMAIN
         ? [{ src: PLAUSIBLE_SRC, defer: true, "data-domain": PLAUSIBLE_DOMAIN }]
         : []),
