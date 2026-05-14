@@ -344,3 +344,35 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_channels;
   END IF;
 END $$;
+
+-- ---------------------------------------------------------------------------
+-- Storage bucket: product-images (public read, admin-only write via service role)
+-- The admin UI uploads product images via signed upload URLs; the bucket row
+-- must exist in storage.buckets or the API returns
+-- "The related resource does not exist".
+-- ---------------------------------------------------------------------------
+DO $$
+BEGIN
+  IF to_regclass('storage.buckets') IS NOT NULL THEN
+    INSERT INTO storage.buckets (id, name, public)
+    VALUES ('product-images', 'product-images', true)
+    ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF to_regclass('storage.objects') IS NOT NULL THEN
+    -- Public read access for product images
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_policies
+      WHERE schemaname = 'storage' AND tablename = 'objects'
+        AND policyname = 'Public read product-images'
+    ) THEN
+      CREATE POLICY "Public read product-images"
+        ON storage.objects FOR SELECT
+        USING (bucket_id = 'product-images');
+    END IF;
+  END IF;
+END $$;
+
