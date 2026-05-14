@@ -81,11 +81,96 @@ function AdminProductsPage() {
   const { products, addProduct, updateProduct, removeProduct } = useProducts();
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [serverUploading, setServerUploading] = useState(false);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(empty);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [gallery, setGallery] = useState<
+    { name: string; url: string; size: number; mtime: number }[] | null
+  >(null);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+
+  const loadGallery = async () => {
+    setGalleryLoading(true);
+    try {
+      const res = await fetch("/api/admin/product-images", { credentials: "include" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as {
+        images: { name: string; url: string; size: number; mtime: number }[];
+      };
+      setGallery(data.images);
+    } catch (err) {
+      console.error("Load gallery failed", err);
+      setError(
+        err instanceof Error
+          ? `Kunde inte hämta bilder från servern: ${err.message}`
+          : "Kunde inte hämta bilder från servern.",
+      );
+    } finally {
+      setGalleryLoading(false);
+    }
+  };
+
+  const uploadToServer = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setError("Endast bildfiler tillåts.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError("Bilden får vara högst 8 MB.");
+      return;
+    }
+    setError(null);
+    setServerUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/product-images", {
+        method: "POST",
+        credentials: "include",
+        body: fd,
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || `HTTP ${res.status}`);
+      }
+      const data = (await res.json()) as { name: string; url: string };
+      setForm((f) => ({ ...f, image: data.url }));
+      if (gallery) setGallery([{ ...data, size: file.size, mtime: Date.now() }, ...gallery]);
+    } catch (err) {
+      console.error("Server upload failed", err);
+      setError(
+        err instanceof Error
+          ? `Bilden kunde inte laddas upp till servern: ${err.message}`
+          : "Bilden kunde inte laddas upp till servern.",
+      );
+    } finally {
+      setServerUploading(false);
+    }
+  };
+
+  const deleteFromServer = async (name: string) => {
+    if (!confirm(`Ta bort ${name} från servern?`)) return;
+    try {
+      const res = await fetch(
+        `/api/admin/product-images?name=${encodeURIComponent(name)}`,
+        { method: "DELETE", credentials: "include" },
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || `HTTP ${res.status}`);
+      }
+      setGallery((g) => (g ? g.filter((i) => i.name !== name) : g));
+    } catch (err) {
+      console.error("Delete failed", err);
+      setError(
+        err instanceof Error ? `Kunde inte ta bort bilden: ${err.message}` : "Kunde inte ta bort bilden.",
+      );
+    }
+  };
 
   const startCreate = () => {
     setEditingSlug(null);
@@ -333,6 +418,32 @@ function AdminProductsPage() {
                       />
                       {uploading ? "Laddar upp…" : "Välj bild från datorn"}
                     </label>
+                    <div className="flex flex-wrap gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs font-medium hover:bg-muted">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={serverUploading}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            e.target.value = "";
+                            if (file) await uploadToServer(file);
+                          }}
+                        />
+                        {serverUploading ? "Laddar upp…" : "Ladda upp till servern"}
+                      </label>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs font-medium hover:bg-muted"
+                        onClick={async () => {
+                          setGalleryOpen((v) => !v);
+                          if (!gallery) await loadGallery();
+                        }}
+                      >
+                        {galleryOpen ? "Dölj serverbilder" : "Välj från serverbilder"}
+                      </button>
+                    </div>
                     <input
                       className="input"
                       value={form.image.startsWith("data:") ? "" : form.image}
@@ -349,8 +460,57 @@ function AdminProductsPage() {
                       </button>
                     )}
                     <p className="text-[11px] text-muted-foreground">
-                      JPG/PNG/WebP/AVIF, max 5 MB. Laddas upp direkt till bildlagret.
+                      JPG/PNG/WebP/AVIF, max 5–8 MB. Bildlagret eller servern — välj den som funkar.
                     </p>
+                    {galleryOpen && (
+                      <div className="mt-2 rounded-md border border-border bg-muted/40 p-2">
+                        {galleryLoading && (
+                          <p className="text-xs text-muted-foreground">Hämtar bilder…</p>
+                        )}
+                        {!galleryLoading && gallery && gallery.length === 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            Inga bilder uppladdade på servern ännu.
+                          </p>
+                        )}
+                        {!galleryLoading && gallery && gallery.length > 0 && (
+                          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                            {gallery.map((img) => {
+                              const selected = form.image === img.url;
+                              return (
+                                <div
+                                  key={img.name}
+                                  className={`group relative aspect-square overflow-hidden rounded border ${
+                                    selected ? "border-ocean-deep ring-2 ring-ocean-deep" : "border-border"
+                                  }`}
+                                >
+                                  <button
+                                    type="button"
+                                    className="block h-full w-full"
+                                    onClick={() => setForm((f) => ({ ...f, image: img.url }))}
+                                    title={img.name}
+                                  >
+                                    <img
+                                      src={img.url}
+                                      alt={img.name}
+                                      className="h-full w-full object-cover"
+                                      loading="lazy"
+                                    />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteFromServer(img.name)}
+                                    className="absolute right-1 top-1 rounded bg-background/80 px-1 text-[10px] text-destructive opacity-0 transition group-hover:opacity-100"
+                                    title="Ta bort"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </Field>

@@ -35,6 +35,15 @@
     max_size 2MB
   }
 
+  # Admin product-image uploads can exceed the default 2MB cap.
+  @admin_uploads path /api/admin/product-images*
+  handle @admin_uploads {
+    request_body {
+      max_size 20MB
+    }
+    reverse_proxy app:3000
+  }
+
   # Soft brute-force throttle on the admin login endpoint.
   # Caddy's built-in `throttle` directive isn't shipped; we use a coarse
   # `request_body max_size` above + a slow `respond` delay below.

@@ -38,6 +38,8 @@ import { Route as ApiInternalNotifyRouteImport } from './routes/api/internal/not
 import { Route as ApiInternalDiagRouteImport } from './routes/api/internal/diag'
 import { Route as ApiDiscountValidateRouteImport } from './routes/api/discount.validate'
 import { Route as ApiCryptoCreateInvoiceRouteImport } from './routes/api/crypto.create-invoice'
+import { Route as ApiAdminProductImagesRouteImport } from './routes/api/admin/product-images'
+import { Route as ApiPublicUploadsSplatRouteImport } from './routes/api/public/uploads.$'
 import { Route as ApiPublicCryptoWebhookRouteImport } from './routes/api/public/crypto.webhook'
 import { Route as ApiCryptoOrderOrderIdRouteImport } from './routes/api/crypto.order.$orderId'
 
@@ -186,6 +188,16 @@ const ApiCryptoCreateInvoiceRoute = ApiCryptoCreateInvoiceRouteImport.update({
   path: '/api/crypto/create-invoice',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminProductImagesRoute = ApiAdminProductImagesRouteImport.update({
+  id: '/api/admin/product-images',
+  path: '/api/admin/product-images',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicUploadsSplatRoute = ApiPublicUploadsSplatRouteImport.update({
+  id: '/api/public/uploads/$',
+  path: '/api/public/uploads/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCryptoWebhookRoute = ApiPublicCryptoWebhookRouteImport.update({
   id: '/api/public/crypto/webhook',
   path: '/api/public/crypto/webhook',
@@ -221,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/admin/product-images': typeof ApiAdminProductImagesRoute
   '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
   '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/diag': typeof ApiInternalDiagRoute
@@ -229,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
+  '/api/public/uploads/$': typeof ApiPublicUploadsSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -254,6 +268,7 @@ export interface FileRoutesByTo {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/admin/product-images': typeof ApiAdminProductImagesRoute
   '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
   '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/diag': typeof ApiInternalDiagRoute
@@ -262,6 +277,7 @@ export interface FileRoutesByTo {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
+  '/api/public/uploads/$': typeof ApiPublicUploadsSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -288,6 +304,7 @@ export interface FileRoutesById {
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
   '/sida/$slug': typeof SidaSlugRoute
+  '/api/admin/product-images': typeof ApiAdminProductImagesRoute
   '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
   '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/diag': typeof ApiInternalDiagRoute
@@ -296,6 +313,7 @@ export interface FileRoutesById {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
+  '/api/public/uploads/$': typeof ApiPublicUploadsSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -323,6 +341,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/admin/product-images'
     | '/api/crypto/create-invoice'
     | '/api/discount/validate'
     | '/api/internal/diag'
@@ -331,6 +350,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
+    | '/api/public/uploads/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -356,6 +376,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/admin/product-images'
     | '/api/crypto/create-invoice'
     | '/api/discount/validate'
     | '/api/internal/diag'
@@ -364,6 +385,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
+    | '/api/public/uploads/$'
   id:
     | '__root__'
     | '/'
@@ -389,6 +411,7 @@ export interface FileRouteTypes {
     | '/admin/sidor'
     | '/checkout/bekraftelse'
     | '/sida/$slug'
+    | '/api/admin/product-images'
     | '/api/crypto/create-invoice'
     | '/api/discount/validate'
     | '/api/internal/diag'
@@ -397,6 +420,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
+    | '/api/public/uploads/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -413,6 +437,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SidaSlugRoute: typeof SidaSlugRoute
+  ApiAdminProductImagesRoute: typeof ApiAdminProductImagesRoute
   ApiCryptoCreateInvoiceRoute: typeof ApiCryptoCreateInvoiceRoute
   ApiDiscountValidateRoute: typeof ApiDiscountValidateRoute
   ApiInternalDiagRoute: typeof ApiInternalDiagRoute
@@ -421,6 +446,7 @@ export interface RootRouteChildren {
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiCryptoOrderOrderIdRoute: typeof ApiCryptoOrderOrderIdRoute
   ApiPublicCryptoWebhookRoute: typeof ApiPublicCryptoWebhookRoute
+  ApiPublicUploadsSplatRoute: typeof ApiPublicUploadsSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -628,6 +654,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCryptoCreateInvoiceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/product-images': {
+      id: '/api/admin/product-images'
+      path: '/api/admin/product-images'
+      fullPath: '/api/admin/product-images'
+      preLoaderRoute: typeof ApiAdminProductImagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/uploads/$': {
+      id: '/api/public/uploads/$'
+      path: '/api/public/uploads/$'
+      fullPath: '/api/public/uploads/$'
+      preLoaderRoute: typeof ApiPublicUploadsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/crypto/webhook': {
       id: '/api/public/crypto/webhook'
       path: '/api/public/crypto/webhook'
@@ -697,6 +737,7 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SidaSlugRoute: SidaSlugRoute,
+  ApiAdminProductImagesRoute: ApiAdminProductImagesRoute,
   ApiCryptoCreateInvoiceRoute: ApiCryptoCreateInvoiceRoute,
   ApiDiscountValidateRoute: ApiDiscountValidateRoute,
   ApiInternalDiagRoute: ApiInternalDiagRoute,
@@ -705,6 +746,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiCryptoOrderOrderIdRoute: ApiCryptoOrderOrderIdRoute,
   ApiPublicCryptoWebhookRoute: ApiPublicCryptoWebhookRoute,
+  ApiPublicUploadsSplatRoute: ApiPublicUploadsSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
