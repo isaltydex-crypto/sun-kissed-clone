@@ -23,6 +23,7 @@ volumes:
   caddy_config: {}
   ircd_data: {}
   backups: {}
+  app_logs: {}
 
 services:
   # --------------------------------------------------------------------------
@@ -258,6 +259,10 @@ services:
       PAYMENTO_SPEED: ${PAYMENTO_SPEED:-1}
       CRYPTO_SUCCESS_URL: ${CRYPTO_SUCCESS_URL:-}
       CRYPTO_CANCEL_URL: ${CRYPTO_CANCEL_URL:-}
+      # Plain-text admin audit log (JSON-lines, appended).
+      ADMIN_LOG_FILE: /var/log/peptiva/admin-actions.log
+    volumes:
+      - app_logs:/var/log/peptiva
     networks: [pvl]
 
   # --------------------------------------------------------------------------

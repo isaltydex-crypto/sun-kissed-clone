@@ -3,8 +3,9 @@
  * built-ins (crypto, bcryptjs) never end up in the client bundle.
  */
 import { createHmac, timingSafeEqual, randomBytes } from "crypto";
+import { appendFile, mkdir } from "fs/promises";
+import { dirname } from "path";
 import bcrypt from "bcryptjs";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const SESSION_COOKIE = "pvl_admin_session";
 export const SESSION_TTL_SECONDS = 60 * 60 * 12; // 12h
@@ -89,6 +90,24 @@ setInterval(() => {
   for (const [k, v] of buckets) if (v.updatedAt < cutoff) buckets.delete(k);
 }, 1000 * 60 * 5).unref?.();
 
+/**
+ * Append admin audit events as JSON lines to a plain text file on disk.
+ * No database row is created. Override the location with ADMIN_LOG_FILE.
+ * Falls back silently if the filesystem is read-only (e.g. edge runtime).
+ */
+const ADMIN_LOG_FILE =
+  process.env.ADMIN_LOG_FILE || "/var/log/peptiva/admin-actions.log";
+let logDirReady: Promise<void> | null = null;
+
+async function ensureLogDir(file: string) {
+  if (!logDirReady) {
+    logDirReady = mkdir(dirname(file), { recursive: true })
+      .then(() => undefined)
+      .catch(() => undefined);
+  }
+  await logDirReady;
+}
+
 export async function logAdminAction(input: {
   action: string;
   target?: string;
@@ -96,15 +115,20 @@ export async function logAdminAction(input: {
   ip?: string;
   userAgent?: string;
 }) {
+  const entry = {
+    ts: new Date().toISOString(),
+    action: input.action,
+    target: input.target ?? null,
+    ip: input.ip ?? null,
+    user_agent: input.userAgent ?? null,
+    detail: input.detail ?? {},
+  };
   try {
-    await supabaseAdmin.from("admin_actions").insert({
-      action: input.action,
-      target: input.target ?? null,
-      detail: (input.detail ?? {}) as never,
-      ip: input.ip ?? null,
-      user_agent: input.userAgent ?? null,
-    });
+    await ensureLogDir(ADMIN_LOG_FILE);
+    await appendFile(ADMIN_LOG_FILE, JSON.stringify(entry) + "\n", "utf8");
   } catch (err) {
-    console.error("admin audit log failed", err);
+    // Last-resort fallback: still surface the event in container stdout.
+    console.error("admin audit log file write failed", err, entry);
   }
 }
+

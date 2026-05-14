@@ -147,14 +147,3 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const listAdminActions = createServerFn({ method: "GET" })
-  .middleware([adminAuthMiddleware])
-  .handler(async () => {
-    const { data, error } = await supabaseAdmin
-      .from("admin_actions")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(500);
-    if (error) throw new Error(error.message);
-    return { actions: data ?? [] };
-  });
