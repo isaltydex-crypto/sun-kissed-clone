@@ -355,7 +355,7 @@ function AdminProductsPage() {
                       </button>
                     )}
                     <p className="text-[11px] text-muted-foreground">
-                      JPG/PNG/WebP, max 2 MB. Sparas direkt i butiken.
+                      JPG/PNG/WebP/AVIF, max 5 MB. Laddas upp direkt till bildlagret.
                     </p>
                   </div>
                 </div>
