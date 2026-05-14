@@ -40,7 +40,8 @@ function AdminLoginPage() {
     const result = await login(password, totpRequired ? code : undefined);
     setBusy(false);
     if (result.ok) {
-      navigate({ to: redirect });
+      const target = redirect && redirect.startsWith("/admin") ? redirect : "/admin/produkter";
+      navigate({ to: target as "/admin/produkter", replace: true });
     } else {
       setError(result.error);
     }
