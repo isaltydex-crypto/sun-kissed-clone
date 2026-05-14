@@ -220,6 +220,9 @@ services:
       PUBLIC_SITE_URL: https://${SITE_DOMAIN}
       # Server-side Supabase (use internal Kong, faster + no TLS overhead)
       SUPABASE_URL: http://kong:8000
+      # Externally-reachable Supabase URL — used when the server returns
+      # storage public URLs to the browser. Must match VITE_SUPABASE_URL.
+      SUPABASE_PUBLIC_URL: ${PUBLIC_SUPABASE_URL}
       SUPABASE_PUBLISHABLE_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
       # Admin
