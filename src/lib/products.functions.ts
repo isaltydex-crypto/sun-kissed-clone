@@ -46,7 +46,7 @@ const ProductInput = z.object({
   tagline: z.string().trim().max(400).default(""),
   price: z.number().int().min(0).max(10_000_000),
   oldPrice: z.number().int().min(0).max(10_000_000).optional().nullable(),
-  image: z.string().max(2_500_000).default(""),
+  image: z.string().max(8_000_000).default(""),
   badge: z.string().trim().max(60).optional().nullable(),
 });
 
