@@ -35,8 +35,7 @@ export const createProductImageUploadUrl = createServerFn({ method: "POST" })
   .inputValidator((input) => Input.parse(input))
   .handler(async ({ data }) => {
     const path = safeName(data.filename);
-    const { data: signed, error } = await supabaseAdmin
-      .storage
+    const { data: signed, error } = await supabaseAdmin.storage
       .from(BUCKET)
       .createSignedUploadUrl(path);
     if (error || !signed) {
