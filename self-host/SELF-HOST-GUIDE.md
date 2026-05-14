@@ -701,6 +701,11 @@ docker compose up -d app
 # Rebuild only the app container after a code change
 docker compose build app && docker compose up -d app
 
+# Never use these during deploy unless you want to erase stored data:
+# docker compose down -v
+# docker volume prune
+# docker system prune --volumes
+
 # Manual database backup to a local file
 docker compose exec -T db pg_dump -U postgres postgres > backup.sql
 
