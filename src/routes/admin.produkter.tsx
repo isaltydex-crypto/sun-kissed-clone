@@ -3,6 +3,8 @@ import { useState, type ReactNode } from "react";
 import { Pencil, Trash2, Plus, X, Save, LogOut } from "lucide-react";
 import { useProducts } from "@/context/ProductsContext";
 import { useAdminAuth } from "@/context/AdminAuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { createProductImageUploadUrl } from "@/lib/product-images.functions";
 import type { Product } from "@/data/products";
 
 export const Route = createFileRoute("/admin/produkter")({
@@ -78,6 +80,7 @@ function AdminProductsPage() {
   const { logout } = useAdminAuth();
   const { products, addProduct, updateProduct, removeProduct } = useProducts();
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(empty);
   const [creating, setCreating] = useState(false);
@@ -295,6 +298,7 @@ function AdminProductsPage() {
                         type="file"
                         accept="image/*"
                         className="hidden"
+                        disabled={uploading}
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           e.target.value = "";
@@ -303,21 +307,37 @@ function AdminProductsPage() {
                             setError("Endast bildfiler tillåts.");
                             return;
                           }
-                          if (file.size > 2 * 1024 * 1024) {
-                            setError("Bilden får vara högst 2 MB.");
+                          if (file.size > 5 * 1024 * 1024) {
+                            setError("Bilden får vara högst 5 MB.");
                             return;
                           }
                           setError(null);
-                          const dataUrl = await new Promise<string>((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = () => resolve(String(reader.result));
-                            reader.onerror = () => reject(reader.error);
-                            reader.readAsDataURL(file);
-                          });
-                          setForm((f) => ({ ...f, image: dataUrl }));
+                          setUploading(true);
+                          try {
+                            const signed = await createProductImageUploadUrl({
+                              data: { filename: file.name, contentType: file.type },
+                            });
+                            const { error: upErr } = await supabase.storage
+                              .from(signed.bucket)
+                              .uploadToSignedUrl(signed.path, signed.token, file, {
+                                contentType: file.type,
+                                upsert: false,
+                              });
+                            if (upErr) throw upErr;
+                            setForm((f) => ({ ...f, image: signed.publicUrl }));
+                          } catch (err) {
+                            console.error("Image upload failed", err);
+                            setError(
+                              err instanceof Error
+                                ? `Bilden kunde inte laddas upp: ${err.message}`
+                                : "Bilden kunde inte laddas upp.",
+                            );
+                          } finally {
+                            setUploading(false);
+                          }
                         }}
                       />
-                      Välj bild från datorn
+                      {uploading ? "Laddar upp…" : "Välj bild från datorn"}
                     </label>
                     <input
                       className="input"
@@ -335,7 +355,7 @@ function AdminProductsPage() {
                       </button>
                     )}
                     <p className="text-[11px] text-muted-foreground">
-                      JPG/PNG/WebP, max 2 MB. Sparas direkt i butiken.
+                      JPG/PNG/WebP/AVIF, max 5 MB. Laddas upp direkt till bildlagret.
                     </p>
                   </div>
                 </div>
@@ -359,10 +379,10 @@ function AdminProductsPage() {
               </button>
               <button
                 onClick={save}
-                disabled={saving}
+                disabled={saving || uploading}
                 className="inline-flex items-center gap-2 rounded-md bg-ocean-deep px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-ocean disabled:opacity-50"
               >
-                <Save className="h-4 w-4" /> {saving ? "Sparar…" : "Spara"}
+                <Save className="h-4 w-4" /> {saving ? "Sparar…" : uploading ? "Vänta…" : "Spara"}
               </button>
             </div>
           </div>
