@@ -6,9 +6,6 @@ import { createHmac, timingSafeEqual, randomBytes } from "crypto";
 import { appendFile, mkdir } from "fs/promises";
 import { dirname } from "path";
 import bcrypt from "bcryptjs";
-import { supabaseAdmin as _supabaseAdmin } from "@/integrations/supabase/client.server";
-// Keep the import side-effect (env validation) without flagging an unused symbol.
-void _supabaseAdmin;
 
 export const SESSION_COOKIE = "pvl_admin_session";
 export const SESSION_TTL_SECONDS = 60 * 60 * 12; // 12h
