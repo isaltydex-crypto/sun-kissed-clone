@@ -39,10 +39,23 @@ export const createProductImageUploadUrl = createServerFn({ method: "POST" })
       throw new Error(error?.message || "Kunde inte skapa uppladdningsadress.");
     }
     const { data: pub } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path);
+    // The server-side Supabase client may be configured with an internal URL
+    // (e.g. http://kong:8000 in self-host) that the browser cannot reach.
+    // Rewrite the host to the externally-reachable URL when one is provided.
+    const publicBase = (process.env.SUPABASE_PUBLIC_URL || "").replace(/\/+$/, "");
+    let publicUrl = pub.publicUrl;
+    if (publicBase) {
+      try {
+        const u = new URL(pub.publicUrl);
+        publicUrl = `${publicBase}${u.pathname}${u.search}`;
+      } catch {
+        // keep original
+      }
+    }
     return {
       bucket: BUCKET,
       path,
       token: signed.token,
-      publicUrl: pub.publicUrl,
+      publicUrl,
     };
   });
