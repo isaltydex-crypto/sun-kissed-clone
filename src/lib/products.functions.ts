@@ -7,6 +7,20 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { adminAuthMiddleware } from "@/server/admin-middleware";
 import type { Product } from "@/data/products";
 
+const ProductInput = z.object({
+  slug: z.string().trim().min(1).max(120).regex(/^[a-z0-9-]+$/, "Slug måste vara små bokstäver, siffror och bindestreck"),
+  name: z.string().trim().min(1).max(200),
+  tagline: z.string().trim().max(400).default(""),
+  price: z.number().int().min(0).max(10_000_000),
+  oldPrice: z.number().int().min(0).max(10_000_000).optional().nullable(),
+  image: z.string().max(8_000_000).default(""),
+  badge: z.string().trim().max(60).optional().nullable(),
+});
+
+const ProductSnapshot = z.object({
+  products: z.array(ProductInput),
+}).passthrough();
+
 type Row = {
   slug: string;
   name: string;
@@ -30,24 +44,97 @@ function rowToProduct(r: Row): Product {
   };
 }
 
-export const listProducts = createServerFn({ method: "GET" }).handler(async () => {
+function snapshotFile() {
+  return process.env.PRODUCTS_SNAPSHOT_FILE || "";
+}
+
+async function fetchProductRows(): Promise<Row[]> {
   const { data, error } = await supabaseAdmin
     .from("products")
     .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
-  return { products: (data ?? []).map((r) => rowToProduct(r as Row)) };
-});
+  return (data ?? []) as Row[];
+}
 
-const ProductInput = z.object({
-  slug: z.string().trim().min(1).max(120).regex(/^[a-z0-9-]+$/, "Slug måste vara små bokstäver, siffror och bindestreck"),
-  name: z.string().trim().min(1).max(200),
-  tagline: z.string().trim().max(400).default(""),
-  price: z.number().int().min(0).max(10_000_000),
-  oldPrice: z.number().int().min(0).max(10_000_000).optional().nullable(),
-  image: z.string().max(8_000_000).default(""),
-  badge: z.string().trim().max(60).optional().nullable(),
+async function writeProductsSnapshot(products: Product[]) {
+  const file = snapshotFile();
+  if (!file) return;
+  try {
+    const [{ mkdir, rename, writeFile }, { dirname }] = await Promise.all([
+      import("fs/promises"),
+      import("path"),
+    ]);
+    await mkdir(dirname(file), { recursive: true });
+    const tmp = `${file}.${process.pid}.tmp`;
+    await writeFile(tmp, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), products }, null, 2), "utf8");
+    await rename(tmp, file);
+  } catch (err) {
+    console.warn("product snapshot write failed", err);
+  }
+}
+
+async function readProductsSnapshot(): Promise<Product[] | null> {
+  const file = snapshotFile();
+  if (!file) return null;
+  try {
+    const { readFile } = await import("fs/promises");
+    const parsed = ProductSnapshot.parse(JSON.parse(await readFile(file, "utf8")));
+    return parsed.products.map((p) => ({
+      slug: p.slug,
+      name: p.name,
+      tagline: p.tagline,
+      price: p.price,
+      oldPrice: p.oldPrice ?? undefined,
+      image: p.image,
+      badge: p.badge ?? undefined,
+    }));
+  } catch (err) {
+    const code = typeof err === "object" && err !== null && "code" in err ? String((err as { code?: unknown }).code) : "";
+    if (code !== "ENOENT") console.warn("product snapshot read failed", err);
+    return null;
+  }
+}
+
+async function restoreProductsFromSnapshot() {
+  const products = await readProductsSnapshot();
+  if (!products?.length) return null;
+
+  const rows = products.map((p, index) => ({
+    slug: p.slug,
+    name: p.name,
+    tagline: p.tagline ?? "",
+    price_ore: p.price * 100,
+    old_price_ore: p.oldPrice != null ? p.oldPrice * 100 : null,
+    image: p.image ?? "",
+    badge: p.badge ?? null,
+    sort_order: index,
+  }));
+
+  const { error } = await supabaseAdmin.from("products").upsert(rows as never, { onConflict: "slug" });
+  if (error) throw new Error(error.message);
+  return products;
+}
+
+async function persistCurrentProductsSnapshot() {
+  try {
+    const products = (await fetchProductRows()).map(rowToProduct);
+    await writeProductsSnapshot(products);
+  } catch (err) {
+    console.warn("product snapshot refresh failed", err);
+  }
+}
+
+export const listProducts = createServerFn({ method: "GET" }).handler(async () => {
+  const products = (await fetchProductRows()).map(rowToProduct);
+  if (products.length > 0) {
+    await writeProductsSnapshot(products);
+    return { products };
+  }
+
+  const restored = await restoreProductsFromSnapshot();
+  return { products: restored ?? products };
 });
 
 export const createProduct = createServerFn({ method: "POST" })
@@ -68,7 +155,9 @@ export const createProduct = createServerFn({ method: "POST" })
       .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order")
       .single();
     if (error) throw new Error(error.message);
-    return { ok: true, product: rowToProduct(created as Row) };
+    const product = rowToProduct(created as Row);
+    await persistCurrentProductsSnapshot();
+    return { ok: true, product };
   });
 
 const UpdateInput = ProductInput.extend({ originalSlug: z.string().min(1).max(120) });
@@ -93,7 +182,9 @@ export const updateProductFn = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!updated) throw new Error("Produkten kunde inte hittas. Ladda om sidan och försök igen.");
-    return { ok: true, product: rowToProduct(updated as Row) };
+    const product = rowToProduct(updated as Row);
+    await persistCurrentProductsSnapshot();
+    return { ok: true, product };
   });
 
 export const deleteProductFn = createServerFn({ method: "POST" })
@@ -102,5 +193,6 @@ export const deleteProductFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { error } = await supabaseAdmin.from("products").delete().eq("slug", data.slug);
     if (error) throw new Error(error.message);
+    await persistCurrentProductsSnapshot();
     return { ok: true };
   });

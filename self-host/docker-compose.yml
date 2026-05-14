@@ -261,6 +261,10 @@ services:
       CRYPTO_CANCEL_URL: ${CRYPTO_CANCEL_URL:-}
       # Plain-text admin audit log (JSON-lines, appended).
       ADMIN_LOG_FILE: /var/log/peptiva/admin-actions.log
+      # Extra catalog snapshot kept in the persistent app_logs volume. If the
+      # products table is ever empty after an app rebuild / DB hiccup, the app
+      # restores the latest saved products from this file automatically.
+      PRODUCTS_SNAPSHOT_FILE: /var/log/peptiva/products-snapshot.json
     volumes:
       - app_logs:/var/log/peptiva
     networks: [pvl]
