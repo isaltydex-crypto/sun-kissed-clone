@@ -67,7 +67,7 @@ function AdminOrdersPage() {
       }),
     ];
     const csv = rows
-      .map((r) => r.map((c) => {
+      .map((r) => r.map((c: unknown) => {
         const s = String(c ?? "");
         return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
       }).join(","))
