@@ -104,6 +104,7 @@ function AdminProductsPage() {
       return;
     }
     setSaving(true);
+    setError(null);
     try {
       if (creating) {
         await addProduct(product);
@@ -112,7 +113,18 @@ function AdminProductsPage() {
       }
       cancel();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kunde inte spara.");
+      console.error("Save product failed", err);
+      let msg = err instanceof Error ? err.message : "Kunde inte spara.";
+      // Zod errors arrive as JSON strings — try to make them readable.
+      try {
+        const parsed = JSON.parse(msg);
+        if (Array.isArray(parsed) && parsed[0]?.message) {
+          msg = parsed.map((i: { path?: (string | number)[]; message: string }) =>
+            `${(i.path ?? []).join(".") || "fält"}: ${i.message}`
+          ).join("; ");
+        }
+      } catch { /* not JSON */ }
+      setError(msg);
     } finally {
       setSaving(false);
     }
