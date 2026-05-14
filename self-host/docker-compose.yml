@@ -23,6 +23,7 @@ volumes:
   caddy_config: {}
   ircd_data: {}
   backups: {}
+  app_logs: {}
 
 services:
   # --------------------------------------------------------------------------
