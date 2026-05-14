@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Mail, MapPin, Clock } from "lucide-react";
+import { Mail } from "lucide-react";
 import { useState } from "react";
 import { useSiteContent } from "@/context/SiteContentContext";
 import { submitContact } from "@/lib/contact.functions";
@@ -67,13 +67,6 @@ function ContactPage() {
               <div>
                 <h3 className="font-semibold text-ocean">E-post</h3>
                 <p className="text-muted-foreground">{c.email}</p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <Clock className="h-6 w-6 flex-shrink-0 text-sun-deep" />
-              <div>
-                <h3 className="font-semibold text-ocean">Öppettider</h3>
-                <p className="text-muted-foreground">{c.hours}</p>
               </div>
             </div>
           </div>
