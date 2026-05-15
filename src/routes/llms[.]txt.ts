@@ -25,8 +25,6 @@ export const Route = createFileRoute("/llms.txt")({
 - [Om oss](${SITE_URL}/om-oss) — företagets historia, filosofi och vetenskap
 
 - [Kontakt](${SITE_URL}/kontakt) — kundservice
-- [Köpvillkor](${SITE_URL}/kopvillkor) — villkor, leverans, retur, ångerrätt
-- [Integritetspolicy](${SITE_URL}/integritetspolicy) — GDPR och personuppgifter
 
 ## Maskinläsbart
 - [Sitemap](${SITE_URL}/sitemap.xml)
