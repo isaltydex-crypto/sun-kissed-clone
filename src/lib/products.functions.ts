@@ -20,6 +20,7 @@ const ProductInput = z.object({
   oldPrice: z.number().int().min(0).max(10_000_000).optional().nullable(),
   image: z.string().max(8_000_000).default(""),
   badge: z.string().trim().max(60).optional().nullable(),
+  description: z.string().max(20_000).default(""),
 });
 
 const ProductSnapshot = z

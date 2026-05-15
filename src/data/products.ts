@@ -11,6 +11,7 @@ export type Product = {
   oldPrice?: number;
   image: string;
   badge?: string;
+  description?: string;
 };
 
 export const products: Product[] = [
