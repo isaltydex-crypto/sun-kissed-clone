@@ -4,9 +4,8 @@ import { useCart } from "@/context/CartContext";
 import { pageHead, breadcrumbLd, absUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/produkter/$slug")({
-  head: ({ params, match }) => {
+  head: ({ params }) => {
     const slug = (params as { slug?: string } | undefined)?.slug ?? "";
-    // Title/desc are best-effort here since loader runs client-side via context.
     return pageHead({
       path: `/produkter/${slug}`,
       title: `Produkt — PeptivaLab Group`,
@@ -18,7 +17,6 @@ export const Route = createFileRoute("/produkter/$slug")({
         { name: slug, path: `/produkter/${slug}` },
       ]),
     });
-    void match;
   },
   component: ProductDetailPage,
   notFoundComponent: () => (
