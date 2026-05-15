@@ -20,6 +20,12 @@ export function SiteContentProvider({ children, initialBundle }: { children: Rea
   const [content, setContent] = useState<SiteDefaults>(initialBundle?.content ?? siteDefaults);
   const [pages, setPages] = useState<CustomPage[]>(initialBundle?.pages ?? []);
 
+  useEffect(() => {
+    if (!initialBundle) return;
+    setContent(initialBundle.content);
+    setPages(initialBundle.pages);
+  }, [initialBundle]);
+
   const refresh = useCallback(async () => {
     try {
       const res = await fetchSiteBundle();
