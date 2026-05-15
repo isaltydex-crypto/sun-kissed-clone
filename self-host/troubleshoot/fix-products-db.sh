@@ -16,7 +16,7 @@ SQL
 )"
 missing_columns="$(docker compose exec -T db psql -U postgres -d postgres -At <<'SQL'
 select string_agg(c.name, ' ' order by c.name)
-from unnest(array['id','slug','name','tagline','price_ore','old_price_ore','image','badge','sort_order','created_at','updated_at']) as c(name)
+from unnest(array['id','slug','name','tagline','price_ore','old_price_ore','image','badge','sort_order','description','created_at','updated_at']) as c(name)
 where to_regclass('public.products') is null
    or not exists (
      select 1
@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   image text NOT NULL DEFAULT '',
   badge text,
   sort_order integer NOT NULL DEFAULT 0,
+  description text NOT NULL DEFAULT '',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -69,6 +70,7 @@ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS old_price_ore integer;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS image text NOT NULL DEFAULT '';
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS badge text;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS sort_order integer NOT NULL DEFAULT 0;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS description text NOT NULL DEFAULT '';
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now();
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
 
