@@ -28,15 +28,9 @@ function AboutPage() {
         </div>
       </section>
       <section className="bg-background py-16 md:py-24">
-        <div className="mx-auto grid max-w-5xl gap-12 px-4 md:grid-cols-2 md:px-8">
-          <div>
-            <h2 className="text-2xl font-bold text-ocean">{c.historyTitle}</h2>
-            <p className="mt-4 whitespace-pre-wrap text-muted-foreground">{c.historyBody}</p>
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-ocean">{c.philosophyTitle}</h2>
-            <p className="mt-4 whitespace-pre-wrap text-muted-foreground">{c.philosophyBody}</p>
-          </div>
+        <div className="mx-auto max-w-3xl px-4 md:px-8">
+          <h2 className="text-2xl font-bold text-ocean">{c.philosophyTitle}</h2>
+          <p className="mt-4 whitespace-pre-wrap text-muted-foreground">{c.philosophyBody}</p>
         </div>
       </section>
     </>
