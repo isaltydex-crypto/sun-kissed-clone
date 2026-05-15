@@ -27,6 +27,7 @@ function toInput(p: Product) {
     oldPrice: p.oldPrice != null ? Math.round(p.oldPrice) : null,
     image: p.image ?? "",
     badge: p.badge ?? null,
+    description: p.description ?? "",
   };
 }
 
