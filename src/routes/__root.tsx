@@ -5,6 +5,7 @@ import { CartProvider } from "@/context/CartContext";
 import { ProductsProvider } from "@/context/ProductsContext";
 import { AdminAuthProvider } from "@/context/AdminAuthContext";
 import { SiteContentProvider } from "@/context/SiteContentContext";
+import { fetchSiteBundle } from "@/server/site-content.functions";
 import { CartDrawer } from "@/components/CartDrawer";
 import { IrcChat } from "@/components/IrcChat";
 import { Toaster } from "@/components/ui/sonner";
@@ -102,6 +103,7 @@ export const Route = createRootRoute({
         : []),
     ],
   }),
+  loader: () => fetchSiteBundle(),
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -123,6 +125,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const siteContentBundle = Route.useLoaderData();
   const isAdmin = pathname.startsWith("/admin");
   if (typeof window !== "undefined") {
     // Lazy install: avoids SSR work and only runs in the browser.
@@ -130,7 +133,7 @@ function RootComponent() {
   }
   return (
     <AdminAuthProvider>
-      <SiteContentProvider>
+      <SiteContentProvider initialBundle={siteContentBundle}>
         <ProductsProvider>
           <CartProvider>
             <div className="flex min-h-screen flex-col">
