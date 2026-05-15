@@ -39,7 +39,7 @@ const ORG_JSON_LD = JSON.stringify({
   url: SITE_URL,
   logo: `${SITE_URL}/og-image.jpg`,
   description:
-    "Svensk e-handel för premium peptidhudvård — kliniskt formulerade serum, boosters och krämer.",
+    "Svensk leverantör av högrena forskningspeptider — HPLC-verifierade, lyofiliserade och med CoA. Endast för laboratoriebruk.",
   areaServed: "SE",
   sameAs: [] as string[],
   contactPoint: [{
@@ -76,10 +76,10 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PeptivaLab Group — Premium peptidhudvård" },
-      { name: "description", content: "Klinisk peptidhudvård för fastare, slätare hud. Serum, boosters och krämer — fri frakt över 499 kr." },
-      { property: "og:title", content: "PeptivaLab Group — Premium peptidhudvård" },
-      { property: "og:description", content: "Klinisk peptidhudvård för fastare, slätare hud." },
+      { title: "PeptivaLab Group — Forskningspeptider med ≥99% HPLC-renhet" },
+      { name: "description", content: "Högrena forskningspeptider för universitet och biotech. HPLC-verifierade, lyofiliserade, CoA per batch. Endast för laboratoriebruk." },
+      { property: "og:title", content: "PeptivaLab Group — Forskningspeptider" },
+      { property: "og:description", content: "HPLC-verifierade peptider för vetenskapligt bruk. Endast för in vitro- och prekliniskt bruk." },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "sv_SE" },
       { property: "og:site_name", content: "PeptivaLab Group" },

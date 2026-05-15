@@ -10,19 +10,19 @@ export const Route = createFileRoute("/llms.txt")({
       GET: async () => {
         const body = `# PeptivaLab Group
 
-> Svensk e-handel för premium peptidhudvård. Kliniskt formulerade serum, boosters och krämer för fastare, slätare hud. Vegan och cruelty-free. Fri frakt över 499 kr inom Sverige.
+> Svensk leverantör av högrena forskningspeptider för universitet, biotech och kliniska forskningsmiljöer. HPLC-verifierade ≥99%, lyofiliserade, CoA per batch. Endast för in vitro- och prekliniskt bruk — ej avsedd för humant eller veterinärt bruk.
 
 ## Företaget
 - Namn: PeptivaLab Group
 - Webbplats: ${SITE_URL}
 - Språk: Svenska (sv-SE)
-- Marknad: Sverige
-- Produktkategori: Hudvård, peptidserum, anti-age
+- Marknad: Norden
+- Produktkategori: Forskningspeptider, laboratoriereagenser
 
 ## Viktiga sidor
-- [Startsida](${SITE_URL}/) — översikt och utvalda produkter
-- [Produkter](${SITE_URL}/produkter) — hela sortimentet av peptidhudvård
-- [Om oss](${SITE_URL}/om-oss) — företagets historia, filosofi och vetenskap
+- [Startsida](${SITE_URL}/) — översikt och utvalda peptider
+- [Produkter](${SITE_URL}/produkter) — sortiment av forskningspeptider (BPC-157, TB-500, GHK-Cu, Ipamorelin)
+- [Om oss](${SITE_URL}/om-oss) — företaget, QC-process och kvalitetspolicy
 
 - [Kontakt](${SITE_URL}/kontakt) — kundservice
 

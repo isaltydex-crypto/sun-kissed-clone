@@ -46,8 +46,8 @@ type FormValues = z.infer<typeof schema>;
 export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
-      { title: "Kassa — peptivaLab Group" },
-      { name: "description", content: "Slutför din beställning av peptidhudvård från peptivaLab Group." },
+      { title: "Kassa — PeptivaLab Group" },
+      { name: "description", content: "Slutför din beställning av forskningspeptider från PeptivaLab Group. Endast för laboratoriebruk." },
       { name: "robots", content: "noindex" },
     ],
   }),
