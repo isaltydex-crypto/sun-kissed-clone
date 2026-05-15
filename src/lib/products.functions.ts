@@ -38,6 +38,7 @@ type Row = {
   image: string;
   badge: string | null;
   sort_order: number;
+  description: string | null;
 };
 
 function normalizeProductImageUrl(image: string): string {
