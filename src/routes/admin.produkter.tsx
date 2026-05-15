@@ -526,6 +526,15 @@ function AdminProductsPage() {
                   placeholder="Bästsäljare, Rea, Nytt..."
                 />
               </Field>
+              <Field label="Produktbeskrivning (visas på produktsidan)" className="sm:col-span-2">
+                <textarea
+                  className="input"
+                  rows={10}
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Beskriv produkten utförligt: ingredienser, användning, hudtyp, resultat…"
+                />
+              </Field>
             </div>
             {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
             <div className="mt-6 flex justify-end gap-2">
