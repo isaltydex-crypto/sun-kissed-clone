@@ -9,9 +9,9 @@ export const Route = createFileRoute("/")({
   head: () =>
     pageHead({
       path: "/",
-      title: "PeptivaLab Group — Premium peptidhudvård för synliga resultat",
+      title: "PeptivaLab Group — Forskningspeptider med ≥99% HPLC-renhet",
       description:
-        "Vetenskapligt formulerade peptidserum, boosters och krämer för fastare, slätare hud. Vegan, dermatologiskt testad. Fri frakt över 499 kr inom Sverige.",
+        "Högrena forskningspeptider för universitet, biotech och kliniska forskningsmiljöer. HPLC-verifierade, lyofiliserade, CoA per batch. Endast för laboratoriebruk.",
     }),
   component: HomePage,
 });

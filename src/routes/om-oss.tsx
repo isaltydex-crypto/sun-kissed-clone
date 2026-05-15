@@ -6,9 +6,9 @@ export const Route = createFileRoute("/om-oss")({
   head: () =>
     pageHead({
       path: "/om-oss",
-      title: "Om PeptivaLab Group — svensk peptidhudvård utvecklad med dermatologer",
+      title: "Om PeptivaLab Group — svensk leverantör av forskningspeptider",
       description:
-        "PeptivaLab Group utvecklar klinisk peptidhudvård i Sverige tillsammans med dermatologer. Läs om vår historia, filosofi och vetenskap.",
+        "PeptivaLab Group levererar högrena forskningspeptider till universitet och biotech i Norden. Läs om vår QC-process, syntespartners och kvalitetspolicy.",
       jsonLd: breadcrumbLd([
         { name: "Hem", path: "/" },
         { name: "Om oss", path: "/om-oss" },

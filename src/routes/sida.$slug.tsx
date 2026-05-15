@@ -16,7 +16,7 @@ export const Route = createFileRoute("/sida/$slug")({
       title: page ? `${page.title} — PeptivaLab Group` : "PeptivaLab Group",
       description:
         page?.meta_description ||
-        "PeptivaLab Group — premium peptidhudvård utvecklad i Sverige.",
+        "PeptivaLab Group — högrena forskningspeptider för laboratoriebruk.",
       type: "article",
     });
   },

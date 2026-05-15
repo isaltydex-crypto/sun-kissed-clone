@@ -8,9 +8,9 @@ export const Route = createFileRoute("/produkter")({
   head: () =>
     pageHead({
       path: "/produkter",
-      title: "Produkter — Peptidserum, boosters & krämer | PeptivaLab Group",
+      title: "Forskningspeptider — BPC-157, TB-500, GHK-Cu, Ipamorelin | PeptivaLab Group",
       description:
-        "Hela sortimentet av PeptivaLab Groups peptidhudvård. Kliniska doser, vegan, dermatologiskt testad. Fri frakt över 499 kr.",
+        "Sortiment av högrena forskningspeptider. HPLC ≥99%, lyofiliserade, CoA per batch. Endast för in vitro- och prekliniskt bruk.",
       jsonLd: breadcrumbLd([
         { name: "Hem", path: "/" },
         { name: "Produkter", path: "/produkter" },

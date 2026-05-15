@@ -9,7 +9,7 @@ export const Route = createFileRoute("/produkter/$slug")({
     return pageHead({
       path: `/produkter/${slug}`,
       title: `Produkt — PeptivaLab Group`,
-      description: "Detaljer, ingredienser och användning för vår peptidhudvård.",
+      description: "Specifikation, sekvens och användning för forskningspeptid. Endast för laboratoriebruk.",
       type: "article",
       jsonLd: breadcrumbLd([
         { name: "Hem", path: "/" },

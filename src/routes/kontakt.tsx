@@ -11,9 +11,9 @@ export const Route = createFileRoute("/kontakt")({
   head: () =>
     pageHead({
       path: "/kontakt",
-      title: "Kontakta PeptivaLab Group — kundservice och support",
+      title: "Kontakta PeptivaLab Group — labbteam och teknisk support",
       description:
-        "Kontakta PeptivaLab Groups kundservice via formulär eller e-post. Vi svarar vardagar inom 24 timmar.",
+        "Kontakta vårt labbteam för tekniska frågor, batch-data eller offert på forskningspeptider. Vi svarar vardagar inom 24 timmar.",
       jsonLd: [
         breadcrumbLd([
           { name: "Hem", path: "/" },
