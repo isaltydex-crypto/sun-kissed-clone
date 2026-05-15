@@ -187,10 +187,13 @@ CREATE TABLE IF NOT EXISTS public.products (
   old_price_ore integer,
   image text NOT NULL DEFAULT '',
   badge text,
+  description text NOT NULL DEFAULT '',
   sort_order integer NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS description text NOT NULL DEFAULT '';
 
 CREATE INDEX IF NOT EXISTS products_sort_idx ON public.products (sort_order, created_at);
 

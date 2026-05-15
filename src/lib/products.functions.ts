@@ -20,6 +20,7 @@ const ProductInput = z.object({
   oldPrice: z.number().int().min(0).max(10_000_000).optional().nullable(),
   image: z.string().max(8_000_000).default(""),
   badge: z.string().trim().max(60).optional().nullable(),
+  description: z.string().max(20_000).default(""),
 });
 
 const ProductSnapshot = z
@@ -37,6 +38,7 @@ type Row = {
   image: string;
   badge: string | null;
   sort_order: number;
+  description: string | null;
 };
 
 function normalizeProductImageUrl(image: string): string {
@@ -68,6 +70,7 @@ function rowToProduct(r: Row): Product {
     oldPrice: r.old_price_ore != null ? Math.round(r.old_price_ore / 100) : undefined,
     image: normalizeProductImageUrl(r.image),
     badge: r.badge ?? undefined,
+    description: r.description ?? "",
   };
 }
 
@@ -78,7 +81,7 @@ function snapshotFile() {
 async function fetchProductRows(): Promise<Row[]> {
   const { data, error } = await supabaseAdmin
     .from("products")
-    .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order")
+    .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order,description")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
@@ -120,6 +123,7 @@ async function readProductsSnapshot(): Promise<Product[] | null> {
       oldPrice: p.oldPrice ?? undefined,
       image: p.image,
       badge: p.badge ?? undefined,
+      description: p.description ?? "",
     }));
   } catch (err) {
     const code =
@@ -144,6 +148,7 @@ async function restoreProductsFromSnapshot() {
     image: p.image ?? "",
     badge: p.badge ?? null,
     sort_order: index,
+    description: p.description ?? "",
   }));
 
   const { error } = await supabaseAdmin
@@ -187,8 +192,9 @@ export const createProduct = createServerFn({ method: "POST" })
         old_price_ore: data.oldPrice != null ? data.oldPrice * 100 : null,
         image: data.image,
         badge: data.badge || null,
+        description: data.description ?? "",
       } as never)
-      .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order")
+      .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order,description")
       .single();
     if (error) throw new Error(error.message);
     const product = rowToProduct(created as Row);
@@ -212,9 +218,10 @@ export const updateProductFn = createServerFn({ method: "POST" })
         old_price_ore: data.oldPrice != null ? data.oldPrice * 100 : null,
         image: data.image,
         badge: data.badge || null,
+        description: data.description ?? "",
       } as never)
       .eq("slug", data.originalSlug)
-      .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order")
+      .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order,description")
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!updated) throw new Error("Produkten kunde inte hittas. Ladda om sidan och försök igen.");
