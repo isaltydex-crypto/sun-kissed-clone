@@ -21,6 +21,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SidaSlugRouteImport } from './routes/sida.$slug'
+import { Route as ProdukterSlugRouteImport } from './routes/produkter.$slug'
 import { Route as CheckoutBekraftelseRouteImport } from './routes/checkout.bekraftelse'
 import { Route as AdminSidorRouteImport } from './routes/admin.sidor'
 import { Route as AdminSakerhetRouteImport } from './routes/admin.sakerhet'
@@ -101,6 +102,11 @@ const SidaSlugRoute = SidaSlugRouteImport.update({
   id: '/sida/$slug',
   path: '/sida/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProdukterSlugRoute = ProdukterSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ProdukterRoute,
 } as any)
 const CheckoutBekraftelseRoute = CheckoutBekraftelseRouteImport.update({
   id: '/bekraftelse',
@@ -212,7 +218,7 @@ export interface FileRoutesByFullPath {
   '/kopvillkor': typeof KopvillkorRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/om-oss': typeof OmOssRoute
-  '/produkter': typeof ProdukterRoute
+  '/produkter': typeof ProdukterRouteWithChildren
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
@@ -225,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
+  '/produkter/$slug': typeof ProdukterSlugRoute
   '/sida/$slug': typeof SidaSlugRoute
   '/api/admin/product-images': typeof ApiAdminProductImagesRoute
   '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
@@ -246,7 +253,7 @@ export interface FileRoutesByTo {
   '/kopvillkor': typeof KopvillkorRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/om-oss': typeof OmOssRoute
-  '/produkter': typeof ProdukterRoute
+  '/produkter': typeof ProdukterRouteWithChildren
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
@@ -259,6 +266,7 @@ export interface FileRoutesByTo {
   '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
+  '/produkter/$slug': typeof ProdukterSlugRoute
   '/sida/$slug': typeof SidaSlugRoute
   '/api/admin/product-images': typeof ApiAdminProductImagesRoute
   '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
@@ -281,7 +289,7 @@ export interface FileRoutesById {
   '/kopvillkor': typeof KopvillkorRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/om-oss': typeof OmOssRoute
-  '/produkter': typeof ProdukterRoute
+  '/produkter': typeof ProdukterRouteWithChildren
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/chatt': typeof AdminChattRoute
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/admin/sakerhet': typeof AdminSakerhetRoute
   '/admin/sidor': typeof AdminSidorRoute
   '/checkout/bekraftelse': typeof CheckoutBekraftelseRoute
+  '/produkter/$slug': typeof ProdukterSlugRoute
   '/sida/$slug': typeof SidaSlugRoute
   '/api/admin/product-images': typeof ApiAdminProductImagesRoute
   '/api/crypto/create-invoice': typeof ApiCryptoCreateInvoiceRoute
@@ -330,6 +339,7 @@ export interface FileRouteTypes {
     | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
+    | '/produkter/$slug'
     | '/sida/$slug'
     | '/api/admin/product-images'
     | '/api/crypto/create-invoice'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
+    | '/produkter/$slug'
     | '/sida/$slug'
     | '/api/admin/product-images'
     | '/api/crypto/create-invoice'
@@ -398,6 +409,7 @@ export interface FileRouteTypes {
     | '/admin/sakerhet'
     | '/admin/sidor'
     | '/checkout/bekraftelse'
+    | '/produkter/$slug'
     | '/sida/$slug'
     | '/api/admin/product-images'
     | '/api/crypto/create-invoice'
@@ -420,7 +432,7 @@ export interface RootRouteChildren {
   KopvillkorRoute: typeof KopvillkorRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
   OmOssRoute: typeof OmOssRoute
-  ProdukterRoute: typeof ProdukterRoute
+  ProdukterRoute: typeof ProdukterRouteWithChildren
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SidaSlugRoute: typeof SidaSlugRoute
@@ -521,6 +533,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/sida/$slug'
       preLoaderRoute: typeof SidaSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/produkter/$slug': {
+      id: '/produkter/$slug'
+      path: '/$slug'
+      fullPath: '/produkter/$slug'
+      preLoaderRoute: typeof ProdukterSlugRouteImport
+      parentRoute: typeof ProdukterRoute
     }
     '/checkout/bekraftelse': {
       id: '/checkout/bekraftelse'
@@ -703,6 +722,18 @@ const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
   CheckoutRouteChildren,
 )
 
+interface ProdukterRouteChildren {
+  ProdukterSlugRoute: typeof ProdukterSlugRoute
+}
+
+const ProdukterRouteChildren: ProdukterRouteChildren = {
+  ProdukterSlugRoute: ProdukterSlugRoute,
+}
+
+const ProdukterRouteWithChildren = ProdukterRoute._addFileChildren(
+  ProdukterRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
@@ -712,7 +743,7 @@ const rootRouteChildren: RootRouteChildren = {
   KopvillkorRoute: KopvillkorRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,
   OmOssRoute: OmOssRoute,
-  ProdukterRoute: ProdukterRoute,
+  ProdukterRoute: ProdukterRouteWithChildren,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SidaSlugRoute: SidaSlugRoute,

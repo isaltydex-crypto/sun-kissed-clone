@@ -25,6 +25,7 @@ type FormState = {
   oldPrice: string;
   image: string;
   badge: string;
+  description: string;
 };
 
 const empty: FormState = {
@@ -35,6 +36,7 @@ const empty: FormState = {
   oldPrice: "",
   image: "",
   badge: "",
+  description: "",
 };
 
 function toForm(p: Product): FormState {
@@ -46,6 +48,7 @@ function toForm(p: Product): FormState {
     oldPrice: p.oldPrice != null ? String(p.oldPrice) : "",
     image: p.image,
     badge: p.badge ?? "",
+    description: p.description ?? "",
   };
 }
 
@@ -69,6 +72,7 @@ function fromForm(f: FormState): Product | null {
     tagline: f.tagline.trim(),
     price,
     image: f.image.trim(),
+    description: f.description,
   };
   const oldPrice = Number(f.oldPrice);
   if (f.oldPrice.trim() && !Number.isNaN(oldPrice)) product.oldPrice = oldPrice;
