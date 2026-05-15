@@ -6,6 +6,7 @@ import {
   adminSaveSection,
 } from "@/server/site-content.functions";
 import { siteDefaults, type SiteDefaults } from "@/lib/site-defaults";
+import { useSiteContentRefresh } from "@/context/SiteContentContext";
 
 export const Route = createFileRoute("/admin/innehall")({
   head: () => ({
@@ -26,6 +27,7 @@ function AdminContentPage() {
   const [status, setStatus] = useState<Record<string, Status>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const refreshSiteContent = useSiteContentRefresh();
 
   useEffect(() => {
     void (async () => {
@@ -51,6 +53,7 @@ function AdminContentPage() {
     setStatus((s) => ({ ...s, [key]: { kind: "saving" } }));
     try {
       await adminSaveSection({ data: { key, value: content[key] } });
+      await refreshSiteContent();
       setStatus((s) => ({ ...s, [key]: { kind: "saved" } }));
       setTimeout(() => setStatus((s) => ({ ...s, [key]: { kind: "idle" } })), 1500);
     } catch (e) {
