@@ -70,6 +70,7 @@ function rowToProduct(r: Row): Product {
     oldPrice: r.old_price_ore != null ? Math.round(r.old_price_ore / 100) : undefined,
     image: normalizeProductImageUrl(r.image),
     badge: r.badge ?? undefined,
+    description: r.description ?? "",
   };
 }
 
@@ -122,6 +123,7 @@ async function readProductsSnapshot(): Promise<Product[] | null> {
       oldPrice: p.oldPrice ?? undefined,
       image: p.image,
       badge: p.badge ?? undefined,
+      description: p.description ?? "",
     }));
   } catch (err) {
     const code =
@@ -146,6 +148,7 @@ async function restoreProductsFromSnapshot() {
     image: p.image ?? "",
     badge: p.badge ?? null,
     sort_order: index,
+    description: p.description ?? "",
   }));
 
   const { error } = await supabaseAdmin
@@ -189,6 +192,7 @@ export const createProduct = createServerFn({ method: "POST" })
         old_price_ore: data.oldPrice != null ? data.oldPrice * 100 : null,
         image: data.image,
         badge: data.badge || null,
+        description: data.description ?? "",
       } as never)
       .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order,description")
       .single();
@@ -214,6 +218,7 @@ export const updateProductFn = createServerFn({ method: "POST" })
         old_price_ore: data.oldPrice != null ? data.oldPrice * 100 : null,
         image: data.image,
         badge: data.badge || null,
+        description: data.description ?? "",
       } as never)
       .eq("slug", data.originalSlug)
       .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order,description")
