@@ -310,17 +310,7 @@ function CheckoutPage() {
                   {...form.register("acceptTerms")}
                   className="mt-1 h-4 w-4 shrink-0 rounded border-border text-ocean-deep focus:ring-ocean"
                 />
-                <span>
-                  Jag har läst och godkänner{" "}
-                  <Link to="/kopvillkor" target="_blank" className="text-ocean underline">
-                    köpvillkoren
-                  </Link>{" "}
-                  samt{" "}
-                  <Link to="/integritetspolicy" target="_blank" className="text-ocean underline">
-                    integritetspolicyn
-                  </Link>
-                  .
-                </span>
+                <span>Jag godkänner att min beställning behandlas.</span>
               </label>
               {errors.acceptTerms && (
                 <p className={errorClass}>{errors.acceptTerms.message as string}</p>
