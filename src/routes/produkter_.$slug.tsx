@@ -3,7 +3,7 @@ import { useProducts } from "@/context/ProductsContext";
 import { useCart } from "@/context/CartContext";
 import { pageHead, breadcrumbLd, absUrl } from "@/lib/seo";
 
-export const Route = createFileRoute("/produkter/$slug")({
+export const Route = createFileRoute("/produkter_/$slug")({
   head: ({ params }) => {
     const slug = (params as { slug?: string } | undefined)?.slug ?? "";
     return pageHead({
