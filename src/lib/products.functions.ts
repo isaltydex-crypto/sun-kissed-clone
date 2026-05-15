@@ -80,7 +80,7 @@ function snapshotFile() {
 async function fetchProductRows(): Promise<Row[]> {
   const { data, error } = await supabaseAdmin
     .from("products")
-    .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order")
+    .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order,description")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
@@ -190,7 +190,7 @@ export const createProduct = createServerFn({ method: "POST" })
         image: data.image,
         badge: data.badge || null,
       } as never)
-      .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order")
+      .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order,description")
       .single();
     if (error) throw new Error(error.message);
     const product = rowToProduct(created as Row);
@@ -216,7 +216,7 @@ export const updateProductFn = createServerFn({ method: "POST" })
         badge: data.badge || null,
       } as never)
       .eq("slug", data.originalSlug)
-      .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order")
+      .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order,description")
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!updated) throw new Error("Produkten kunde inte hittas. Ladda om sidan och försök igen.");
