@@ -3,6 +3,11 @@ import { fetchSiteBundle } from "@/server/site-content.functions";
 import { siteDefaults, type SiteDefaults } from "@/lib/site-defaults";
 import type { CustomPage } from "@/server/site-content.functions";
 
+export type SiteContentBundle = {
+  content: SiteDefaults;
+  pages: CustomPage[];
+};
+
 type ContentValue = {
   content: SiteDefaults;
   pages: CustomPage[];
@@ -11,9 +16,9 @@ type ContentValue = {
 
 const Ctx = createContext<ContentValue | null>(null);
 
-export function SiteContentProvider({ children }: { children: ReactNode }) {
-  const [content, setContent] = useState<SiteDefaults>(siteDefaults);
-  const [pages, setPages] = useState<CustomPage[]>([]);
+export function SiteContentProvider({ children, initialBundle }: { children: ReactNode; initialBundle?: SiteContentBundle }) {
+  const [content, setContent] = useState<SiteDefaults>(initialBundle?.content ?? siteDefaults);
+  const [pages, setPages] = useState<CustomPage[]>(initialBundle?.pages ?? []);
 
   const refresh = useCallback(async () => {
     try {
