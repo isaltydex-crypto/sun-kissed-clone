@@ -114,6 +114,37 @@ export async function createCryptoInvoice(input: CreateInvoiceInput): Promise<Cr
   return (await res.json()) as CreateInvoiceResponse;
 }
 
+// ─── NOWPayments (Google Pay / Apple Pay / Samsung Pay) ────────────────
+//
+// Wired but not yet exposed in the checkout UI. Calls
+//   POST {BASE_URL}/api/nowpayments/create-invoice
+// which returns { invoiceUrl, invoiceId } — redirect the buyer to invoiceUrl.
+
+export type NowPaymentsRail = "google_pay" | "apple_pay" | "samsung_pay";
+
+export type CreateNowPaymentsInvoiceInput = Omit<CreateInvoiceInput, "amount" | "payCurrency"> & {
+  rail: NowPaymentsRail;
+};
+
+export async function createNowPaymentsInvoice(
+  input: CreateNowPaymentsInvoiceInput,
+): Promise<CreateInvoiceResponse> {
+  const base = ensureBaseUrl();
+  const res = await fetch(`${base}/api/nowpayments/create-invoice`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new PaymentsApiError(
+      `Failed to create NOWPayments invoice (${res.status}). ${text}`.trim(),
+      res.status,
+    );
+  }
+  return (await res.json()) as CreateInvoiceResponse;
+}
+
 export async function getOrderStatus(orderId: string): Promise<{ status: string; [k: string]: unknown }> {
   const base = ensureBaseUrl();
   const res = await fetch(`${base}/api/crypto/order/${encodeURIComponent(orderId)}`);
