@@ -347,7 +347,9 @@ function CheckoutPage() {
                 {form.formState.isSubmitting
                   ? "Bearbetar…"
                   : PAYMENTS_API_BASE_URL
-                  ? "Betala med krypto"
+                  ? paymentMethod === "apple_pay"
+                    ? "Betala med Apple Pay"
+                    : "Betala med krypto"
                   : "Bekräfta beställning"}
               </button>
             </div>
