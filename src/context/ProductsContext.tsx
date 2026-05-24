@@ -5,6 +5,7 @@ import {
   createProduct,
   updateProductFn,
   deleteProductFn,
+  reorderProductsFn,
 } from "@/lib/products.functions";
 
 type ProductsContextValue = {
