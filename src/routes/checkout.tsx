@@ -126,16 +126,13 @@ function CheckoutPage() {
       // ignore
     }
 
-    // If a payments server is configured, create a Paymento invoice
-    // through it and redirect the customer to the hosted checkout.
+    // If a payments server is configured, create a hosted invoice and redirect.
     if (PAYMENTS_API_BASE_URL) {
       try {
         const origin = window.location.origin;
-        const { invoiceUrl } = await createCryptoInvoice({
+        const commonInput = {
           orderId,
-          amount: total,
           currency: "SEK",
-          payCurrency,
           customer: { ...customer, notes: customer.notes || undefined },
           items: items.map((i) => ({
             slug: i.slug,
@@ -146,7 +143,11 @@ function CheckoutPage() {
           discountCode: discount?.code,
           successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
           cancelUrl: `${origin}/checkout?cancelled=1`,
-        });
+        };
+        const { invoiceUrl } =
+          paymentMethod === "apple_pay"
+            ? await createNowPaymentsInvoice({ ...commonInput, rail: "apple_pay" })
+            : await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
         clear();
         window.location.href = invoiceUrl;
         return;
@@ -157,6 +158,7 @@ function CheckoutPage() {
         return;
       }
     }
+
 
     // No payments server configured yet — fall back to confirmation page.
     clear();
