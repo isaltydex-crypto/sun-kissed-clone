@@ -67,9 +67,8 @@ function CheckoutPage() {
   const [discount, setDiscount] = useState<AppliedDiscount | null>(null);
   const [discountError, setDiscountError] = useState<string | null>(null);
 
-  const shipping = items.length === 0 ? 0 : subtotal >= SHIPPING_FREE_OVER ? 0 : SHIPPING_COST;
   const discountAmount = discount?.amount ?? 0;
-  const total = Math.max(0, subtotal + shipping - discountAmount);
+  const total = Math.max(0, subtotal - discountAmount);
 
   const handleApplyDiscount = () => {
     setDiscountError(null);
