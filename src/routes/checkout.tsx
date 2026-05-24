@@ -19,8 +19,6 @@ const COINS: { value: PayCurrency; label: string; sub: string }[] = [
   { value: "usdt", label: "Tether", sub: "USDT" },
 ];
 
-const SHIPPING_FREE_OVER = 499;
-const SHIPPING_COST = 49;
 
 const schema = z.object({
   email: z.string().trim().email("Ange en giltig e-postadress").max(255),
@@ -67,9 +65,8 @@ function CheckoutPage() {
   const [discount, setDiscount] = useState<AppliedDiscount | null>(null);
   const [discountError, setDiscountError] = useState<string | null>(null);
 
-  const shipping = items.length === 0 ? 0 : subtotal >= SHIPPING_FREE_OVER ? 0 : SHIPPING_COST;
   const discountAmount = discount?.amount ?? 0;
-  const total = Math.max(0, subtotal + shipping - discountAmount);
+  const total = Math.max(0, subtotal - discountAmount);
 
   const handleApplyDiscount = () => {
     setDiscountError(null);
@@ -114,7 +111,7 @@ function CheckoutPage() {
       customer,
       items,
       subtotal,
-      shipping,
+      shipping: 0,
       discount,
       total,
       payCurrency,
@@ -492,10 +489,6 @@ function CheckoutPage() {
                 <dt className="text-muted-foreground">Delsumma</dt>
                 <dd className="font-medium text-foreground">{subtotal} kr</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Frakt</dt>
-                <dd className="font-medium text-foreground">{shipping === 0 ? "Fri" : `${shipping} kr`}</dd>
-              </div>
               {discount && (
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Rabatt ({discount.code})</dt>
@@ -507,11 +500,6 @@ function CheckoutPage() {
                 <dd className="font-bold text-ocean-deep">{total} kr</dd>
               </div>
             </dl>
-            {shipping > 0 && (
-              <p className="mt-3 text-xs text-muted-foreground">
-                Fri frakt över {SHIPPING_FREE_OVER} kr.
-              </p>
-            )}
           </aside>
         </div>
       </div>
