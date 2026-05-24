@@ -585,7 +585,7 @@ function AdminProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {products.map((p) => (
+              {products.map((p, idx) => (
                 <tr key={p.slug} className="border-t border-border">
                   <td className="px-4 py-3">
                     <img
@@ -610,6 +610,26 @@ function AdminProductsPage() {
                   <td className="px-4 py-3 text-xs">{p.badge ?? "—"}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
+                      <div className="flex flex-col gap-1">
+                        <button
+                          onClick={() => void move(idx, -1)}
+                          disabled={reordering || idx === 0}
+                          className="inline-flex items-center rounded-md border border-border p-1 hover:bg-muted disabled:opacity-30"
+                          title="Flytta upp"
+                          aria-label="Flytta upp"
+                        >
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => void move(idx, 1)}
+                          disabled={reordering || idx === products.length - 1}
+                          className="inline-flex items-center rounded-md border border-border p-1 hover:bg-muted disabled:opacity-30"
+                          title="Flytta ned"
+                          aria-label="Flytta ned"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                       <button
                         onClick={() => startEdit(p)}
                         className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted"
