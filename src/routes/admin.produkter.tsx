@@ -82,7 +82,24 @@ function fromForm(f: FormState): Product | null {
 
 function AdminProductsPage() {
   const { logout } = useAdminAuth();
-  const { products, addProduct, updateProduct, removeProduct } = useProducts();
+  const { products, addProduct, updateProduct, removeProduct, reorderProducts } = useProducts();
+  const [reordering, setReordering] = useState(false);
+
+  const move = async (index: number, delta: number) => {
+    const next = [...products];
+    const target = index + delta;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    setReordering(true);
+    try {
+      await reorderProducts(next.map((p) => p.slug));
+    } catch (err) {
+      console.error("Reorder failed", err);
+      setError(err instanceof Error ? err.message : "Kunde inte ändra ordning.");
+    } finally {
+      setReordering(false);
+    }
+  };
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [serverUploading, setServerUploading] = useState(false);
