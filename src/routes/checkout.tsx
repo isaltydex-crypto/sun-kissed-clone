@@ -113,7 +113,7 @@ function CheckoutPage() {
       customer,
       items,
       subtotal,
-      shipping,
+      shipping: 0,
       discount,
       total,
       payCurrency,
