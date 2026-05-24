@@ -19,8 +19,6 @@ import {
   type NowPaymentsRail,
 } from "@/server/nowpayments.server";
 
-const SHIPPING_FREE_OVER_ORE = 49900;
-const SHIPPING_COST_ORE = 4900;
 
 const ItemSchema = z.object({
   slug: z.string().min(1).max(120),
@@ -88,8 +86,7 @@ export const Route = createFileRoute("/api/nowpayments/create-invoice")({
           (sum, i) => sum + Math.round(i.price * 100) * i.quantity,
           0,
         );
-        const shippingOre =
-          subtotalOre === 0 ? 0 : subtotalOre >= SHIPPING_FREE_OVER_ORE ? 0 : SHIPPING_COST_ORE;
+        const shippingOre = 0;
 
         let discountOre = 0;
         let discountInfo:
