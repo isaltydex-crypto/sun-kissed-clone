@@ -351,6 +351,12 @@ function CheckoutPage() {
                 </p>
               )}
 
+              {paymentMethod === "google_pay" && (
+                <p className="text-sm text-muted-foreground">
+                  Du skickas vidare till en säker betalsida där du slutför köpet med Google Pay.
+                </p>
+              )}
+
               {paymentMethod === "samsung_pay" && (
                 <p className="text-sm text-muted-foreground">
                   Du skickas vidare till en säker betalsida där du slutför köpet med Samsung Pay.
