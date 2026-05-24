@@ -12,7 +12,7 @@ import {
 } from "@/lib/paymentsApi";
 import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
 
-type PaymentMethod = "crypto" | "apple_pay" | "samsung_pay";
+type PaymentMethod = "crypto" | "apple_pay" | "samsung_pay" | "google_pay";
 
 const COINS: { value: PayCurrency; label: string; sub: string }[] = [
   { value: "usdc", label: "USD Coin", sub: "USDC" },
@@ -149,6 +149,8 @@ function CheckoutPage() {
             ? await createNowPaymentsInvoice({ ...commonInput, rail: "apple_pay" })
             : paymentMethod === "samsung_pay"
             ? await createNowPaymentsInvoice({ ...commonInput, rail: "samsung_pay" })
+            : paymentMethod === "google_pay"
+            ? await createNowPaymentsInvoice({ ...commonInput, rail: "google_pay" })
             : await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
         clear();
         window.location.href = invoiceUrl;
@@ -259,7 +261,7 @@ function CheckoutPage() {
 
             <fieldset className="space-y-3">
               <legend className="mb-2 text-lg font-semibold text-ocean-deep">Betalsätt</legend>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("crypto")}
@@ -284,6 +286,19 @@ function CheckoutPage() {
                   }`}
                 >
                   <p className="text-sm font-semibold text-ocean-deep">Apple Pay</p>
+                  <p className="text-xs text-muted-foreground">Snabb och säker betalning</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("google_pay")}
+                  aria-pressed={paymentMethod === "google_pay"}
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    paymentMethod === "google_pay"
+                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
+                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-ocean-deep">Google Pay</p>
                   <p className="text-xs text-muted-foreground">Snabb och säker betalning</p>
                 </button>
                 <button
