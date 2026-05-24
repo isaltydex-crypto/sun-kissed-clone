@@ -118,6 +118,7 @@ function CheckoutPage() {
       discount,
       total,
       payCurrency,
+      paymentMethod,
     };
     try {
       sessionStorage.setItem("peptivalab.lastOrder", JSON.stringify(order));
