@@ -147,6 +147,8 @@ function CheckoutPage() {
         const { invoiceUrl } =
           paymentMethod === "apple_pay"
             ? await createNowPaymentsInvoice({ ...commonInput, rail: "apple_pay" })
+            : paymentMethod === "samsung_pay"
+            ? await createNowPaymentsInvoice({ ...commonInput, rail: "samsung_pay" })
             : await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
         clear();
         window.location.href = invoiceUrl;
