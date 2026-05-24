@@ -239,3 +239,22 @@ export const deleteProductFn = createServerFn({ method: "POST" })
     await persistCurrentProductsSnapshot();
     return { ok: true };
   });
+
+const ReorderInput = z.object({
+  slugs: z.array(z.string().min(1).max(120)).min(1).max(500),
+});
+
+export const reorderProductsFn = createServerFn({ method: "POST" })
+  .middleware([adminAuthMiddleware])
+  .inputValidator((input) => ReorderInput.parse(input))
+  .handler(async ({ data }) => {
+    for (let i = 0; i < data.slugs.length; i++) {
+      const { error } = await supabaseAdmin
+        .from("products")
+        .update({ sort_order: i } as never)
+        .eq("slug", data.slugs[i]);
+      if (error) throw new Error(error.message);
+    }
+    await persistCurrentProductsSnapshot();
+    return { ok: true };
+  });
