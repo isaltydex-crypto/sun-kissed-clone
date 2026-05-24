@@ -391,6 +391,8 @@ function CheckoutPage() {
                   : PAYMENTS_API_BASE_URL
                   ? paymentMethod === "apple_pay"
                     ? "Betala med Apple Pay"
+                    : paymentMethod === "google_pay"
+                    ? "Betala med Google Pay"
                     : paymentMethod === "samsung_pay"
                     ? "Betala med Samsung Pay"
                     : "Betala med krypto"
