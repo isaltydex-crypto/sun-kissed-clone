@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Pencil, Trash2, Plus, X, Save, LogOut } from "lucide-react";
+import { Pencil, Trash2, Plus, X, Save, LogOut, ArrowUp, ArrowDown } from "lucide-react";
 import { useProducts } from "@/context/ProductsContext";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,7 +82,24 @@ function fromForm(f: FormState): Product | null {
 
 function AdminProductsPage() {
   const { logout } = useAdminAuth();
-  const { products, addProduct, updateProduct, removeProduct } = useProducts();
+  const { products, addProduct, updateProduct, removeProduct, reorderProducts } = useProducts();
+  const [reordering, setReordering] = useState(false);
+
+  const move = async (index: number, delta: number) => {
+    const next = [...products];
+    const target = index + delta;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    setReordering(true);
+    try {
+      await reorderProducts(next.map((p) => p.slug));
+    } catch (err) {
+      console.error("Reorder failed", err);
+      setError(err instanceof Error ? err.message : "Kunde inte ändra ordning.");
+    } finally {
+      setReordering(false);
+    }
+  };
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [serverUploading, setServerUploading] = useState(false);
@@ -568,7 +585,7 @@ function AdminProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {products.map((p) => (
+              {products.map((p, idx) => (
                 <tr key={p.slug} className="border-t border-border">
                   <td className="px-4 py-3">
                     <img
@@ -593,6 +610,26 @@ function AdminProductsPage() {
                   <td className="px-4 py-3 text-xs">{p.badge ?? "—"}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
+                      <div className="flex flex-col gap-1">
+                        <button
+                          onClick={() => void move(idx, -1)}
+                          disabled={reordering || idx === 0}
+                          className="inline-flex items-center rounded-md border border-border p-1 hover:bg-muted disabled:opacity-30"
+                          title="Flytta upp"
+                          aria-label="Flytta upp"
+                        >
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => void move(idx, 1)}
+                          disabled={reordering || idx === products.length - 1}
+                          className="inline-flex items-center rounded-md border border-border p-1 hover:bg-muted disabled:opacity-30"
+                          title="Flytta ned"
+                          aria-label="Flytta ned"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                       <button
                         onClick={() => startEdit(p)}
                         className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted"

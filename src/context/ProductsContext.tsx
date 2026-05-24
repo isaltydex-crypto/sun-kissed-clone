@@ -5,6 +5,7 @@ import {
   createProduct,
   updateProductFn,
   deleteProductFn,
+  reorderProductsFn,
 } from "@/lib/products.functions";
 
 type ProductsContextValue = {
@@ -14,7 +15,10 @@ type ProductsContextValue = {
   addProduct: (p: Product) => Promise<void>;
   updateProduct: (originalSlug: string, patch: Product) => Promise<void>;
   removeProduct: (slug: string) => Promise<void>;
+  reorderProducts: (slugs: string[]) => Promise<void>;
 };
+
+
 
 const ProductsContext = createContext<ProductsContextValue | null>(null);
 
@@ -70,7 +74,19 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         setProducts((current) => current.filter((item) => item.slug !== slug));
         void refresh();
       },
+      reorderProducts: async (slugs) => {
+        // Optimistic local reorder
+        setProducts((current) => {
+          const bySlug = new Map(current.map((p) => [p.slug, p]));
+          const reordered = slugs.map((s) => bySlug.get(s)).filter((p): p is Product => !!p);
+          const missing = current.filter((p) => !slugs.includes(p.slug));
+          return [...reordered, ...missing];
+        });
+        await reorderProductsFn({ data: { slugs } });
+        void refresh();
+      },
     }),
+
     [products, hydrated, refresh],
   );
 
