@@ -74,7 +74,19 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         setProducts((current) => current.filter((item) => item.slug !== slug));
         void refresh();
       },
+      reorderProducts: async (slugs) => {
+        // Optimistic local reorder
+        setProducts((current) => {
+          const bySlug = new Map(current.map((p) => [p.slug, p]));
+          const reordered = slugs.map((s) => bySlug.get(s)).filter((p): p is Product => !!p);
+          const missing = current.filter((p) => !slugs.includes(p.slug));
+          return [...reordered, ...missing];
+        });
+        await reorderProductsFn({ data: { slugs } });
+        void refresh();
+      },
     }),
+
     [products, hydrated, refresh],
   );
 
