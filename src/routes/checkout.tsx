@@ -19,8 +19,6 @@ const COINS: { value: PayCurrency; label: string; sub: string }[] = [
   { value: "usdt", label: "Tether", sub: "USDT" },
 ];
 
-const SHIPPING_FREE_OVER = 499;
-const SHIPPING_COST = 49;
 
 const schema = z.object({
   email: z.string().trim().email("Ange en giltig e-postadress").max(255),
