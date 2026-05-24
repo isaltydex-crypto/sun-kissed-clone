@@ -16,6 +16,8 @@ type ProductsContextValue = {
   updateProduct: (originalSlug: string, patch: Product) => Promise<void>;
   removeProduct: (slug: string) => Promise<void>;
   reorderProducts: (slugs: string[]) => Promise<void>;
+};
+
 
 
 const ProductsContext = createContext<ProductsContextValue | null>(null);
