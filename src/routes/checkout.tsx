@@ -256,37 +256,78 @@ function CheckoutPage() {
             </fieldset>
 
             <fieldset className="space-y-3">
-              <legend className="mb-2 text-lg font-semibold text-ocean-deep">Betalning med krypto</legend>
-              <p className="text-sm text-muted-foreground">
-                Välj kryptovaluta. Du skickas vidare till en säker betalsida för att slutföra köpet.
-              </p>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {COINS.map((coin) => {
-                  const active = payCurrency === coin.value;
-                  return (
-                    <button
-                      type="button"
-                      key={coin.value}
-                      onClick={() => setPayCurrency(coin.value)}
-                      aria-pressed={active}
-                      className={`rounded-xl border px-3 py-3 text-left transition ${
-                        active
-                          ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
-                          : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
-                      }`}
-                    >
-                      <p className="text-sm font-semibold text-ocean-deep">{coin.label}</p>
-                      <p className="text-xs text-muted-foreground">{coin.sub}</p>
-                    </button>
-                  );
-                })}
+              <legend className="mb-2 text-lg font-semibold text-ocean-deep">Betalsätt</legend>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("crypto")}
+                  aria-pressed={paymentMethod === "crypto"}
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    paymentMethod === "crypto"
+                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
+                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-ocean-deep">Kryptovaluta</p>
+                  <p className="text-xs text-muted-foreground">USDC, USDT m.fl.</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("apple_pay")}
+                  aria-pressed={paymentMethod === "apple_pay"}
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    paymentMethod === "apple_pay"
+                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
+                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-ocean-deep"> Apple Pay</p>
+                  <p className="text-xs text-muted-foreground">Snabb och säker betalning</p>
+                </button>
               </div>
+
+              {paymentMethod === "crypto" && (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Välj kryptovaluta. Du skickas vidare till en säker betalsida för att slutföra köpet.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {COINS.map((coin) => {
+                      const active = payCurrency === coin.value;
+                      return (
+                        <button
+                          type="button"
+                          key={coin.value}
+                          onClick={() => setPayCurrency(coin.value)}
+                          aria-pressed={active}
+                          className={`rounded-xl border px-3 py-3 text-left transition ${
+                            active
+                              ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
+                              : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
+                          }`}
+                        >
+                          <p className="text-sm font-semibold text-ocean-deep">{coin.label}</p>
+                          <p className="text-xs text-muted-foreground">{coin.sub}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {paymentMethod === "apple_pay" && (
+                <p className="text-sm text-muted-foreground">
+                  Du skickas vidare till en säker betalsida där du slutför köpet med Apple Pay.
+                </p>
+              )}
+
               {!PAYMENTS_API_BASE_URL && (
                 <p className="rounded-md border border-dashed border-border bg-sand/40 p-3 text-xs text-muted-foreground">
-                  Betalningsservern är inte konfigurerad ännu. Sätt <code className="font-mono">VITE_PAYMENTS_API_BASE_URL</code> till din serverdomän för att aktivera kryptobetalningar.
+                  Betalningsservern är inte konfigurerad ännu. Sätt <code className="font-mono">VITE_PAYMENTS_API_BASE_URL</code> till din serverdomän för att aktivera betalningar.
                 </p>
               )}
             </fieldset>
+
 
             {submitError && (
               <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
