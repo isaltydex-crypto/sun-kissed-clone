@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Pencil, Trash2, Plus, X, Save, LogOut } from "lucide-react";
+import { Pencil, Trash2, Plus, X, Save, LogOut, ArrowUp, ArrowDown } from "lucide-react";
 import { useProducts } from "@/context/ProductsContext";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { supabase } from "@/integrations/supabase/client";
