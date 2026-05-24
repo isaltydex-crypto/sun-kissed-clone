@@ -12,7 +12,7 @@ import {
 } from "@/lib/paymentsApi";
 import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
 
-type PaymentMethod = "crypto" | "apple_pay";
+type PaymentMethod = "crypto" | "apple_pay" | "samsung_pay";
 
 const COINS: { value: PayCurrency; label: string; sub: string }[] = [
   { value: "usdc", label: "USD Coin", sub: "USDC" },
@@ -147,6 +147,8 @@ function CheckoutPage() {
         const { invoiceUrl } =
           paymentMethod === "apple_pay"
             ? await createNowPaymentsInvoice({ ...commonInput, rail: "apple_pay" })
+            : paymentMethod === "samsung_pay"
+            ? await createNowPaymentsInvoice({ ...commonInput, rail: "samsung_pay" })
             : await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
         clear();
         window.location.href = invoiceUrl;
@@ -257,7 +259,7 @@ function CheckoutPage() {
 
             <fieldset className="space-y-3">
               <legend className="mb-2 text-lg font-semibold text-ocean-deep">Betalsätt</legend>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("crypto")}
@@ -281,7 +283,20 @@ function CheckoutPage() {
                       : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
                   }`}
                 >
-                  <p className="text-sm font-semibold text-ocean-deep"> Apple Pay</p>
+                  <p className="text-sm font-semibold text-ocean-deep">Apple Pay</p>
+                  <p className="text-xs text-muted-foreground">Snabb och säker betalning</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("samsung_pay")}
+                  aria-pressed={paymentMethod === "samsung_pay"}
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    paymentMethod === "samsung_pay"
+                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
+                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-ocean-deep">Samsung Pay</p>
                   <p className="text-xs text-muted-foreground">Snabb och säker betalning</p>
                 </button>
               </div>
@@ -321,6 +336,12 @@ function CheckoutPage() {
                 </p>
               )}
 
+              {paymentMethod === "samsung_pay" && (
+                <p className="text-sm text-muted-foreground">
+                  Du skickas vidare till en säker betalsida där du slutför köpet med Samsung Pay.
+                </p>
+              )}
+
               {!PAYMENTS_API_BASE_URL && (
                 <p className="rounded-md border border-dashed border-border bg-sand/40 p-3 text-xs text-muted-foreground">
                   Betalningsservern är inte konfigurerad ännu. Sätt <code className="font-mono">VITE_PAYMENTS_API_BASE_URL</code> till din serverdomän för att aktivera betalningar.
@@ -349,6 +370,8 @@ function CheckoutPage() {
                   : PAYMENTS_API_BASE_URL
                   ? paymentMethod === "apple_pay"
                     ? "Betala med Apple Pay"
+                    : paymentMethod === "samsung_pay"
+                    ? "Betala med Samsung Pay"
                     : "Betala med krypto"
                   : "Bekräfta beställning"}
               </button>
