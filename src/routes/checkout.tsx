@@ -491,10 +491,6 @@ function CheckoutPage() {
                 <dt className="text-muted-foreground">Delsumma</dt>
                 <dd className="font-medium text-foreground">{subtotal} kr</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Frakt</dt>
-                <dd className="font-medium text-foreground">{shipping === 0 ? "Fri" : `${shipping} kr`}</dd>
-              </div>
               {discount && (
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Rabatt ({discount.code})</dt>
@@ -506,11 +502,6 @@ function CheckoutPage() {
                 <dd className="font-bold text-ocean-deep">{total} kr</dd>
               </div>
             </dl>
-            {shipping > 0 && (
-              <p className="mt-3 text-xs text-muted-foreground">
-                Fri frakt över {SHIPPING_FREE_OVER} kr.
-              </p>
-            )}
           </aside>
         </div>
       </div>
