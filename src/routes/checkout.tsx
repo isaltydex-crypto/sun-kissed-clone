@@ -129,10 +129,7 @@ function CheckoutPage() {
           successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
           cancelUrl: `${origin}/checkout?cancelled=1`,
         };
-        const { invoiceUrl } =
-          paymentMethod === "card"
-            ? await createPeptidePayInvoice(commonInput)
-            : await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
+        const { invoiceUrl } = await createPeptidePayInvoice(commonInput);
         clear();
         window.location.href = invoiceUrl;
         return;
