@@ -241,58 +241,10 @@ function CheckoutPage() {
               <p className="text-sm text-muted-foreground">
                 Välj betalsätt. Du skickas vidare till en säker betalsida för att slutföra köpet.
               </p>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("card")}
-                  aria-pressed={paymentMethod === "card"}
-                  className={`rounded-xl border px-3 py-3 text-left transition ${
-                    paymentMethod === "card"
-                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
-                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
-                  }`}
-                >
-                  <p className="text-sm font-semibold text-ocean-deep">Bankkort</p>
-                  <p className="text-xs text-muted-foreground">Visa, Mastercard, Apple Pay, Google Pay</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("crypto")}
-                  aria-pressed={paymentMethod === "crypto"}
-                  className={`rounded-xl border px-3 py-3 text-left transition ${
-                    paymentMethod === "crypto"
-                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
-                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
-                  }`}
-                >
-                  <p className="text-sm font-semibold text-ocean-deep">Kryptovaluta</p>
-                  <p className="text-xs text-muted-foreground">BTC, ETH, USDC, USDT</p>
-                </button>
+              <div className="rounded-xl border border-ocean-deep bg-ocean-deep/5 px-3 py-3">
+                <p className="text-sm font-semibold text-ocean-deep">Bankkort</p>
+                <p className="text-xs text-muted-foreground">Visa, Mastercard, Apple Pay, Google Pay</p>
               </div>
-
-              {paymentMethod === "crypto" && (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {COINS.map((coin) => {
-                    const active = payCurrency === coin.value;
-                    return (
-                      <button
-                        type="button"
-                        key={coin.value}
-                        onClick={() => setPayCurrency(coin.value)}
-                        aria-pressed={active}
-                        className={`rounded-xl border px-3 py-3 text-left transition ${
-                          active
-                            ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
-                            : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
-                        }`}
-                      >
-                        <p className="text-sm font-semibold text-ocean-deep">{coin.label}</p>
-                        <p className="text-xs text-muted-foreground">{coin.sub}</p>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
 
               {!PAYMENTS_API_BASE_URL && (
                 <p className="rounded-md border border-dashed border-border bg-sand/40 p-3 text-xs text-muted-foreground">
