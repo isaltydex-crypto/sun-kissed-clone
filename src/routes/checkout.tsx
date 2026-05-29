@@ -12,7 +12,7 @@ import {
 } from "@/lib/paymentsApi";
 import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
 
-type PaymentMethod = "crypto" | "apple_pay" | "samsung_pay" | "google_pay";
+type PaymentMethod = "crypto";
 
 const COINS: { value: PayCurrency; label: string; sub: string }[] = [
   { value: "usdc", label: "USD Coin", sub: "USDC" },
