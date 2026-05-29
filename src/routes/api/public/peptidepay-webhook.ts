@@ -1,48 +1,23 @@
 /**
- * POST /api/public/peptidepay/webhook
+ * POST /api/public/peptidepay-webhook
  *
- * Peptide-Pay webhook. Headern `x-peptidepay-signature` har formen
- *   t=<unix>,v1=<hex>
- * där v1 = HMAC-SHA256("<t>.<rawBody>", PEPTIDEPAY_WEBHOOK_SECRET).
+ * Peptide-Pay IPN. Header `x-peptidepay-signature` = `t=<unix>,v1=<hex>` where
+ * v1 = HMAC-SHA256("<t>.<rawBody>", PEPTIDEPAY_WEBHOOK_SECRET).
  *
- * Vi avvisar:
- *  - saknad/illa-formad signatur     → 400
- *  - timestamp äldre än 5 min        → 400
- *  - ogiltig HMAC                    → 401
- *
- * Vid event "order.paid" markerar vi ordern som paid.
- * Idempotens: dedupar på session_id — vi flippar inte en order som redan är paid.
+ * Hard rules:
+ *  - Read RAW body BEFORE parsing JSON (HMAC is over the exact bytes).
+ *  - Timing-safe compare (handled by verifyPeptidePaySignature).
+ *  - Idempotent: dedupe on session_id; never flip an already-paid order.
+ *  - Return 200 fast; Peptide-Pay retries 6× over ~42h on non-2xx.
  *
  * Docs: https://peptide-pay.com/docs#webhooks
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { createHmac, timingSafeEqual } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { incrementDiscountUsage } from "@/lib/discounts.server";
+import { verifyPeptidePaySignature } from "@/lib/peptidepay.server";
 
-function verifySignature(rawBody: string, header: string | null, secret: string): boolean {
-  if (!header) return false;
-  const parts = header.split(",").map((p) => p.trim());
-  const tPart = parts.find((p) => p.startsWith("t="));
-  const v1Part = parts.find((p) => p.startsWith("v1="));
-  const t = tPart?.slice(2);
-  const v1 = v1Part?.slice(3);
-  if (!t || !v1) return false;
-
-  const ts = Number(t);
-  if (!Number.isFinite(ts)) return false;
-  if (Math.abs(Date.now() / 1000 - ts) > 300) return false;
-
-  const expected = createHmac("sha256", secret).update(`${t}.${rawBody}`).digest("hex");
-  if (v1.length !== expected.length) return false;
-  try {
-    return timingSafeEqual(Buffer.from(v1, "hex"), Buffer.from(expected, "hex"));
-  } catch {
-    return false;
-  }
-}
-
-export const Route = createFileRoute("/api/public/peptidepay/webhook")({
+export const Route = createFileRoute("/api/public/peptidepay-webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
@@ -51,9 +26,12 @@ export const Route = createFileRoute("/api/public/peptidepay/webhook")({
           return new Response("Webhook secret not configured", { status: 503 });
         }
 
+        // 1. RAW body BEFORE any JSON parser touches it.
         const rawBody = await request.text();
         const sig = request.headers.get("x-peptidepay-signature");
-        if (!verifySignature(rawBody, sig, secret)) {
+
+        // 2-6. Timestamp + timing-safe HMAC.
+        if (!verifyPeptidePaySignature(rawBody, sig, secret)) {
           return new Response("Invalid signature", { status: 401 });
         }
 
@@ -86,8 +64,7 @@ export const Route = createFileRoute("/api/public/peptidepay/webhook")({
           .maybeSingle();
 
         if (!existing) {
-          console.warn("[peptidepay.webhook] order not found:", orderNumber);
-          // 2xx så Peptide-Pay slutar retrya
+          console.warn("[peptidepay-webhook] order not found:", orderNumber);
           return new Response("ok", { status: 200 });
         }
 
@@ -97,6 +74,7 @@ export const Route = createFileRoute("/api/public/peptidepay/webhook")({
           metadata: Record<string, unknown> | null;
         };
 
+        // Idempotent: receiving the same paid event twice has no side effects.
         const wasPaid = row.payment_status === "paid";
         const becomesPaid = event.event === "order.paid" && !wasPaid;
 
@@ -123,7 +101,7 @@ export const Route = createFileRoute("/api/public/peptidepay/webhook")({
           .eq("id", row.id);
 
         if (updErr) {
-          console.error("[peptidepay.webhook] order update failed:", updErr);
+          console.error("[peptidepay-webhook] order update failed:", updErr);
           return new Response("DB error", { status: 500 });
         }
 
@@ -131,7 +109,7 @@ export const Route = createFileRoute("/api/public/peptidepay/webhook")({
           const discount = (row.metadata as { discount?: { code?: string } } | null)?.discount;
           if (discount?.code) {
             await incrementDiscountUsage(discount.code).catch((err: unknown) =>
-              console.error("[peptidepay.webhook] discount counter failed:", err),
+              console.error("[peptidepay-webhook] discount counter failed:", err),
             );
           }
         }

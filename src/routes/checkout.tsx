@@ -245,6 +245,16 @@ function CheckoutPage() {
                 <p className="text-sm font-semibold text-ocean-deep">Bankkort</p>
                 <p className="text-xs text-muted-foreground">Visa, Mastercard, Apple Pay, Google Pay</p>
               </div>
+              <p className="text-xs text-muted-foreground">
+                <a
+                  href="https://peptide-pay.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline-offset-2 hover:underline"
+                >
+                  Secured by Peptide-Pay
+                </a>
+              </p>
 
               {!PAYMENTS_API_BASE_URL && (
                 <p className="rounded-md border border-dashed border-border bg-sand/40 p-3 text-xs text-muted-foreground">

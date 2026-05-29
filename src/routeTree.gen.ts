@@ -30,6 +30,7 @@ import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminInnehallRouteImport } from './routes/admin.innehall'
 import { Route as AdminDiagnostikRouteImport } from './routes/admin.diagnostik'
 import { Route as AdminChattRouteImport } from './routes/admin.chatt'
+import { Route as ApiPublicPeptidepayWebhookRouteImport } from './routes/api/public/peptidepay-webhook'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicDiagClientRouteImport } from './routes/api/public/diag-client'
 import { Route as ApiPeptidepayCreateInvoiceRouteImport } from './routes/api/peptidepay.create-invoice'
@@ -41,7 +42,6 @@ import { Route as ApiDiscountValidateRouteImport } from './routes/api/discount.v
 import { Route as ApiCryptoCreateInvoiceRouteImport } from './routes/api/crypto.create-invoice'
 import { Route as ApiAdminProductImagesRouteImport } from './routes/api/admin/product-images'
 import { Route as ApiPublicUploadsSplatRouteImport } from './routes/api/public/uploads.$'
-import { Route as ApiPublicPeptidepayWebhookRouteImport } from './routes/api/public/peptidepay.webhook'
 import { Route as ApiPublicNowpaymentsWebhookRouteImport } from './routes/api/public/nowpayments.webhook'
 import { Route as ApiPublicCryptoWebhookRouteImport } from './routes/api/public/crypto.webhook'
 import { Route as ApiCryptoOrderOrderIdRouteImport } from './routes/api/crypto.order.$orderId'
@@ -151,6 +151,12 @@ const AdminChattRoute = AdminChattRouteImport.update({
   path: '/chatt',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiPublicPeptidepayWebhookRoute =
+  ApiPublicPeptidepayWebhookRouteImport.update({
+    id: '/api/public/peptidepay-webhook',
+    path: '/api/public/peptidepay-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   id: '/api/public/health',
   path: '/api/public/health',
@@ -209,12 +215,6 @@ const ApiPublicUploadsSplatRoute = ApiPublicUploadsSplatRouteImport.update({
   path: '/api/public/uploads/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicPeptidepayWebhookRoute =
-  ApiPublicPeptidepayWebhookRouteImport.update({
-    id: '/api/public/peptidepay/webhook',
-    path: '/api/public/peptidepay/webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicNowpaymentsWebhookRoute =
   ApiPublicNowpaymentsWebhookRouteImport.update({
     id: '/api/public/nowpayments/webhook',
@@ -264,10 +264,10 @@ export interface FileRoutesByFullPath {
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
   '/api/public/nowpayments/webhook': typeof ApiPublicNowpaymentsWebhookRoute
-  '/api/public/peptidepay/webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/public/uploads/$': typeof ApiPublicUploadsSplatRoute
 }
 export interface FileRoutesByTo {
@@ -302,10 +302,10 @@ export interface FileRoutesByTo {
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
   '/api/public/nowpayments/webhook': typeof ApiPublicNowpaymentsWebhookRoute
-  '/api/public/peptidepay/webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/public/uploads/$': typeof ApiPublicUploadsSplatRoute
 }
 export interface FileRoutesById {
@@ -341,10 +341,10 @@ export interface FileRoutesById {
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
   '/api/public/nowpayments/webhook': typeof ApiPublicNowpaymentsWebhookRoute
-  '/api/public/peptidepay/webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/public/uploads/$': typeof ApiPublicUploadsSplatRoute
 }
 export interface FileRouteTypes {
@@ -381,10 +381,10 @@ export interface FileRouteTypes {
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
     | '/api/public/health'
+    | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
     | '/api/public/nowpayments/webhook'
-    | '/api/public/peptidepay/webhook'
     | '/api/public/uploads/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -419,10 +419,10 @@ export interface FileRouteTypes {
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
     | '/api/public/health'
+    | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
     | '/api/public/nowpayments/webhook'
-    | '/api/public/peptidepay/webhook'
     | '/api/public/uploads/$'
   id:
     | '__root__'
@@ -457,10 +457,10 @@ export interface FileRouteTypes {
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
     | '/api/public/health'
+    | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
     | '/api/public/nowpayments/webhook'
-    | '/api/public/peptidepay/webhook'
     | '/api/public/uploads/$'
   fileRoutesById: FileRoutesById
 }
@@ -486,10 +486,10 @@ export interface RootRouteChildren {
   ApiPeptidepayCreateInvoiceRoute: typeof ApiPeptidepayCreateInvoiceRoute
   ApiPublicDiagClientRoute: typeof ApiPublicDiagClientRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicPeptidepayWebhookRoute: typeof ApiPublicPeptidepayWebhookRoute
   ApiCryptoOrderOrderIdRoute: typeof ApiCryptoOrderOrderIdRoute
   ApiPublicCryptoWebhookRoute: typeof ApiPublicCryptoWebhookRoute
   ApiPublicNowpaymentsWebhookRoute: typeof ApiPublicNowpaymentsWebhookRoute
-  ApiPublicPeptidepayWebhookRoute: typeof ApiPublicPeptidepayWebhookRoute
   ApiPublicUploadsSplatRoute: typeof ApiPublicUploadsSplatRoute
 }
 
@@ -642,6 +642,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminChattRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/public/peptidepay-webhook': {
+      id: '/api/public/peptidepay-webhook'
+      path: '/api/public/peptidepay-webhook'
+      fullPath: '/api/public/peptidepay-webhook'
+      preLoaderRoute: typeof ApiPublicPeptidepayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health': {
       id: '/api/public/health'
       path: '/api/public/health'
@@ -717,13 +724,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/uploads/$'
       fullPath: '/api/public/uploads/$'
       preLoaderRoute: typeof ApiPublicUploadsSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/peptidepay/webhook': {
-      id: '/api/public/peptidepay/webhook'
-      path: '/api/public/peptidepay/webhook'
-      fullPath: '/api/public/peptidepay/webhook'
-      preLoaderRoute: typeof ApiPublicPeptidepayWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/nowpayments/webhook': {
@@ -811,10 +811,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPeptidepayCreateInvoiceRoute: ApiPeptidepayCreateInvoiceRoute,
   ApiPublicDiagClientRoute: ApiPublicDiagClientRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicPeptidepayWebhookRoute: ApiPublicPeptidepayWebhookRoute,
   ApiCryptoOrderOrderIdRoute: ApiCryptoOrderOrderIdRoute,
   ApiPublicCryptoWebhookRoute: ApiPublicCryptoWebhookRoute,
   ApiPublicNowpaymentsWebhookRoute: ApiPublicNowpaymentsWebhookRoute,
-  ApiPublicPeptidepayWebhookRoute: ApiPublicPeptidepayWebhookRoute,
   ApiPublicUploadsSplatRoute: ApiPublicUploadsSplatRoute,
 }
 export const routeTree = rootRouteImport
