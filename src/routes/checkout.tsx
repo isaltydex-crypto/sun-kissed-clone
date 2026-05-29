@@ -6,13 +6,13 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import {
   createCryptoInvoice,
-  
+  createPeptidePayInvoice,
   PAYMENTS_API_BASE_URL,
   type PayCurrency,
 } from "@/lib/paymentsApi";
 import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
 
-type PaymentMethod = "crypto";
+type PaymentMethod = "card" | "crypto";
 
 const COINS: { value: PayCurrency; label: string; sub: string }[] = [
   { value: "usdc", label: "USD Coin", sub: "USDC" },
@@ -58,7 +58,7 @@ export const Route = createFileRoute("/checkout")({
 function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
-  const paymentMethod: PaymentMethod = "crypto";
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [payCurrency, setPayCurrency] = useState<PayCurrency>("usdc");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [discountInput, setDiscountInput] = useState("");
@@ -141,7 +141,10 @@ function CheckoutPage() {
           successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
           cancelUrl: `${origin}/checkout?cancelled=1`,
         };
-        const { invoiceUrl } = await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
+        const { invoiceUrl } =
+          paymentMethod === "card"
+            ? await createPeptidePayInvoice(commonInput)
+            : await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
         clear();
         window.location.href = invoiceUrl;
         return;
@@ -251,29 +254,60 @@ function CheckoutPage() {
             <fieldset className="space-y-3">
               <legend className="mb-2 text-lg font-semibold text-ocean-deep">Betalsätt</legend>
               <p className="text-sm text-muted-foreground">
-                Välj kryptovaluta. Du skickas vidare till en säker betalsida för att slutföra köpet.
+                Välj betalsätt. Du skickas vidare till en säker betalsida för att slutföra köpet.
               </p>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {COINS.map((coin) => {
-                  const active = payCurrency === coin.value;
-                  return (
-                    <button
-                      type="button"
-                      key={coin.value}
-                      onClick={() => setPayCurrency(coin.value)}
-                      aria-pressed={active}
-                      className={`rounded-xl border px-3 py-3 text-left transition ${
-                        active
-                          ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
-                          : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
-                      }`}
-                    >
-                      <p className="text-sm font-semibold text-ocean-deep">{coin.label}</p>
-                      <p className="text-xs text-muted-foreground">{coin.sub}</p>
-                    </button>
-                  );
-                })}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("card")}
+                  aria-pressed={paymentMethod === "card"}
+                  className={`rounded-xl border px-3 py-3 text-left transition ${
+                    paymentMethod === "card"
+                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
+                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-ocean-deep">Bankkort</p>
+                  <p className="text-xs text-muted-foreground">Visa, Mastercard, Apple Pay, Google Pay</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("crypto")}
+                  aria-pressed={paymentMethod === "crypto"}
+                  className={`rounded-xl border px-3 py-3 text-left transition ${
+                    paymentMethod === "crypto"
+                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
+                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-ocean-deep">Kryptovaluta</p>
+                  <p className="text-xs text-muted-foreground">BTC, ETH, USDC, USDT</p>
+                </button>
               </div>
+
+              {paymentMethod === "crypto" && (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {COINS.map((coin) => {
+                    const active = payCurrency === coin.value;
+                    return (
+                      <button
+                        type="button"
+                        key={coin.value}
+                        onClick={() => setPayCurrency(coin.value)}
+                        aria-pressed={active}
+                        className={`rounded-xl border px-3 py-3 text-left transition ${
+                          active
+                            ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
+                            : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
+                        }`}
+                      >
+                        <p className="text-sm font-semibold text-ocean-deep">{coin.label}</p>
+                        <p className="text-xs text-muted-foreground">{coin.sub}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {!PAYMENTS_API_BASE_URL && (
                 <p className="rounded-md border border-dashed border-border bg-sand/40 p-3 text-xs text-muted-foreground">
@@ -300,9 +334,11 @@ function CheckoutPage() {
               >
                 {form.formState.isSubmitting
                   ? "Bearbetar…"
-                  : PAYMENTS_API_BASE_URL
-                  ? "Betala med krypto"
-                  : "Bekräfta beställning"}
+                  : !PAYMENTS_API_BASE_URL
+                  ? "Bekräfta beställning"
+                  : paymentMethod === "card"
+                  ? "Betala med kort"
+                  : "Betala med krypto"}
               </button>
             </div>
             <div>
