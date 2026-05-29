@@ -141,24 +141,7 @@ function CheckoutPage() {
           successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
           cancelUrl: `${origin}/checkout?cancelled=1`,
         };
-        const { invoiceUrl } =
-          paymentMethod === "apple_pay"
-            ? await createNowPaymentsInvoice({ ...commonInput, rail: "apple_pay" })
-            : paymentMethod === "samsung_pay"
-            ? await createNowPaymentsInvoice({ ...commonInput, rail: "samsung_pay" })
-            : paymentMethod === "google_pay"
-            ? await createNowPaymentsInvoice({ ...commonInput, rail: "google_pay" })
-            : await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
-        clear();
-        window.location.href = invoiceUrl;
-        return;
-      } catch (err) {
-        setSubmitError(
-          err instanceof Error ? err.message : "Kunde inte starta betalningen. Försök igen.",
-        );
-        return;
-      }
-    }
+        const { invoiceUrl } = await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
 
 
     // No payments server configured yet — fall back to confirmation page.
