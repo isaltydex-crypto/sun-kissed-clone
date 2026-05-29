@@ -1,25 +1,19 @@
 /**
  * POST /api/peptidepay/create-invoice
  *
- * Skapar en hosted checkout-session hos Peptide-Pay och returnerar URL:en
- * att redirecta kunden till. Kunden kan välja kort (Visa/Mastercard, Apple
- * Pay, Google Pay) eller krypto på Peptide-Pay's sida; merchanten får alltid
- * USDC i sin wallet och webhook fires inom ~30s.
+ * Creates a Peptide-Pay hosted checkout session and returns the URL to
+ * redirect the customer to. Server-side validates catalog prices via the
+ * `items` array (no client-supplied totals reach Peptide-Pay).
  *
- * Docs: https://peptide-pay.com/docs
- *
- * Required env:
- *   PEPTIDEPAY_API_KEY        — sk_live_… från peptide-pay.com/app/api-keys
- *   PEPTIDEPAY_WEBHOOK_SECRET — secret från dashboard (Webhooks)
- *
- * Webhook target (konfigureras per session nedan, men kan också sättas i
- * dashboarden):
- *   https://<your-domain>/api/public/peptidepay/webhook
+ * Auth: pass either PEPTIDEPAY_API_KEY (advanced) OR PEPTIDEPAY_WALLET
+ * (wallet-only mode). Webhook secret PEPTIDEPAY_WEBHOOK_SECRET is required
+ * for IPN verification at /api/public/peptidepay-webhook.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { validateDiscountForSubtotal } from "@/lib/discounts.server";
+import { createPeptidePaySession, PeptidePayError } from "@/lib/peptidepay.server";
 
 const ItemSchema = z.object({
   slug: z.string().min(1).max(120),
@@ -53,12 +47,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type",
 } as const;
 
-const PEPTIDEPAY_API = "https://peptide-pay.com/api/v1";
-// Peptide-Pay supports: EUR, USD, GBP, CAD, AUD, CHF. SEK saknas — vi konverterar
-// SEK → EUR med en grov kurs så vi kan ta emot betalningen. Justera vid behov
-// eller exponera som env-var.
+// Peptide-Pay accepts EUR, USD, GBP, CAD, AUD, CHF. SEK isn't supported, so
+// convert SEK → EUR for the gateway (override via PEPTIDEPAY_SEK_TO_EUR).
 const SEK_TO_EUR = Number(process.env.PEPTIDEPAY_SEK_TO_EUR ?? "0.087");
-const PP_SUPPORTED = new Set(["EUR", "USD", "GBP", "CAD", "AUD", "CHF"]);
+const PP_SUPPORTED = new Set(["EUR", "USD", "GBP", "CAD", "AUD", "CHF"] as const);
+
+type PpCurrency = "EUR" | "USD" | "GBP" | "CAD" | "AUD" | "CHF";
 
 function dbErrorDetail(
   err: { message?: string; code?: string; details?: string; hint?: string } | null | undefined,
@@ -82,15 +76,14 @@ export const Route = createFileRoute("/api/peptidepay/create-invoice")({
           );
         }
 
-        const apiKey = process.env.PEPTIDEPAY_API_KEY;
-        if (!apiKey) {
+        if (!process.env.PEPTIDEPAY_API_KEY && !process.env.PEPTIDEPAY_WALLET) {
           return Response.json(
             { error: "Peptide-Pay is not configured on this server." },
             { status: 503, headers: corsHeaders },
           );
         }
 
-        // Räkna om totalen server-side i öre.
+        // Authoritative server-side total (öre).
         const subtotalOre = parsed.items.reduce(
           (sum, i) => sum + Math.round(i.price * 100) * i.quantity,
           0,
@@ -111,11 +104,11 @@ export const Route = createFileRoute("/api/peptidepay/create-invoice")({
         const totalOre = Math.max(0, subtotalOre - discountOre);
         const totalLocal = totalOre / 100;
 
-        // Mappa till en valuta Peptide-Pay förstår.
         const localCurrency = parsed.currency.toUpperCase();
-        let ppCurrency = localCurrency;
+        let ppCurrency: PpCurrency;
         let ppAmountCents: number;
-        if (PP_SUPPORTED.has(localCurrency)) {
+        if (PP_SUPPORTED.has(localCurrency as PpCurrency)) {
+          ppCurrency = localCurrency as PpCurrency;
           ppAmountCents = totalOre;
         } else if (localCurrency === "SEK") {
           ppCurrency = "EUR";
@@ -127,7 +120,7 @@ export const Route = createFileRoute("/api/peptidepay/create-invoice")({
           );
         }
 
-        // Skapa order (pending).
+        // Create pending order.
         const { data: orderRow, error: orderErr } = await supabaseAdmin
           .from("orders")
           .insert({
@@ -187,66 +180,43 @@ export const Route = createFileRoute("/api/peptidepay/create-invoice")({
           );
         }
 
-        // Härleda webhook-URL från request-origin om inte explicit satt.
-        const explicit = process.env.PEPTIDEPAY_WEBHOOK_URL;
+        // Webhook URL — `/api/public/*` so Lovable's published-site auth lets
+        // external callers (Peptide-Pay's IPN) through.
         const origin = new URL(request.url).origin;
-        const webhookUrl = explicit || `${origin}/api/public/peptidepay/webhook`;
+        const webhookUrl =
+          process.env.PEPTIDEPAY_WEBHOOK_URL || `${origin}/api/public/peptidepay-webhook`;
 
-        // Skapa checkout-session hos Peptide-Pay.
-        let sessionUrl: string;
-        let sessionId: string;
+        let session;
         try {
-          const res = await fetch(`${PEPTIDEPAY_API}/checkout/init`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-              "Idempotency-Key": parsed.orderId,
+          session = await createPeptidePaySession({
+            amountCents: ppAmountCents,
+            currency: ppCurrency,
+            customerEmail: parsed.customer.email,
+            successUrl: parsed.successUrl,
+            cancelUrl: parsed.cancelUrl,
+            webhookUrl,
+            productName: `PeptivaLab order ${parsed.orderId}`,
+            idempotencyKey: parsed.orderId,
+            metadata: {
+              order_id: parsed.orderId,
+              local_currency: localCurrency,
+              local_amount_cents: String(totalOre),
             },
-            body: JSON.stringify({
-              amount_cents: ppAmountCents,
-              currency: ppCurrency,
-              customer_email: parsed.customer.email,
-              success_url: parsed.successUrl,
-              cancel_url: parsed.cancelUrl,
-              webhook_url: webhookUrl,
-              product_name: `PeptivaLab order ${parsed.orderId}`,
-              metadata: {
-                order_id: parsed.orderId,
-                local_currency: localCurrency,
-                local_amount_cents: String(totalOre),
-              },
-            }),
           });
-          if (!res.ok) {
-            const text = await res.text().catch(() => "");
-            console.error("[peptidepay.create-invoice] init failed", res.status, text);
-            return Response.json(
-              { error: `Peptide-Pay error (${res.status}): ${text}` },
-              { status: 502, headers: corsHeaders },
-            );
-          }
-          const json = (await res.json()) as {
-            id?: string;
-            url?: string;
-            tracking_number?: string;
-          };
-          if (!json.url || !json.id) {
-            return Response.json(
-              { error: "Peptide-Pay returned no session URL" },
-              { status: 502, headers: corsHeaders },
-            );
-          }
-          sessionUrl = json.url;
-          sessionId = json.id;
         } catch (err) {
+          if (err instanceof PeptidePayError) {
+            console.error("[peptidepay.create-invoice] init failed", err.status, err.body);
+            return Response.json(
+              { error: err.message },
+              { status: err.status && err.status >= 400 && err.status < 600 ? 502 : 502, headers: corsHeaders },
+            );
+          }
           return Response.json(
             { error: err instanceof Error ? err.message : "Peptide-Pay request failed" },
             { status: 502, headers: corsHeaders },
           );
         }
 
-        // Spara session-id i ordern.
         await supabaseAdmin
           .from("orders")
           .update({
@@ -255,15 +225,15 @@ export const Route = createFileRoute("/api/peptidepay/create-invoice")({
               provider: "peptidepay",
               pp_currency: ppCurrency,
               pp_amount_cents: ppAmountCents,
-              peptidepay_session_id: sessionId,
+              peptidepay_session_id: session.id,
             } as never,
           })
           .eq("id", (orderRow as { id: string }).id);
 
         return Response.json(
           {
-            invoiceUrl: sessionUrl,
-            invoiceId: sessionId,
+            invoiceUrl: session.url,
+            invoiceId: session.id,
             totals: {
               subtotal: subtotalOre / 100,
               shipping: 0,
