@@ -6,13 +6,13 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import {
   createCryptoInvoice,
-  
+  createPeptidePayInvoice,
   PAYMENTS_API_BASE_URL,
   type PayCurrency,
 } from "@/lib/paymentsApi";
 import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
 
-type PaymentMethod = "crypto";
+type PaymentMethod = "card" | "crypto";
 
 const COINS: { value: PayCurrency; label: string; sub: string }[] = [
   { value: "usdc", label: "USD Coin", sub: "USDC" },
@@ -58,7 +58,7 @@ export const Route = createFileRoute("/checkout")({
 function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
-  const paymentMethod: PaymentMethod = "crypto";
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [payCurrency, setPayCurrency] = useState<PayCurrency>("usdc");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [discountInput, setDiscountInput] = useState("");
@@ -141,7 +141,10 @@ function CheckoutPage() {
           successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
           cancelUrl: `${origin}/checkout?cancelled=1`,
         };
-        const { invoiceUrl } = await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
+        const { invoiceUrl } =
+          paymentMethod === "card"
+            ? await createPeptidePayInvoice(commonInput)
+            : await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
         clear();
         window.location.href = invoiceUrl;
         return;
