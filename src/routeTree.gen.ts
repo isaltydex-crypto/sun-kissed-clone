@@ -34,6 +34,7 @@ import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicDiagClientRouteImport } from './routes/api/public/diag-client'
 import { Route as ApiPeptidepayCreateInvoiceRouteImport } from './routes/api/peptidepay.create-invoice'
 import { Route as ApiNowpaymentsCreateInvoiceRouteImport } from './routes/api/nowpayments.create-invoice'
+import { Route as ApiNowpaymentsCreateCryptoInvoiceRouteImport } from './routes/api/nowpayments.create-crypto-invoice'
 import { Route as ApiInternalNotifyRouteImport } from './routes/api/internal/notify'
 import { Route as ApiInternalDiagRouteImport } from './routes/api/internal/diag'
 import { Route as ApiDiscountValidateRouteImport } from './routes/api/discount.validate'
@@ -172,6 +173,12 @@ const ApiNowpaymentsCreateInvoiceRoute =
     path: '/api/nowpayments/create-invoice',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiNowpaymentsCreateCryptoInvoiceRoute =
+  ApiNowpaymentsCreateCryptoInvoiceRouteImport.update({
+    id: '/api/nowpayments/create-crypto-invoice',
+    path: '/api/nowpayments/create-crypto-invoice',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiInternalNotifyRoute = ApiInternalNotifyRouteImport.update({
   id: '/api/internal/notify',
   path: '/api/internal/notify',
@@ -252,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/diag': typeof ApiInternalDiagRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
+  '/api/nowpayments/create-crypto-invoice': typeof ApiNowpaymentsCreateCryptoInvoiceRoute
   '/api/nowpayments/create-invoice': typeof ApiNowpaymentsCreateInvoiceRoute
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
@@ -289,6 +297,7 @@ export interface FileRoutesByTo {
   '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/diag': typeof ApiInternalDiagRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
+  '/api/nowpayments/create-crypto-invoice': typeof ApiNowpaymentsCreateCryptoInvoiceRoute
   '/api/nowpayments/create-invoice': typeof ApiNowpaymentsCreateInvoiceRoute
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
@@ -327,6 +336,7 @@ export interface FileRoutesById {
   '/api/discount/validate': typeof ApiDiscountValidateRoute
   '/api/internal/diag': typeof ApiInternalDiagRoute
   '/api/internal/notify': typeof ApiInternalNotifyRoute
+  '/api/nowpayments/create-crypto-invoice': typeof ApiNowpaymentsCreateCryptoInvoiceRoute
   '/api/nowpayments/create-invoice': typeof ApiNowpaymentsCreateInvoiceRoute
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
@@ -366,6 +376,7 @@ export interface FileRouteTypes {
     | '/api/discount/validate'
     | '/api/internal/diag'
     | '/api/internal/notify'
+    | '/api/nowpayments/create-crypto-invoice'
     | '/api/nowpayments/create-invoice'
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
@@ -403,6 +414,7 @@ export interface FileRouteTypes {
     | '/api/discount/validate'
     | '/api/internal/diag'
     | '/api/internal/notify'
+    | '/api/nowpayments/create-crypto-invoice'
     | '/api/nowpayments/create-invoice'
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
@@ -440,6 +452,7 @@ export interface FileRouteTypes {
     | '/api/discount/validate'
     | '/api/internal/diag'
     | '/api/internal/notify'
+    | '/api/nowpayments/create-crypto-invoice'
     | '/api/nowpayments/create-invoice'
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
@@ -468,6 +481,7 @@ export interface RootRouteChildren {
   ApiDiscountValidateRoute: typeof ApiDiscountValidateRoute
   ApiInternalDiagRoute: typeof ApiInternalDiagRoute
   ApiInternalNotifyRoute: typeof ApiInternalNotifyRoute
+  ApiNowpaymentsCreateCryptoInvoiceRoute: typeof ApiNowpaymentsCreateCryptoInvoiceRoute
   ApiNowpaymentsCreateInvoiceRoute: typeof ApiNowpaymentsCreateInvoiceRoute
   ApiPeptidepayCreateInvoiceRoute: typeof ApiPeptidepayCreateInvoiceRoute
   ApiPublicDiagClientRoute: typeof ApiPublicDiagClientRoute
@@ -656,6 +670,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiNowpaymentsCreateInvoiceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/nowpayments/create-crypto-invoice': {
+      id: '/api/nowpayments/create-crypto-invoice'
+      path: '/api/nowpayments/create-crypto-invoice'
+      fullPath: '/api/nowpayments/create-crypto-invoice'
+      preLoaderRoute: typeof ApiNowpaymentsCreateCryptoInvoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/internal/notify': {
       id: '/api/internal/notify'
       path: '/api/internal/notify'
@@ -784,6 +805,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDiscountValidateRoute: ApiDiscountValidateRoute,
   ApiInternalDiagRoute: ApiInternalDiagRoute,
   ApiInternalNotifyRoute: ApiInternalNotifyRoute,
+  ApiNowpaymentsCreateCryptoInvoiceRoute:
+    ApiNowpaymentsCreateCryptoInvoiceRoute,
   ApiNowpaymentsCreateInvoiceRoute: ApiNowpaymentsCreateInvoiceRoute,
   ApiPeptidepayCreateInvoiceRoute: ApiPeptidepayCreateInvoiceRoute,
   ApiPublicDiagClientRoute: ApiPublicDiagClientRoute,
