@@ -30,6 +30,7 @@ import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminInnehallRouteImport } from './routes/admin.innehall'
 import { Route as AdminDiagnostikRouteImport } from './routes/admin.diagnostik'
 import { Route as AdminChattRouteImport } from './routes/admin.chatt'
+import { Route as ApiPublicPeptidepayWebhookRouteImport } from './routes/api/public/peptidepay-webhook'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicDiagClientRouteImport } from './routes/api/public/diag-client'
 import { Route as ApiPeptidepayCreateInvoiceRouteImport } from './routes/api/peptidepay.create-invoice'
@@ -151,6 +152,12 @@ const AdminChattRoute = AdminChattRouteImport.update({
   path: '/chatt',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiPublicPeptidepayWebhookRoute =
+  ApiPublicPeptidepayWebhookRouteImport.update({
+    id: '/api/public/peptidepay-webhook',
+    path: '/api/public/peptidepay-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   id: '/api/public/health',
   path: '/api/public/health',
@@ -264,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
   '/api/public/nowpayments/webhook': typeof ApiPublicNowpaymentsWebhookRoute
@@ -302,6 +310,7 @@ export interface FileRoutesByTo {
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
   '/api/public/nowpayments/webhook': typeof ApiPublicNowpaymentsWebhookRoute
@@ -341,6 +350,7 @@ export interface FileRoutesById {
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
   '/api/public/nowpayments/webhook': typeof ApiPublicNowpaymentsWebhookRoute
@@ -381,6 +391,7 @@ export interface FileRouteTypes {
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
     | '/api/public/health'
+    | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
     | '/api/public/nowpayments/webhook'
@@ -419,6 +430,7 @@ export interface FileRouteTypes {
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
     | '/api/public/health'
+    | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
     | '/api/public/nowpayments/webhook'
@@ -457,6 +469,7 @@ export interface FileRouteTypes {
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
     | '/api/public/health'
+    | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
     | '/api/public/nowpayments/webhook'
@@ -486,6 +499,7 @@ export interface RootRouteChildren {
   ApiPeptidepayCreateInvoiceRoute: typeof ApiPeptidepayCreateInvoiceRoute
   ApiPublicDiagClientRoute: typeof ApiPublicDiagClientRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicPeptidepayWebhookRoute: typeof ApiPublicPeptidepayWebhookRoute
   ApiCryptoOrderOrderIdRoute: typeof ApiCryptoOrderOrderIdRoute
   ApiPublicCryptoWebhookRoute: typeof ApiPublicCryptoWebhookRoute
   ApiPublicNowpaymentsWebhookRoute: typeof ApiPublicNowpaymentsWebhookRoute
@@ -641,6 +655,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/chatt'
       preLoaderRoute: typeof AdminChattRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/api/public/peptidepay-webhook': {
+      id: '/api/public/peptidepay-webhook'
+      path: '/api/public/peptidepay-webhook'
+      fullPath: '/api/public/peptidepay-webhook'
+      preLoaderRoute: typeof ApiPublicPeptidepayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/health': {
       id: '/api/public/health'
@@ -811,6 +832,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPeptidepayCreateInvoiceRoute: ApiPeptidepayCreateInvoiceRoute,
   ApiPublicDiagClientRoute: ApiPublicDiagClientRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicPeptidepayWebhookRoute: ApiPublicPeptidepayWebhookRoute,
   ApiCryptoOrderOrderIdRoute: ApiCryptoOrderOrderIdRoute,
   ApiPublicCryptoWebhookRoute: ApiPublicCryptoWebhookRoute,
   ApiPublicNowpaymentsWebhookRoute: ApiPublicNowpaymentsWebhookRoute,
