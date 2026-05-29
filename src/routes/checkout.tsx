@@ -142,7 +142,16 @@ function CheckoutPage() {
           cancelUrl: `${origin}/checkout?cancelled=1`,
         };
         const { invoiceUrl } = await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
-
+        clear();
+        window.location.href = invoiceUrl;
+        return;
+      } catch (err) {
+        setSubmitError(
+          err instanceof Error ? err.message : "Kunde inte starta betalningen. Försök igen.",
+        );
+        return;
+      }
+    }
 
     // No payments server configured yet — fall back to confirmation page.
     clear();
