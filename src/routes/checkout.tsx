@@ -6,13 +6,13 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import {
   createCryptoInvoice,
-  createNowPaymentsInvoice,
+  
   PAYMENTS_API_BASE_URL,
   type PayCurrency,
 } from "@/lib/paymentsApi";
 import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
 
-type PaymentMethod = "crypto" | "apple_pay" | "samsung_pay" | "google_pay";
+type PaymentMethod = "crypto";
 
 const COINS: { value: PayCurrency; label: string; sub: string }[] = [
   { value: "usdc", label: "USD Coin", sub: "USDC" },
@@ -58,7 +58,7 @@ export const Route = createFileRoute("/checkout")({
 function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("crypto");
+  const paymentMethod: PaymentMethod = "crypto";
   const [payCurrency, setPayCurrency] = useState<PayCurrency>("usdc");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [discountInput, setDiscountInput] = useState("");
@@ -141,14 +141,7 @@ function CheckoutPage() {
           successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
           cancelUrl: `${origin}/checkout?cancelled=1`,
         };
-        const { invoiceUrl } =
-          paymentMethod === "apple_pay"
-            ? await createNowPaymentsInvoice({ ...commonInput, rail: "apple_pay" })
-            : paymentMethod === "samsung_pay"
-            ? await createNowPaymentsInvoice({ ...commonInput, rail: "samsung_pay" })
-            : paymentMethod === "google_pay"
-            ? await createNowPaymentsInvoice({ ...commonInput, rail: "google_pay" })
-            : await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
+        const { invoiceUrl } = await createCryptoInvoice({ ...commonInput, amount: total, payCurrency });
         clear();
         window.location.href = invoiceUrl;
         return;
@@ -159,7 +152,6 @@ function CheckoutPage() {
         return;
       }
     }
-
 
     // No payments server configured yet — fall back to confirmation page.
     clear();
@@ -258,107 +250,30 @@ function CheckoutPage() {
 
             <fieldset className="space-y-3">
               <legend className="mb-2 text-lg font-semibold text-ocean-deep">Betalsätt</legend>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("crypto")}
-                  aria-pressed={paymentMethod === "crypto"}
-                  className={`rounded-xl border px-4 py-3 text-left transition ${
-                    paymentMethod === "crypto"
-                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
-                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
-                  }`}
-                >
-                  <p className="text-sm font-semibold text-ocean-deep">Kryptovaluta</p>
-                  <p className="text-xs text-muted-foreground">USDC, USDT m.fl.</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("apple_pay")}
-                  aria-pressed={paymentMethod === "apple_pay"}
-                  className={`rounded-xl border px-4 py-3 text-left transition ${
-                    paymentMethod === "apple_pay"
-                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
-                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
-                  }`}
-                >
-                  <p className="text-sm font-semibold text-ocean-deep">Apple Pay</p>
-                  <p className="text-xs text-muted-foreground">Snabb och säker betalning</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("google_pay")}
-                  aria-pressed={paymentMethod === "google_pay"}
-                  className={`rounded-xl border px-4 py-3 text-left transition ${
-                    paymentMethod === "google_pay"
-                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
-                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
-                  }`}
-                >
-                  <p className="text-sm font-semibold text-ocean-deep">Google Pay</p>
-                  <p className="text-xs text-muted-foreground">Snabb och säker betalning</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("samsung_pay")}
-                  aria-pressed={paymentMethod === "samsung_pay"}
-                  className={`rounded-xl border px-4 py-3 text-left transition ${
-                    paymentMethod === "samsung_pay"
-                      ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
-                      : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
-                  }`}
-                >
-                  <p className="text-sm font-semibold text-ocean-deep">Samsung Pay</p>
-                  <p className="text-xs text-muted-foreground">Snabb och säker betalning</p>
-                </button>
+              <p className="text-sm text-muted-foreground">
+                Välj kryptovaluta. Du skickas vidare till en säker betalsida för att slutföra köpet.
+              </p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {COINS.map((coin) => {
+                  const active = payCurrency === coin.value;
+                  return (
+                    <button
+                      type="button"
+                      key={coin.value}
+                      onClick={() => setPayCurrency(coin.value)}
+                      aria-pressed={active}
+                      className={`rounded-xl border px-3 py-3 text-left transition ${
+                        active
+                          ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
+                          : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
+                      }`}
+                    >
+                      <p className="text-sm font-semibold text-ocean-deep">{coin.label}</p>
+                      <p className="text-xs text-muted-foreground">{coin.sub}</p>
+                    </button>
+                  );
+                })}
               </div>
-
-              {paymentMethod === "crypto" && (
-                <>
-                  <p className="text-sm text-muted-foreground">
-                    Välj kryptovaluta. Du skickas vidare till en säker betalsida för att slutföra köpet.
-                  </p>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {COINS.map((coin) => {
-                      const active = payCurrency === coin.value;
-                      return (
-                        <button
-                          type="button"
-                          key={coin.value}
-                          onClick={() => setPayCurrency(coin.value)}
-                          aria-pressed={active}
-                          className={`rounded-xl border px-3 py-3 text-left transition ${
-                            active
-                              ? "border-ocean-deep bg-ocean-deep/5 ring-2 ring-ocean/30"
-                              : "border-border hover:border-ocean-deep/40 hover:bg-sand/40"
-                          }`}
-                        >
-                          <p className="text-sm font-semibold text-ocean-deep">{coin.label}</p>
-                          <p className="text-xs text-muted-foreground">{coin.sub}</p>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-
-              {paymentMethod === "apple_pay" && (
-                <p className="text-sm text-muted-foreground">
-                  Du skickas vidare till en säker betalsida där du slutför köpet med Apple Pay.
-                </p>
-              )}
-
-              {paymentMethod === "google_pay" && (
-                <p className="text-sm text-muted-foreground">
-                  Du skickas vidare till en säker betalsida där du slutför köpet med Google Pay.
-                </p>
-              )}
-
-              {paymentMethod === "samsung_pay" && (
-                <p className="text-sm text-muted-foreground">
-                  Du skickas vidare till en säker betalsida där du slutför köpet med Samsung Pay.
-                </p>
-              )}
 
               {!PAYMENTS_API_BASE_URL && (
                 <p className="rounded-md border border-dashed border-border bg-sand/40 p-3 text-xs text-muted-foreground">
@@ -386,13 +301,7 @@ function CheckoutPage() {
                 {form.formState.isSubmitting
                   ? "Bearbetar…"
                   : PAYMENTS_API_BASE_URL
-                  ? paymentMethod === "apple_pay"
-                    ? "Betala med Apple Pay"
-                    : paymentMethod === "google_pay"
-                    ? "Betala med Google Pay"
-                    : paymentMethod === "samsung_pay"
-                    ? "Betala med Samsung Pay"
-                    : "Betala med krypto"
+                  ? "Betala med krypto"
                   : "Bekräfta beställning"}
               </button>
             </div>
