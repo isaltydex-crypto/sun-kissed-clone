@@ -5,19 +5,10 @@ import { z } from "zod";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import {
-  createCryptoInvoice,
   createPeptidePayInvoice,
   PAYMENTS_API_BASE_URL,
-  type PayCurrency,
 } from "@/lib/paymentsApi";
 import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
-
-type PaymentMethod = "card" | "crypto";
-
-const COINS: { value: PayCurrency; label: string; sub: string }[] = [
-  { value: "usdc", label: "USD Coin", sub: "USDC" },
-  { value: "usdt", label: "Tether", sub: "USDT" },
-];
 
 
 const schema = z.object({
