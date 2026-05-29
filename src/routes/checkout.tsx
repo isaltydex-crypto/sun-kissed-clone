@@ -273,9 +273,7 @@ function CheckoutPage() {
                   ? "Bearbetar…"
                   : !PAYMENTS_API_BASE_URL
                   ? "Bekräfta beställning"
-                  : paymentMethod === "card"
-                  ? "Betala med kort"
-                  : "Betala med krypto"}
+                  : "Betala med kort"}
               </button>
             </div>
             <div>
