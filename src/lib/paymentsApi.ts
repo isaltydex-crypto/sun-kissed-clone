@@ -145,6 +145,33 @@ export async function createNowPaymentsInvoice(
   return (await res.json()) as CreateInvoiceResponse;
 }
 
+// ─── Peptide-Pay (kort, Apple Pay, Google Pay + krypto via hosted checkout) ──
+//
+// Skapar en hosted checkout-session och returnerar URL:en kunden ska redirectas
+// till. Peptide-Pay tar emot kort/Apple Pay/Google Pay/krypto och avräknar i
+// USDC till merchantens wallet. Webhook fires inom ~30s av betalning.
+
+export type CreatePeptidePayInvoiceInput = Omit<CreateInvoiceInput, "amount" | "payCurrency">;
+
+export async function createPeptidePayInvoice(
+  input: CreatePeptidePayInvoiceInput,
+): Promise<CreateInvoiceResponse> {
+  const base = ensureBaseUrl();
+  const res = await fetch(`${base}/api/peptidepay/create-invoice`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new PaymentsApiError(
+      `Failed to create Peptide-Pay invoice (${res.status}). ${text}`.trim(),
+      res.status,
+    );
+  }
+  return (await res.json()) as CreateInvoiceResponse;
+}
+
 export async function getOrderStatus(orderId: string): Promise<{ status: string; [k: string]: unknown }> {
   const base = ensureBaseUrl();
   const res = await fetch(`${base}/api/crypto/order/${encodeURIComponent(orderId)}`);
