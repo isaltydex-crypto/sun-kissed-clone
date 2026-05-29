@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import {
   createCryptoInvoice,
-  createNowPaymentsInvoice,
+  
   PAYMENTS_API_BASE_URL,
   type PayCurrency,
 } from "@/lib/paymentsApi";
