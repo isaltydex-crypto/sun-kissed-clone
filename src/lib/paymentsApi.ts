@@ -99,7 +99,10 @@ function ensureBaseUrl(): string {
 
 export async function createCryptoInvoice(input: CreateInvoiceInput): Promise<CreateInvoiceResponse> {
   const base = ensureBaseUrl();
-  const res = await fetch(`${base}/api/crypto/create-invoice`, {
+  // Krypto-betalningar går via NOWPayments hosted invoice. Buyer redirectas
+  // till invoice_url, NOWPayments POST:ar IPN till
+  // /api/public/nowpayments/webhook när betalningen är bekräftad.
+  const res = await fetch(`${base}/api/nowpayments/create-crypto-invoice`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
