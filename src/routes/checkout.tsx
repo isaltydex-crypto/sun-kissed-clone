@@ -9,7 +9,7 @@ import {
   createPeptidePayInvoice,
   PAYMENTS_API_BASE_URL,
 } from "@/lib/paymentsApi";
-import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
+import type { AppliedDiscount } from "@/lib/discounts";
 
 type PaymentMethod = "card" | "crypto";
 
@@ -62,15 +62,53 @@ function CheckoutPage() {
   const discountAmount = discount?.amount ?? 0;
   const total = Math.max(0, subtotal - discountAmount);
 
-  const handleApplyDiscount = () => {
+  const [discountBusy, setDiscountBusy] = useState(false);
+  const handleApplyDiscount = async () => {
     setDiscountError(null);
-    const result = applyDiscountCode(discountInput, subtotal);
-    if (result.ok) {
-      setDiscount(result.discount);
+    const code = discountInput.trim();
+    if (!code) {
+      setDiscountError("Ange en rabattkod");
+      return;
+    }
+    if (items.length === 0) {
+      setDiscountError("Varukorgen är tom");
+      return;
+    }
+    setDiscountBusy(true);
+    try {
+      const res = await fetch("/api/discount/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          items: items.map((i) => ({
+            slug: i.slug,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+        }),
+      });
+      const json = (await res.json()) as
+        | { ok: true; discount: { code: string; type: "percent" | "fixed"; value: number; amount: number; description?: string } }
+        | { ok: false; error: string };
+      if (!json.ok) {
+        setDiscount(null);
+        setDiscountError(json.error || "Ogiltig rabattkod");
+        return;
+      }
+      setDiscount({
+        code: json.discount.code,
+        type: json.discount.type,
+        value: json.discount.value,
+        amount: json.discount.amount,
+        description: json.discount.description,
+      });
       setDiscountInput("");
-    } else {
+    } catch {
       setDiscount(null);
-      setDiscountError(result.error);
+      setDiscountError("Kunde inte validera koden. Försök igen.");
+    } finally {
+      setDiscountBusy(false);
     }
   };
 
@@ -410,9 +448,10 @@ function CheckoutPage() {
                   <button
                     type="button"
                     onClick={handleApplyDiscount}
-                    className="rounded-md bg-ocean-deep px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean"
+                    disabled={discountBusy}
+                    className="rounded-md bg-ocean-deep px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean disabled:opacity-50"
                   >
-                    Använd
+                    {discountBusy ? "Kontrollerar…" : "Använd"}
                   </button>
                 </div>
               )}
