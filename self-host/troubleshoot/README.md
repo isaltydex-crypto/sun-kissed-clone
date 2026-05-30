@@ -281,7 +281,29 @@ powershell -ExecutionPolicy Bypass -File .\check-pc-access.ps1 -Fix
 
 ---
 
+---
+
+### `check-wireguard.sh`
+**Use when:** you've enabled (or are about to enable) the optional WireGuard
+VPN gate for `/admin` and want to verify each piece of the chain.
+
+**What it does:**
+- Confirms the `wireguard` container is running (under the `vpn` compose profile)
+- Confirms UFW allows `51820/udp`
+- Lists generated peer configs and reminds you how to fetch the `.conf` / QR code
+- Runs `wg show` and checks at least one peer has handshaked recently
+- Detects whether the Caddyfile `WireGuard-gated admin allowlist` block is uncommented
+- Probes `https://<SITE_DOMAIN>/admin/login` from the VPS and expects `404`
+  (which means the gate is working — outside callers see no admin panel)
+
+**Typical fixes it points to:** container not started (`docker compose --profile vpn up -d wireguard`), UFW blocking the UDP port, peer never connected, or the Caddy allowlist block still commented out.
+
+See **`self-host/wireguard/README.md`** for the full setup walkthrough.
+
+---
+
 ### `view-logs.sh`
+
 **Use when:** you want to browse any log on the server (container stdout, persistent log files, past troubleshoot runs) without remembering each `docker compose logs` / `tail -F` command.
 
 **What it does:**
