@@ -43,7 +43,6 @@ import { Route as ApiDiscountValidateRouteImport } from './routes/api/discount.v
 import { Route as ApiCryptoCreateInvoiceRouteImport } from './routes/api/crypto.create-invoice'
 import { Route as ApiAdminProductImagesRouteImport } from './routes/api/admin/product-images'
 import { Route as ApiPublicUploadsSplatRouteImport } from './routes/api/public/uploads.$'
-import { Route as ApiPublicNowpaymentsWebhookRouteImport } from './routes/api/public/nowpayments.webhook'
 import { Route as ApiPublicCryptoWebhookRouteImport } from './routes/api/public/crypto.webhook'
 import { Route as ApiCryptoOrderOrderIdRouteImport } from './routes/api/crypto.order.$orderId'
 
@@ -222,12 +221,6 @@ const ApiPublicUploadsSplatRoute = ApiPublicUploadsSplatRouteImport.update({
   path: '/api/public/uploads/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicNowpaymentsWebhookRoute =
-  ApiPublicNowpaymentsWebhookRouteImport.update({
-    id: '/api/public/nowpayments/webhook',
-    path: '/api/public/nowpayments/webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicCryptoWebhookRoute = ApiPublicCryptoWebhookRouteImport.update({
   id: '/api/public/crypto/webhook',
   path: '/api/public/crypto/webhook',
@@ -275,7 +268,6 @@ export interface FileRoutesByFullPath {
   '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
-  '/api/public/nowpayments/webhook': typeof ApiPublicNowpaymentsWebhookRoute
   '/api/public/uploads/$': typeof ApiPublicUploadsSplatRoute
 }
 export interface FileRoutesByTo {
@@ -314,7 +306,6 @@ export interface FileRoutesByTo {
   '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
-  '/api/public/nowpayments/webhook': typeof ApiPublicNowpaymentsWebhookRoute
   '/api/public/uploads/$': typeof ApiPublicUploadsSplatRoute
 }
 export interface FileRoutesById {
@@ -354,7 +345,6 @@ export interface FileRoutesById {
   '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
-  '/api/public/nowpayments/webhook': typeof ApiPublicNowpaymentsWebhookRoute
   '/api/public/uploads/$': typeof ApiPublicUploadsSplatRoute
 }
 export interface FileRouteTypes {
@@ -395,7 +385,6 @@ export interface FileRouteTypes {
     | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
-    | '/api/public/nowpayments/webhook'
     | '/api/public/uploads/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -434,7 +423,6 @@ export interface FileRouteTypes {
     | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
-    | '/api/public/nowpayments/webhook'
     | '/api/public/uploads/$'
   id:
     | '__root__'
@@ -473,7 +461,6 @@ export interface FileRouteTypes {
     | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
-    | '/api/public/nowpayments/webhook'
     | '/api/public/uploads/$'
   fileRoutesById: FileRoutesById
 }
@@ -503,7 +490,6 @@ export interface RootRouteChildren {
   ApiPublicPeptidepayWebhookRoute: typeof ApiPublicPeptidepayWebhookRoute
   ApiCryptoOrderOrderIdRoute: typeof ApiCryptoOrderOrderIdRoute
   ApiPublicCryptoWebhookRoute: typeof ApiPublicCryptoWebhookRoute
-  ApiPublicNowpaymentsWebhookRoute: typeof ApiPublicNowpaymentsWebhookRoute
   ApiPublicUploadsSplatRoute: typeof ApiPublicUploadsSplatRoute
 }
 
@@ -747,13 +733,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicUploadsSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/nowpayments/webhook': {
-      id: '/api/public/nowpayments/webhook'
-      path: '/api/public/nowpayments/webhook'
-      fullPath: '/api/public/nowpayments/webhook'
-      preLoaderRoute: typeof ApiPublicNowpaymentsWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/crypto/webhook': {
       id: '/api/public/crypto/webhook'
       path: '/api/public/crypto/webhook'
@@ -836,9 +815,17 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPeptidepayWebhookRoute: ApiPublicPeptidepayWebhookRoute,
   ApiCryptoOrderOrderIdRoute: ApiCryptoOrderOrderIdRoute,
   ApiPublicCryptoWebhookRoute: ApiPublicCryptoWebhookRoute,
-  ApiPublicNowpaymentsWebhookRoute: ApiPublicNowpaymentsWebhookRoute,
   ApiPublicUploadsSplatRoute: ApiPublicUploadsSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
