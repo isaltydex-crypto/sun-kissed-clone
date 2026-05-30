@@ -54,7 +54,7 @@ if [ -z "$SITE_DOMAIN" ]; then
 fi
 
 # Välj endpoint — overrida med WEBHOOK_PATH=... vid behov.
-WEBHOOK_PATH="${WEBHOOK_PATH:-/api/public/nowpayments/webhook}"
+WEBHOOK_PATH="${WEBHOOK_PATH:-/api/public/nowpayments-webhook}"
 URL="https://${SITE_DOMAIN}${WEBHOOK_PATH}"
 info "order_number = ${ORDER_NUMBER}"
 info "payment_status = ${STATUS}"
