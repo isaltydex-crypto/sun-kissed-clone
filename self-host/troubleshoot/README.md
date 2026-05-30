@@ -102,6 +102,20 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
+### `check-nowpayments.sh`
+**Use when:** "Betala med krypto"-knappen i checkout är borta eller returnerar `503`, eller NOWPayments webhooks inte markerar ordrar som betalda.
+
+**What it does:**
+- Confirms `.env` contains `NOWPAYMENTS_API_KEY` and `NOWPAYMENTS_IPN_SECRET`
+- Confirms `docker-compose.yml` passes those vars into the `app` container
+- Confirms the running `app` container actually has them (without printing secret values)
+- Pings `https://api.nowpayments.io/v1/status` from inside the app container with the configured key to verify the key works
+- Probes `/api/public/nowpayments-webhook` and expects `401`/`503` (anything else means the route didn't load)
+
+**Typical fixes it points to:** the code was not pulled after the compose wiring was added, `.env` was edited but the `app` container was not rebuilt, or the IPN callback URL in the NOWPayments dashboard doesn't match `https://<your-domain>/api/public/nowpayments-webhook`.
+
+---
+
 ### `fix-irc-tls.sh`
 **Use when:** `docker compose up -d app` fails with `Bind for 0.0.0.0:6697 failed: port is already allocated`, or RevolutionIRC / HexChat / mIRC can't connect to `chat.<domain>:6697`.
 

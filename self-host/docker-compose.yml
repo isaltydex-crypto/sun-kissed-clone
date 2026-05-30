@@ -270,6 +270,10 @@ services:
       PEPTIDEPAY_WEBHOOK_SECRET: ${PEPTIDEPAY_WEBHOOK_SECRET:-}
       PEPTIDEPAY_WEBHOOK_URL: ${PEPTIDEPAY_WEBHOOK_URL:-}
       PEPTIDEPAY_SEK_TO_EUR: ${PEPTIDEPAY_SEK_TO_EUR:-0.087}
+      # NOWPayments — crypto-direct (no KYC) checkout som komplement till Peptide-Pay.
+      # Buyer betalar direkt från sin wallet (USDT/BTC/ETH m.fl.) utan ID-verifiering.
+      NOWPAYMENTS_API_KEY: ${NOWPAYMENTS_API_KEY:-}
+      NOWPAYMENTS_IPN_SECRET: ${NOWPAYMENTS_IPN_SECRET:-}
       # Plain-text admin audit log (JSON-lines, appended).
       ADMIN_LOG_FILE: /var/log/peptiva/admin-actions.log
       # Extra catalog snapshot kept in the persistent app_logs volume. If the
