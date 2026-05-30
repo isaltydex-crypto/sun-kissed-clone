@@ -175,6 +175,33 @@ export async function createPeptidePayInvoice(
   return (await res.json()) as CreateInvoiceResponse;
 }
 
+// ─── Revolut Pay (bankbetalning / SEPA / Revolut-wallet) ────────────────
+//
+// Skapar en Revolut Merchant order och returnerar checkout-URL:en kunden
+// ska redirectas till. Webhook POST:as till
+// /api/public/revolut/webhook när ordern är "completed".
+
+export type CreateRevolutInvoiceInput = Omit<CreateInvoiceInput, "amount" | "payCurrency">;
+
+export async function createRevolutInvoice(
+  input: CreateRevolutInvoiceInput,
+): Promise<CreateInvoiceResponse> {
+  const base = ensureBaseUrl();
+  const res = await fetch(`${base}/api/revolut/create-invoice`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new PaymentsApiError(
+      `Failed to create Revolut invoice (${res.status}). ${text}`.trim(),
+      res.status,
+    );
+  }
+  return (await res.json()) as CreateInvoiceResponse;
+}
+
 export async function getOrderStatus(orderId: string): Promise<{ status: string; [k: string]: unknown }> {
   const base = ensureBaseUrl();
   const res = await fetch(`${base}/api/crypto/order/${encodeURIComponent(orderId)}`);
