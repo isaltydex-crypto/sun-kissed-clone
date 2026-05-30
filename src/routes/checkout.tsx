@@ -448,9 +448,10 @@ function CheckoutPage() {
                   <button
                     type="button"
                     onClick={handleApplyDiscount}
-                    className="rounded-md bg-ocean-deep px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean"
+                    disabled={discountBusy}
+                    className="rounded-md bg-ocean-deep px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground transition hover:bg-ocean disabled:opacity-50"
                   >
-                    Använd
+                    {discountBusy ? "Kontrollerar…" : "Använd"}
                   </button>
                 </div>
               )}
