@@ -5,10 +5,13 @@ import { z } from "zod";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import {
+  createCryptoInvoice,
   createPeptidePayInvoice,
   PAYMENTS_API_BASE_URL,
 } from "@/lib/paymentsApi";
 import { applyDiscountCode, type AppliedDiscount } from "@/lib/discounts";
+
+type PaymentMethod = "card" | "crypto";
 
 
 const schema = z.object({
@@ -53,6 +56,8 @@ function CheckoutPage() {
   const [discountInput, setDiscountInput] = useState("");
   const [discount, setDiscount] = useState<AppliedDiscount | null>(null);
   const [discountError, setDiscountError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+
 
   const discountAmount = discount?.amount ?? 0;
   const total = Math.max(0, subtotal - discountAmount);
@@ -103,7 +108,7 @@ function CheckoutPage() {
       shipping: 0,
       discount,
       total,
-      paymentMethod: "card",
+      paymentMethod,
     };
     try {
       sessionStorage.setItem("peptivalab.lastOrder", JSON.stringify(order));
@@ -129,7 +134,10 @@ function CheckoutPage() {
           successUrl: `${origin}/checkout/bekraftelse?order=${orderId}`,
           cancelUrl: `${origin}/checkout?cancelled=1`,
         };
-        const { invoiceUrl } = await createPeptidePayInvoice(commonInput);
+        const { invoiceUrl } =
+          paymentMethod === "crypto"
+            ? await createCryptoInvoice({ ...commonInput, payCurrency: "usdt" })
+            : await createPeptidePayInvoice(commonInput);
         clear();
         window.location.href = invoiceUrl;
         return;
@@ -241,20 +249,54 @@ function CheckoutPage() {
               <p className="text-sm text-muted-foreground">
                 Välj betalsätt. Du skickas vidare till en säker betalsida för att slutföra köpet.
               </p>
-              <div className="rounded-xl border border-ocean-deep bg-ocean-deep/5 px-3 py-3">
-                <p className="text-sm font-semibold text-ocean-deep">Bankkort</p>
-                <p className="text-xs text-muted-foreground">Visa, Mastercard, Apple Pay, Google Pay</p>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                <a
-                  href="https://peptide-pay.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline-offset-2 hover:underline"
-                >
-                  Secured by Peptide-Pay
-                </a>
-              </p>
+
+              <label
+                className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
+                  paymentMethod === "card"
+                    ? "border-ocean-deep bg-ocean-deep/5"
+                    : "border-border hover:border-ocean-deep/50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="card"
+                  checked={paymentMethod === "card"}
+                  onChange={() => setPaymentMethod("card")}
+                  className="mt-1 h-4 w-4 shrink-0 border-border text-ocean-deep focus:ring-ocean"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-ocean-deep">Bankkort</p>
+                  <p className="text-xs text-muted-foreground">
+                    Visa, Mastercard, Apple Pay, Google Pay — säker hosted checkout via Peptide-Pay.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
+                  paymentMethod === "crypto"
+                    ? "border-ocean-deep bg-ocean-deep/5"
+                    : "border-border hover:border-ocean-deep/50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="crypto"
+                  checked={paymentMethod === "crypto"}
+                  onChange={() => setPaymentMethod("crypto")}
+                  className="mt-1 h-4 w-4 shrink-0 border-border text-ocean-deep focus:ring-ocean"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-ocean-deep">
+                    Krypto direkt <span className="ml-1 rounded-full bg-ocean-deep/10 px-2 py-0.5 text-[10px] uppercase tracking-wider">Ingen KYC</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Betala direkt från din wallet med USDT, BTC, ETH m.fl. Ingen ID-verifiering.
+                  </p>
+                </div>
+              </label>
 
               {!PAYMENTS_API_BASE_URL && (
                 <p className="rounded-md border border-dashed border-border bg-sand/40 p-3 text-xs text-muted-foreground">
@@ -283,6 +325,8 @@ function CheckoutPage() {
                   ? "Bearbetar…"
                   : !PAYMENTS_API_BASE_URL
                   ? "Bekräfta beställning"
+                  : paymentMethod === "crypto"
+                  ? "Betala med krypto"
                   : "Betala med kort"}
               </button>
             </div>
