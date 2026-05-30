@@ -35,6 +35,24 @@
     max_size 2MB
   }
 
+  # ---------------------------------------------------------------------------
+  # OPTIONAL: WireGuard-gated admin allowlist.
+  # Uncomment after `docker compose --profile vpn up -d wireguard` is running
+  # and you have at least one peer connected. Returns 404 (not 403) so the
+  # admin area looks like it does not exist to anyone outside the VPN.
+  # See self-host/wireguard/README.md.
+  #
+  # @admin_paths path /admin* /api/admin*
+  # handle @admin_paths {
+  #   @vpn_allowed remote_ip 10.13.13.0/24 127.0.0.1/32
+  #   handle @vpn_allowed {
+  #     reverse_proxy app:3000
+  #   }
+  #   respond "Not found" 404
+  # }
+  # ---------------------------------------------------------------------------
+
+
   # Admin product-image uploads can exceed the default 2MB cap.
   @admin_uploads path /api/admin/product-images*
   handle @admin_uploads {

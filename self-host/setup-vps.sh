@@ -62,7 +62,11 @@ ufw allow "${SSH_PORT}"/tcp comment 'SSH'
 ufw allow 80/tcp   comment 'HTTP (Let'"'"'s Encrypt)'
 ufw allow 443/tcp  comment 'HTTPS'
 ufw allow 6697/tcp comment 'IRC over TLS'
+# WireGuard VPN (used to gate /admin). Harmless if you never start the
+# wireguard container — port stays closed at the application layer.
+ufw allow 51820/udp comment 'WireGuard'
 ufw --force enable
+
 
 # ---------------------------------------------------------------------------
 # 4. fail2ban — protect SSH from brute force
