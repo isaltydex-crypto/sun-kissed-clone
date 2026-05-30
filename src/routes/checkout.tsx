@@ -314,6 +314,7 @@ function CheckoutPage() {
                 </div>
               </label>
 
+              {/* Revolut Pay — dold tills server-endpoint är klar.
               <label
                 className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
                   paymentMethod === "revolut"
@@ -336,6 +337,7 @@ function CheckoutPage() {
                   </p>
                 </div>
               </label>
+              */}
 
               <label
                 className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
