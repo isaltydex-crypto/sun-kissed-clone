@@ -113,6 +113,29 @@ export const Route = createFileRoute("/api/public/nowpayments-webhook")({
               console.error("[nowpayments-webhook] discount counter failed:", err),
             );
           }
+
+          // Notifiera admin när NOWPayments-order är betald.
+          // Mottagare: NOWPAYMENTS_NOTIFY_TO (specifik adress) eller NOTIFY_EMAIL_TO som fallback.
+          try {
+            const { sendNotification } = await import("@/lib/notify.server");
+            const to = process.env.NOWPAYMENTS_NOTIFY_TO || process.env.NOTIFY_EMAIL_TO;
+            const amount = event.price_amount ?? "";
+            const currency = (event.price_currency ?? "").toUpperCase();
+            const payAmount = event.actually_paid ?? event.pay_amount ?? "";
+            const payCurrency = (event.pay_currency ?? "").toUpperCase();
+            const subject = `NOWPayments: betald order ${orderNumber}`;
+            const text = [
+              `Order ${orderNumber} är betald via NOWPayments.`,
+              ``,
+              `Belopp: ${amount} ${currency}`,
+              `Mottaget: ${payAmount} ${payCurrency}`,
+              `Payment ID: ${event.payment_id ?? "-"}`,
+              `Status: ${event.payment_status ?? "-"}`,
+            ].join("\n");
+            await sendNotification({ to, subject, text });
+          } catch (err) {
+            console.error("[nowpayments-webhook] notify email failed:", err);
+          }
         }
 
         return new Response("ok", { status: 200 });
