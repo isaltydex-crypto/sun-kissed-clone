@@ -263,6 +263,13 @@ services:
       PAYMENTO_SPEED: ${PAYMENTO_SPEED:-1}
       CRYPTO_SUCCESS_URL: ${CRYPTO_SUCCESS_URL:-}
       CRYPTO_CANCEL_URL: ${CRYPTO_CANCEL_URL:-}
+      # Peptide-Pay checkout (card / Apple Pay / Google Pay / crypto hosted checkout).
+      # Set either PEPTIDEPAY_API_KEY (advanced) OR PEPTIDEPAY_WALLET (wallet-only).
+      PEPTIDEPAY_API_KEY: ${PEPTIDEPAY_API_KEY:-}
+      PEPTIDEPAY_WALLET: ${PEPTIDEPAY_WALLET:-}
+      PEPTIDEPAY_WEBHOOK_SECRET: ${PEPTIDEPAY_WEBHOOK_SECRET:-}
+      PEPTIDEPAY_WEBHOOK_URL: ${PEPTIDEPAY_WEBHOOK_URL:-}
+      PEPTIDEPAY_SEK_TO_EUR: ${PEPTIDEPAY_SEK_TO_EUR:-0.087}
       # Plain-text admin audit log (JSON-lines, appended).
       ADMIN_LOG_FILE: /var/log/peptiva/admin-actions.log
       # Extra catalog snapshot kept in the persistent app_logs volume. If the

@@ -88,6 +88,20 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
+### `check-peptidepay.sh`
+**Use when:** checkout still shows Peptide-Pay `503` / “not configured” after editing `self-host/.env`.
+
+**What it does:**
+- Confirms `.env` contains either `PEPTIDEPAY_API_KEY` or `PEPTIDEPAY_WALLET`
+- Confirms `.env` contains `PEPTIDEPAY_WEBHOOK_SECRET` and `VITE_PAYMENTS_API_BASE_URL`
+- Confirms `docker-compose.yml` passes Peptide-Pay env vars into the `app` container
+- Checks the running `app` container has those env vars without printing secret values
+- Suggests the exact rebuild command if the container is stale
+
+**Typical fixes it points to:** the code was not pulled after the compose wiring was added, or `.env` was edited but the `app` container was not rebuilt/recreated.
+
+---
+
 ### `fix-irc-tls.sh`
 **Use when:** `docker compose up -d app` fails with `Bind for 0.0.0.0:6697 failed: port is already allocated`, or RevolutionIRC / HexChat / mIRC can't connect to `chat.<domain>:6697`.
 
