@@ -7,11 +7,12 @@ import { useCart } from "@/context/CartContext";
 import {
   createCryptoInvoice,
   createPeptidePayInvoice,
+  createRevolutInvoice,
   PAYMENTS_API_BASE_URL,
 } from "@/lib/paymentsApi";
 import type { AppliedDiscount } from "@/lib/discounts";
 
-type PaymentMethod = "card" | "crypto";
+type PaymentMethod = "card" | "revolut" | "crypto";
 
 
 const schema = z.object({
