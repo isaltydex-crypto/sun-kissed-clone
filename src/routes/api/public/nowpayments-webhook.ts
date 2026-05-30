@@ -132,7 +132,10 @@ export const Route = createFileRoute("/api/public/nowpayments-webhook")({
               `Payment ID: ${event.payment_id ?? "-"}`,
               `Status: ${event.payment_status ?? "-"}`,
             ].join("\n");
-            await sendNotification({ to, subject, text });
+            const sent = await sendNotification({ to, subject, text });
+            if (!sent) {
+              console.warn("[nowpayments-webhook] notify email skipped/failed");
+            }
           } catch (err) {
             console.error("[nowpayments-webhook] notify email failed:", err);
           }
