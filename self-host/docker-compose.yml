@@ -243,6 +243,7 @@ services:
       SMTP_PASS: ${SMTP_PASS:-}
       NOTIFY_EMAIL_FROM: ${NOTIFY_EMAIL_FROM:-}
       NOTIFY_EMAIL_TO: ${NOTIFY_EMAIL_TO:-}
+      NOWPAYMENTS_NOTIFY_TO: ${NOWPAYMENTS_NOTIFY_TO:-}
       # Shared bearer token used by sibling containers (e.g. backup) to POST
       # alerts to /api/internal/notify. Generate with: openssl rand -hex 32
       INTERNAL_NOTIFY_TOKEN: ${INTERNAL_NOTIFY_TOKEN:-}

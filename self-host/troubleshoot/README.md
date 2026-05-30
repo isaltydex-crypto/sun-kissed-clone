@@ -116,6 +116,21 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
+### `check-email.sh`
+**Use when:** contact/admin/NOWPayments emails are not arriving even though `self-host/.env` looks correct.
+
+**What it does:**
+- Confirms SMTP + notification recipient variables exist in `.env`
+- Confirms `docker-compose.yml` passes those variables into the `app` container
+- Confirms the running `app` container actually has them without printing secret values
+- Checks whether Brevo TXT/DKIM/DMARC records are visible in public DNS
+- Runs a real SMTP login test from inside the app container
+- Sends a real test email to `NOWPAYMENTS_NOTIFY_TO` or `NOTIFY_EMAIL_TO`
+
+**Typical fixes it points to:** `.env` was changed but the app container was not recreated, `NOWPAYMENTS_NOTIFY_TO` was set but not passed into the app, Brevo DNS records have not propagated, or Brevo SMTP rejects the login/sender.
+
+---
+
 ### `simulate-nowpayments-ipn.sh`
 **Use when:** du vill verifiera att en order faktiskt blir `paid` (eller `failed`) i DB utan att vänta på en riktig krypto-betalning.
 
