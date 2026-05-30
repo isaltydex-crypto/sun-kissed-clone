@@ -123,11 +123,11 @@ rm self-host/troubleshoot/logs/*.log
 - Läser `NOWPAYMENTS_IPN_SECRET` + `SITE_DOMAIN` ur `.env`
 - Bygger en NOWPayments-liknande payload med `order_id=<order_number>` och valt `payment_status`
 - Signerar payloaden i app-containern med HMAC-SHA512 över *sorted-keys* JSON (samma algoritm som NOWPayments)
-- POST:ar till `https://<SITE_DOMAIN>/api/public/nowpayments/webhook` med `x-nowpayments-sig`-header
+- POST:ar till `https://<SITE_DOMAIN>/api/public/nowpayments-webhook` med `x-nowpayments-sig`-header
 - Skriver ut HTTP-status + tolkar 200/401/503/404
 - Visar order-raden i `public.orders` så du ser om `payment_status` och `metadata.last_ipn` uppdaterades
 
-**Usage:** `./simulate-nowpayments-ipn.sh <order_number> [status]` — status default `finished`. Overrida endpoint med `WEBHOOK_PATH=/api/public/nowpayments-webhook ./simulate-...` om du fortfarande kör den gamla URL:en.
+**Usage:** `./simulate-nowpayments-ipn.sh <order_number> [status]` — status default `finished`. Overrida endpoint med `WEBHOOK_PATH=/api/public/nowpayments/webhook ./simulate-...` om du fortfarande kör den gamla URL:en.
 
 **Typical fixes it points to:** `IPN_SECRET` skiljer mellan dashboard och `.env` (→ 401), app-containern saknar secret (→ 503), eller fel webhook-URL i dashboarden (→ 404).
 
