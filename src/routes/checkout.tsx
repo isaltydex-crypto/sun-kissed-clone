@@ -392,6 +392,8 @@ function CheckoutPage() {
                   ? "Bekräfta beställning"
                   : paymentMethod === "crypto"
                   ? "Betala med krypto"
+                  : paymentMethod === "revolut"
+                  ? "Betala med Revolut"
                   : "Betala med kort"}
               </button>
             </div>
