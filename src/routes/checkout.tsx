@@ -176,6 +176,8 @@ function CheckoutPage() {
         const { invoiceUrl } =
           paymentMethod === "crypto"
             ? await createCryptoInvoice({ ...commonInput, amount: total, payCurrency: "usdt" })
+            : paymentMethod === "revolut"
+            ? await createRevolutInvoice(commonInput)
             : await createPeptidePayInvoice(commonInput);
         clear();
         window.location.href = invoiceUrl;
