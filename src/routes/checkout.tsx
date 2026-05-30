@@ -136,7 +136,7 @@ function CheckoutPage() {
         };
         const { invoiceUrl } =
           paymentMethod === "crypto"
-            ? await createCryptoInvoice({ ...commonInput, payCurrency: "usdt" })
+            ? await createCryptoInvoice({ ...commonInput, amount: total, payCurrency: "usdt" })
             : await createPeptidePayInvoice(commonInput);
         clear();
         window.location.href = invoiceUrl;
