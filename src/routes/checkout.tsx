@@ -307,9 +307,32 @@ function CheckoutPage() {
                   className="mt-1 h-4 w-4 shrink-0 border-border text-ocean-deep focus:ring-ocean"
                 />
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-ocean-deep">Bankkort</p>
+                  <p className="text-sm font-semibold text-ocean-deep">Bankkort (Visa / Mastercard)</p>
                   <p className="text-xs text-muted-foreground">
-                    Visa, Mastercard, Apple Pay, Google Pay — säker hosted checkout via Peptide-Pay.
+                    Betala säkert med Visa eller Mastercard. Apple Pay & Google Pay stöds.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
+                  paymentMethod === "revolut"
+                    ? "border-ocean-deep bg-ocean-deep/5"
+                    : "border-border hover:border-ocean-deep/50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="revolut"
+                  checked={paymentMethod === "revolut"}
+                  onChange={() => setPaymentMethod("revolut")}
+                  className="mt-1 h-4 w-4 shrink-0 border-border text-ocean-deep focus:ring-ocean"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-ocean-deep">Revolut Pay</p>
+                  <p className="text-xs text-muted-foreground">
+                    Snabb bankbetalning via Revolut eller SEPA. Inga kortavgifter.
                   </p>
                 </div>
               </label>
@@ -338,6 +361,7 @@ function CheckoutPage() {
                   </p>
                 </div>
               </label>
+
 
               {!PAYMENTS_API_BASE_URL && (
                 <p className="rounded-md border border-dashed border-border bg-sand/40 p-3 text-xs text-muted-foreground">
