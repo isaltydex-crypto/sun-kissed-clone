@@ -116,6 +116,23 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
+### `simulate-nowpayments-ipn.sh`
+**Use when:** du vill verifiera att en order faktiskt blir `paid` (eller `failed`) i DB utan att vänta på en riktig krypto-betalning.
+
+**What it does:**
+- Läser `NOWPAYMENTS_IPN_SECRET` + `SITE_DOMAIN` ur `.env`
+- Bygger en NOWPayments-liknande payload med `order_id=<order_number>` och valt `payment_status`
+- Signerar payloaden i app-containern med HMAC-SHA512 över *sorted-keys* JSON (samma algoritm som NOWPayments)
+- POST:ar till `https://<SITE_DOMAIN>/api/public/nowpayments/webhook` med `x-nowpayments-sig`-header
+- Skriver ut HTTP-status + tolkar 200/401/503/404
+- Visar order-raden i `public.orders` så du ser om `payment_status` och `metadata.last_ipn` uppdaterades
+
+**Usage:** `./simulate-nowpayments-ipn.sh <order_number> [status]` — status default `finished`. Overrida endpoint med `WEBHOOK_PATH=/api/public/nowpayments-webhook ./simulate-...` om du fortfarande kör den gamla URL:en.
+
+**Typical fixes it points to:** `IPN_SECRET` skiljer mellan dashboard och `.env` (→ 401), app-containern saknar secret (→ 503), eller fel webhook-URL i dashboarden (→ 404).
+
+
+
 ### `fix-irc-tls.sh`
 **Use when:** `docker compose up -d app` fails with `Bind for 0.0.0.0:6697 failed: port is already allocated`, or RevolutionIRC / HexChat / mIRC can't connect to `chat.<domain>:6697`.
 
