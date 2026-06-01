@@ -356,10 +356,13 @@ function CheckoutPage() {
                 />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-ocean-deep">
-                    Krypto direkt <span className="ml-1 rounded-full bg-ocean-deep/10 px-2 py-0.5 text-[10px] uppercase tracking-wider">Ingen KYC</span>
+                    Krypto direkt <span className="ml-1 rounded-full bg-ocean-deep/10 px-2 py-0.5 text-[10px] uppercase tracking-wider">Ingen KYC hos oss</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Betala direkt från din wallet med USDT, BTC, ETH m.fl. Ingen ID-verifiering.
+                    Betala direkt från din wallet med USDT, BTC, ETH m.fl. — vi kräver ingen ID-verifiering.
+                  </p>
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    <span className="font-semibold text-ocean-deep">Har du ingen krypto?</span> Du kan köpa direkt på betalsidan via MoonPay eller Brenxo med kort/Apple Pay/Google Pay. Dessa tjänster kräver en engångs-KYC (ID-verifiering) första gången du köper krypto — sedan slipper du det vid framtida köp.
                   </p>
                 </div>
               </label>
