@@ -311,6 +311,9 @@ function CheckoutPage() {
                   <p className="text-xs text-muted-foreground">
                     Betala säkert med Visa eller Mastercard. Apple Pay & Google Pay stöds.
                   </p>
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    <span className="font-semibold text-ocean-deep">Har du ingen krypto?</span> Du kan köpa direkt på betalsidan via MoonPay eller Brenxo med kort/Apple Pay/Google Pay. Dessa tjänster kräver en engångs-KYC (ID-verifiering) första gången du köper krypto — sedan slipper du det vid framtida köp.
+                  </p>
                 </div>
               </label>
 
