@@ -364,9 +364,6 @@ function CheckoutPage() {
                   <p className="text-xs text-muted-foreground">
                     Betala direkt från din wallet med USDT, BTC, ETH m.fl. — vi kräver ingen ID-verifiering.
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Betala direkt från din wallet med USDT, BTC, ETH m.fl. — vi kräver ingen ID-verifiering.
-                  </p>
                 </div>
               </label>
 
