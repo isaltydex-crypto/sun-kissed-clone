@@ -179,6 +179,8 @@ function CheckoutPage() {
             ? await createCryptoInvoice({ ...commonInput, amount: total, payCurrency: "usdt" })
             : paymentMethod === "revolut"
             ? await createRevolutInvoice(commonInput)
+            : paymentMethod === "paygate"
+            ? await createPaygateInvoice(commonInput)
             : await createPeptidePayInvoice(commonInput);
         clear();
         window.location.href = invoiceUrl;
