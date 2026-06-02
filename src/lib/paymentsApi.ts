@@ -175,6 +175,33 @@ export async function createPeptidePayInvoice(
   return (await res.json()) as CreateInvoiceResponse;
 }
 
+// ─── PayGate.to (hosted credit-card / Apple Pay / Google Pay → USDC) ────
+//
+// Skapar en hosted checkout-länk hos PayGate.to och returnerar URL:en
+// kunden ska redirectas till. PayGate gör instant payout i USDC (Polygon)
+// till merchantens egna wallet — inga konton, inga API-nycklar.
+
+export type CreatePaygateInvoiceInput = Omit<CreateInvoiceInput, "amount" | "payCurrency">;
+
+export async function createPaygateInvoice(
+  input: CreatePaygateInvoiceInput,
+): Promise<CreateInvoiceResponse> {
+  const base = ensureBaseUrl();
+  const res = await fetch(`${base}/api/paygate/create-invoice`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new PaymentsApiError(
+      `Failed to create PayGate invoice (${res.status}). ${text}`.trim(),
+      res.status,
+    );
+  }
+  return (await res.json()) as CreateInvoiceResponse;
+}
+
 // ─── Revolut Pay (bankbetalning / SEPA / Revolut-wallet) ────────────────
 //
 // Skapar en Revolut Merchant order och returnerar checkout-URL:en kunden

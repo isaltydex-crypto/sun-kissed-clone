@@ -31,10 +31,12 @@ import { Route as AdminInnehallRouteImport } from './routes/admin.innehall'
 import { Route as AdminDiagnostikRouteImport } from './routes/admin.diagnostik'
 import { Route as AdminChattRouteImport } from './routes/admin.chatt'
 import { Route as ApiPublicPeptidepayWebhookRouteImport } from './routes/api/public/peptidepay-webhook'
+import { Route as ApiPublicPaygateCallbackRouteImport } from './routes/api/public/paygate-callback'
 import { Route as ApiPublicNowpaymentsWebhookRouteImport } from './routes/api/public/nowpayments-webhook'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicDiagClientRouteImport } from './routes/api/public/diag-client'
 import { Route as ApiPeptidepayCreateInvoiceRouteImport } from './routes/api/peptidepay.create-invoice'
+import { Route as ApiPaygateCreateInvoiceRouteImport } from './routes/api/paygate.create-invoice'
 import { Route as ApiNowpaymentsCreateInvoiceRouteImport } from './routes/api/nowpayments.create-invoice'
 import { Route as ApiNowpaymentsCreateCryptoInvoiceRouteImport } from './routes/api/nowpayments.create-crypto-invoice'
 import { Route as ApiInternalNotifyRouteImport } from './routes/api/internal/notify'
@@ -157,6 +159,12 @@ const ApiPublicPeptidepayWebhookRoute =
     path: '/api/public/peptidepay-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPaygateCallbackRoute =
+  ApiPublicPaygateCallbackRouteImport.update({
+    id: '/api/public/paygate-callback',
+    path: '/api/public/paygate-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicNowpaymentsWebhookRoute =
   ApiPublicNowpaymentsWebhookRouteImport.update({
     id: '/api/public/nowpayments-webhook',
@@ -179,6 +187,11 @@ const ApiPeptidepayCreateInvoiceRoute =
     path: '/api/peptidepay/create-invoice',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPaygateCreateInvoiceRoute = ApiPaygateCreateInvoiceRouteImport.update({
+  id: '/api/paygate/create-invoice',
+  path: '/api/paygate/create-invoice',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiNowpaymentsCreateInvoiceRoute =
   ApiNowpaymentsCreateInvoiceRouteImport.update({
     id: '/api/nowpayments/create-invoice',
@@ -261,10 +274,12 @@ export interface FileRoutesByFullPath {
   '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/nowpayments/create-crypto-invoice': typeof ApiNowpaymentsCreateCryptoInvoiceRoute
   '/api/nowpayments/create-invoice': typeof ApiNowpaymentsCreateInvoiceRoute
+  '/api/paygate/create-invoice': typeof ApiPaygateCreateInvoiceRoute
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/nowpayments-webhook': typeof ApiPublicNowpaymentsWebhookRoute
+  '/api/public/paygate-callback': typeof ApiPublicPaygateCallbackRoute
   '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
@@ -299,10 +314,12 @@ export interface FileRoutesByTo {
   '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/nowpayments/create-crypto-invoice': typeof ApiNowpaymentsCreateCryptoInvoiceRoute
   '/api/nowpayments/create-invoice': typeof ApiNowpaymentsCreateInvoiceRoute
+  '/api/paygate/create-invoice': typeof ApiPaygateCreateInvoiceRoute
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/nowpayments-webhook': typeof ApiPublicNowpaymentsWebhookRoute
+  '/api/public/paygate-callback': typeof ApiPublicPaygateCallbackRoute
   '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
@@ -338,10 +355,12 @@ export interface FileRoutesById {
   '/api/internal/notify': typeof ApiInternalNotifyRoute
   '/api/nowpayments/create-crypto-invoice': typeof ApiNowpaymentsCreateCryptoInvoiceRoute
   '/api/nowpayments/create-invoice': typeof ApiNowpaymentsCreateInvoiceRoute
+  '/api/paygate/create-invoice': typeof ApiPaygateCreateInvoiceRoute
   '/api/peptidepay/create-invoice': typeof ApiPeptidepayCreateInvoiceRoute
   '/api/public/diag-client': typeof ApiPublicDiagClientRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/nowpayments-webhook': typeof ApiPublicNowpaymentsWebhookRoute
+  '/api/public/paygate-callback': typeof ApiPublicPaygateCallbackRoute
   '/api/public/peptidepay-webhook': typeof ApiPublicPeptidepayWebhookRoute
   '/api/crypto/order/$orderId': typeof ApiCryptoOrderOrderIdRoute
   '/api/public/crypto/webhook': typeof ApiPublicCryptoWebhookRoute
@@ -378,10 +397,12 @@ export interface FileRouteTypes {
     | '/api/internal/notify'
     | '/api/nowpayments/create-crypto-invoice'
     | '/api/nowpayments/create-invoice'
+    | '/api/paygate/create-invoice'
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
     | '/api/public/health'
     | '/api/public/nowpayments-webhook'
+    | '/api/public/paygate-callback'
     | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
@@ -416,10 +437,12 @@ export interface FileRouteTypes {
     | '/api/internal/notify'
     | '/api/nowpayments/create-crypto-invoice'
     | '/api/nowpayments/create-invoice'
+    | '/api/paygate/create-invoice'
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
     | '/api/public/health'
     | '/api/public/nowpayments-webhook'
+    | '/api/public/paygate-callback'
     | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
@@ -454,10 +477,12 @@ export interface FileRouteTypes {
     | '/api/internal/notify'
     | '/api/nowpayments/create-crypto-invoice'
     | '/api/nowpayments/create-invoice'
+    | '/api/paygate/create-invoice'
     | '/api/peptidepay/create-invoice'
     | '/api/public/diag-client'
     | '/api/public/health'
     | '/api/public/nowpayments-webhook'
+    | '/api/public/paygate-callback'
     | '/api/public/peptidepay-webhook'
     | '/api/crypto/order/$orderId'
     | '/api/public/crypto/webhook'
@@ -483,10 +508,12 @@ export interface RootRouteChildren {
   ApiInternalNotifyRoute: typeof ApiInternalNotifyRoute
   ApiNowpaymentsCreateCryptoInvoiceRoute: typeof ApiNowpaymentsCreateCryptoInvoiceRoute
   ApiNowpaymentsCreateInvoiceRoute: typeof ApiNowpaymentsCreateInvoiceRoute
+  ApiPaygateCreateInvoiceRoute: typeof ApiPaygateCreateInvoiceRoute
   ApiPeptidepayCreateInvoiceRoute: typeof ApiPeptidepayCreateInvoiceRoute
   ApiPublicDiagClientRoute: typeof ApiPublicDiagClientRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicNowpaymentsWebhookRoute: typeof ApiPublicNowpaymentsWebhookRoute
+  ApiPublicPaygateCallbackRoute: typeof ApiPublicPaygateCallbackRoute
   ApiPublicPeptidepayWebhookRoute: typeof ApiPublicPeptidepayWebhookRoute
   ApiCryptoOrderOrderIdRoute: typeof ApiCryptoOrderOrderIdRoute
   ApiPublicCryptoWebhookRoute: typeof ApiPublicCryptoWebhookRoute
@@ -649,6 +676,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPeptidepayWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/paygate-callback': {
+      id: '/api/public/paygate-callback'
+      path: '/api/public/paygate-callback'
+      fullPath: '/api/public/paygate-callback'
+      preLoaderRoute: typeof ApiPublicPaygateCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/nowpayments-webhook': {
       id: '/api/public/nowpayments-webhook'
       path: '/api/public/nowpayments-webhook'
@@ -675,6 +709,13 @@ declare module '@tanstack/react-router' {
       path: '/api/peptidepay/create-invoice'
       fullPath: '/api/peptidepay/create-invoice'
       preLoaderRoute: typeof ApiPeptidepayCreateInvoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/paygate/create-invoice': {
+      id: '/api/paygate/create-invoice'
+      path: '/api/paygate/create-invoice'
+      fullPath: '/api/paygate/create-invoice'
+      preLoaderRoute: typeof ApiPaygateCreateInvoiceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/nowpayments/create-invoice': {
@@ -808,10 +849,12 @@ const rootRouteChildren: RootRouteChildren = {
   ApiNowpaymentsCreateCryptoInvoiceRoute:
     ApiNowpaymentsCreateCryptoInvoiceRoute,
   ApiNowpaymentsCreateInvoiceRoute: ApiNowpaymentsCreateInvoiceRoute,
+  ApiPaygateCreateInvoiceRoute: ApiPaygateCreateInvoiceRoute,
   ApiPeptidepayCreateInvoiceRoute: ApiPeptidepayCreateInvoiceRoute,
   ApiPublicDiagClientRoute: ApiPublicDiagClientRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicNowpaymentsWebhookRoute: ApiPublicNowpaymentsWebhookRoute,
+  ApiPublicPaygateCallbackRoute: ApiPublicPaygateCallbackRoute,
   ApiPublicPeptidepayWebhookRoute: ApiPublicPeptidepayWebhookRoute,
   ApiCryptoOrderOrderIdRoute: ApiCryptoOrderOrderIdRoute,
   ApiPublicCryptoWebhookRoute: ApiPublicCryptoWebhookRoute,
@@ -820,12 +863,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
