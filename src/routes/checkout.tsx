@@ -428,6 +428,8 @@ function CheckoutPage() {
                   ? "Betala med krypto"
                   : paymentMethod === "revolut"
                   ? "Betala med Revolut"
+                  : paymentMethod === "paygate"
+                  ? "Fortsätt till PayGate"
                   : "Betala med kort"}
               </button>
             </div>
