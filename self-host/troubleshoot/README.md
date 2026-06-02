@@ -116,6 +116,21 @@ rm self-host/troubleshoot/logs/*.log
 
 ---
 
+### `check-paygate.sh`
+**Use when:** PayGate-alternativet i checkout är borta eller returnerar `503`, eller PayGate-callbacks markerar inte ordrar som betalda.
+
+**What it does:**
+- Confirms `.env` contains `PAYGATE_WALLET` and `PAYGATE_CALLBACK_SECRET`
+- Sanity-checks the wallet looks like a valid `0x…` EVM address
+- Confirms `docker-compose.yml` passes PayGate env vars into the `app` container
+- Confirms the running `app` container actually has them (without printing secret values)
+- Pings `https://api.paygate.to/control/wallet.php` with the configured wallet to verify a temporary `address_in` can be generated
+- Probes `/api/public/paygate-callback` with a bad token and expects `401`
+
+**Typical fixes it points to:** the code was not pulled after the compose wiring was added, `.env` was edited but the `app` container was not rebuilt, or the wallet/callback secret are not valid.
+
+---
+
 ### `check-email.sh`
 **Use when:** contact/admin/NOWPayments emails are not arriving even though `self-host/.env` looks correct.
 
