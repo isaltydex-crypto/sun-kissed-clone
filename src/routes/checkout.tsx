@@ -6,13 +6,14 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import {
   createCryptoInvoice,
+  createPaygateInvoice,
   createPeptidePayInvoice,
   createRevolutInvoice,
   PAYMENTS_API_BASE_URL,
 } from "@/lib/paymentsApi";
 import type { AppliedDiscount } from "@/lib/discounts";
 
-type PaymentMethod = "card" | "revolut" | "crypto";
+type PaymentMethod = "card" | "paygate" | "revolut" | "crypto";
 
 
 const schema = z.object({
@@ -178,6 +179,8 @@ function CheckoutPage() {
             ? await createCryptoInvoice({ ...commonInput, amount: total, payCurrency: "usdt" })
             : paymentMethod === "revolut"
             ? await createRevolutInvoice(commonInput)
+            : paymentMethod === "paygate"
+            ? await createPaygateInvoice(commonInput)
             : await createPeptidePayInvoice(commonInput);
         clear();
         window.location.href = invoiceUrl;
@@ -344,6 +347,32 @@ function CheckoutPage() {
 
               <label
                 className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
+                  paymentMethod === "paygate"
+                    ? "border-ocean-deep bg-ocean-deep/5"
+                    : "border-border hover:border-ocean-deep/50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="paygate"
+                  checked={paymentMethod === "paygate"}
+                  onChange={() => setPaymentMethod("paygate")}
+                  className="mt-1 h-4 w-4 shrink-0 border-border text-ocean-deep focus:ring-ocean"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-ocean-deep">
+                    PayGate — kort, Apple Pay, Google Pay, SEPA
+                    <span className="ml-1 rounded-full bg-ocean-deep/10 px-2 py-0.5 text-[10px] uppercase tracking-wider">Direkt betalning</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Välj betalsätt på säker hostad sida (Visa, Mastercard, Apple Pay, Google Pay, SEPA m.fl.). KYC kan krävas av betalleverantören vid första köpet.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
                   paymentMethod === "crypto"
                     ? "border-ocean-deep bg-ocean-deep/5"
                     : "border-border hover:border-ocean-deep/50"
@@ -399,6 +428,8 @@ function CheckoutPage() {
                   ? "Betala med krypto"
                   : paymentMethod === "revolut"
                   ? "Betala med Revolut"
+                  : paymentMethod === "paygate"
+                  ? "Fortsätt till PayGate"
                   : "Betala med kort"}
               </button>
             </div>

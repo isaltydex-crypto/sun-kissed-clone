@@ -277,6 +277,17 @@ services:
       # Buyer betalar direkt från sin wallet (USDT/BTC/ETH m.fl.) utan ID-verifiering.
       NOWPAYMENTS_API_KEY: ${NOWPAYMENTS_API_KEY:-}
       NOWPAYMENTS_IPN_SECRET: ${NOWPAYMENTS_IPN_SECRET:-}
+      # PayGate.to — open-access kort/Apple Pay/Google Pay/SEPA → USDC (Polygon).
+      # Ingen registrering, inga API-nycklar; bara en självförvarad wallet.
+      PAYGATE_WALLET: ${PAYGATE_WALLET:-}
+      PAYGATE_CALLBACK_SECRET: ${PAYGATE_CALLBACK_SECRET:-}
+      PAYGATE_PROVIDER: ${PAYGATE_PROVIDER:-}
+      PAYGATE_SEK_TO_USD: ${PAYGATE_SEK_TO_USD:-0.094}
+      PAYGATE_CALLBACK_URL: ${PAYGATE_CALLBACK_URL:-}
+      PAYGATE_LOGO_URL: ${PAYGATE_LOGO_URL:-}
+      PAYGATE_THEME_COLOR: ${PAYGATE_THEME_COLOR:-}
+      PAYGATE_BUTTON_COLOR: ${PAYGATE_BUTTON_COLOR:-}
+      PAYGATE_BACKGROUND_COLOR: ${PAYGATE_BACKGROUND_COLOR:-}
       # Plain-text admin audit log (JSON-lines, appended).
       ADMIN_LOG_FILE: /var/log/peptiva/admin-actions.log
       # Extra catalog snapshot kept in the persistent app_logs volume. If the
