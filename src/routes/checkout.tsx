@@ -6,13 +6,14 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import {
   createCryptoInvoice,
+  createPaygateInvoice,
   createPeptidePayInvoice,
   createRevolutInvoice,
   PAYMENTS_API_BASE_URL,
 } from "@/lib/paymentsApi";
 import type { AppliedDiscount } from "@/lib/discounts";
 
-type PaymentMethod = "card" | "revolut" | "crypto";
+type PaymentMethod = "card" | "paygate" | "revolut" | "crypto";
 
 
 const schema = z.object({
