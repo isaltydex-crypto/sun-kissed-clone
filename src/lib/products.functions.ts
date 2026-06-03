@@ -3,7 +3,6 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { adminAuthMiddleware } from "@/lib/admin-middleware";
 import type { Product } from "@/data/products";
 
@@ -40,6 +39,11 @@ type Row = {
   sort_order: number;
   description: string | null;
 };
+
+async function getAdminClient() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
 
 function normalizeProductImageUrl(image: string): string {
   const siteBase = (process.env.PUBLIC_SITE_URL || "").replace(/\/+$/, "");
@@ -79,6 +83,7 @@ function snapshotFile() {
 }
 
 async function fetchProductRows(): Promise<Row[]> {
+  const supabaseAdmin = await getAdminClient();
   const { data, error } = await supabaseAdmin
     .from("products")
     .select("slug,name,tagline,price_ore,old_price_ore,image,badge,sort_order,description")
@@ -138,6 +143,7 @@ async function readProductsSnapshot(): Promise<Product[] | null> {
 async function restoreProductsFromSnapshot() {
   const products = await readProductsSnapshot();
   if (!products?.length) return null;
+  const supabaseAdmin = await getAdminClient();
 
   const rows = products.map((p, index) => ({
     slug: p.slug,
