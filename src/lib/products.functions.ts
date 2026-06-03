@@ -188,6 +188,7 @@ export const createProduct = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => ProductInput.parse(input))
   .handler(async ({ data }) => {
+    const supabaseAdmin = await getAdminClient();
     const { data: created, error } = await supabaseAdmin
       .from("products")
       .insert({
@@ -214,6 +215,7 @@ export const updateProductFn = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => UpdateInput.parse(input))
   .handler(async ({ data }) => {
+    const supabaseAdmin = await getAdminClient();
     const { data: updated, error } = await supabaseAdmin
       .from("products")
       .update({
@@ -240,6 +242,7 @@ export const deleteProductFn = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => z.object({ slug: z.string().min(1).max(120) }).parse(input))
   .handler(async ({ data }) => {
+    const supabaseAdmin = await getAdminClient();
     const { error } = await supabaseAdmin.from("products").delete().eq("slug", data.slug);
     if (error) throw new Error(error.message);
     await persistCurrentProductsSnapshot();
@@ -254,6 +257,7 @@ export const reorderProductsFn = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => ReorderInput.parse(input))
   .handler(async ({ data }) => {
+    const supabaseAdmin = await getAdminClient();
     for (let i = 0; i < data.slugs.length; i++) {
       const { error } = await supabaseAdmin
         .from("products")
