@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { sendNotification } from "./notify.server";
 import { renderEmail } from "./email-templates";
 import { mergeContent, type SiteContentMap } from "@/lib/site-defaults";
 
@@ -23,6 +22,7 @@ async function loadEmailTemplates() {
 export const submitContact = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => contactSchema.parse(data))
   .handler(async ({ data }) => {
+    const { sendNotification } = await import("./notify.server");
     const templates = await loadEmailTemplates();
     const rendered = renderEmail(templates, "contact", {
       name: data.name,
