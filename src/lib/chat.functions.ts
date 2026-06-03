@@ -2,6 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { adminAuthMiddleware } from "@/lib/admin-middleware";
 
+type ChatMessage = {
+  id: string;
+  sender: string;
+  sender_name: string | null;
+  body: string;
+  created_at: string;
+  irc_synced: boolean;
+};
+
 async function getAdminClient() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
@@ -51,12 +60,12 @@ export const fetchVisitorMessages = createServerFn({ method: "POST" })
     const irc = await getIrcBridge();
     const { data: channel, error: channelError } = await supabaseAdmin.from("chat_channels").select("*").eq("visitor_token", data.visitorToken).maybeSingle();
     if (channelError) throw new Error(channelError.message);
-    if (!channel) return { channel: null, messages: [] as unknown[] };
+    if (!channel) return { channel: null, messages: [] as ChatMessage[] };
     let q = supabaseAdmin.from("chat_messages").select("*").eq("channel_id", channel.id).order("created_at", { ascending: true }).limit(200);
     if (data.sinceIso) q = q.gt("created_at", data.sinceIso);
     const { data: messages, error } = await q;
     if (error) throw new Error(error.message);
-    return { channel: { id: channel.id, slug: channel.irc_channel_slug, ircChannel: irc.ircChannelName(channel.irc_channel_slug), status: channel.status, displayName: channel.display_name }, messages: messages ?? [] };
+    return { channel: { id: channel.id, slug: channel.irc_channel_slug, ircChannel: irc.ircChannelName(channel.irc_channel_slug), status: channel.status, displayName: channel.display_name }, messages: (messages ?? []) as ChatMessage[] };
   });
 
 export const endVisitorChat = createServerFn({ method: "POST" })
