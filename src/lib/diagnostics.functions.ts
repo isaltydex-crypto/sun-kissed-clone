@@ -4,8 +4,12 @@
 // ============================================================================
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { adminAuthMiddleware } from "@/lib/admin-middleware";
+
+async function getAdminClient() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
 
 const ListSchema = z.object({
   source: z.enum(["server", "client", "cli", "container", "external"]).optional(),
@@ -18,6 +22,7 @@ export const listDiagnostics = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => ListSchema.parse(input ?? {}))
   .handler(async ({ data }) => {
+    const supabaseAdmin = await getAdminClient();
     let q = supabaseAdmin
       .from("diagnostic_events")
       .select(
@@ -55,6 +60,7 @@ export const resolveDiagnostic = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => ResolveSchema.parse(input))
   .handler(async ({ data }) => {
+    const supabaseAdmin = await getAdminClient();
     const { error } = await supabaseAdmin
       .from("diagnostic_events")
       .update({
@@ -73,6 +79,7 @@ export const resolveByFingerprint = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => FingerprintSchema.parse(input))
   .handler(async ({ data }) => {
+    const supabaseAdmin = await getAdminClient();
     const { error } = await supabaseAdmin
       .from("diagnostic_events")
       .update({ resolved: true, resolved_at: new Date().toISOString() })
