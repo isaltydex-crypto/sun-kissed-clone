@@ -4,7 +4,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { adminAuthMiddleware } from "@/server/admin-middleware";
+import { adminAuthMiddleware } from "@/lib/admin-middleware";
 
 const ItemSchema = z.object({
   productId: z.string().min(1).max(200),
