@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
-import { fetchSiteBundle } from "@/server/site-content.functions";
+import { fetchSiteBundle } from "@/lib/site-content.functions";
 import { siteDefaults, type SiteDefaults } from "@/lib/site-defaults";
-import type { CustomPage } from "@/server/site-content.functions";
+import type { CustomPage } from "@/lib/site-content.functions";
 
 export type SiteContentBundle = {
   content: SiteDefaults;

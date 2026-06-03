@@ -6,10 +6,14 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { adminAuthMiddleware } from "@/server/admin-middleware";
+import { adminAuthMiddleware } from "@/lib/admin-middleware";
 
 const BUCKET = "product-images";
+
+async function getAdminClient() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
 
 const Input = z.object({
   filename: z.string().trim().min(1).max(200),
@@ -34,6 +38,7 @@ export const createProductImageUploadUrl = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => Input.parse(input))
   .handler(async ({ data }) => {
+    const supabaseAdmin = await getAdminClient();
     const path = safeName(data.filename);
     const { data: signed, error } = await supabaseAdmin.storage
       .from(BUCKET)

@@ -6,7 +6,7 @@ import {
   adminUpsertPage,
   adminDeletePage,
   type CustomPage,
-} from "@/server/site-content.functions";
+} from "@/lib/site-content.functions";
 
 export const Route = createFileRoute("/admin/sidor")({
   head: () => ({

@@ -81,6 +81,7 @@ fi
 
 hdr "PayGate API smoke test (wallet.php)"
 SITE_DOMAIN_VALUE="$(env_value SITE_DOMAIN || true)"
+ADDRESS_IN=""
 if [ -n "$WALLET_VALUE" ] && [ -n "$SITE_DOMAIN_VALUE" ]; then
   CB_TEST="https://${SITE_DOMAIN_VALUE}/api/public/paygate-callback?order=TROUBLESHOOT-$(date +%s)"
   RESPONSE="$(docker compose exec -T app node -e "
@@ -94,9 +95,47 @@ if [ -n "$WALLET_VALUE" ] && [ -n "$SITE_DOMAIN_VALUE" ]; then
   echo "PayGate wallet.php → ${RESPONSE}"
   if printf '%s' "$RESPONSE" | grep -q 'address_in'; then
     ok "PayGate API returnerade en encrypted address_in"
+    ADDRESS_IN="$(printf '%s' "$RESPONSE" | sed -n '2,$p' | docker compose exec -T app node -e "let s='';process.stdin.on('data',c=>s+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(s).address_in||'')}catch{}})")"
   else
     warn "PayGate API svarade oväntat — kontrollera wallet-adress + nätverk"
   fi
+fi
+
+hdr "PayGate checkout-länk"
+if [ -n "$ADDRESS_IN" ]; then
+  CHECKOUT_URL="$(docker compose exec -T app node -e "
+    const addressIn = decodeURIComponent(process.argv[1]);
+    const provider = process.env.PAYGATE_PROVIDER || 'moonpay';
+    const u = new URL('https://checkout.paygate.to/process-payment.php');
+    u.searchParams.set('address', addressIn);
+    u.searchParams.set('amount', '20.00');
+    u.searchParams.set('currency', 'USD');
+    u.searchParams.set('email', 'test@example.com');
+    u.searchParams.set('provider', provider);
+    console.log(u.toString());
+  " "$ADDRESS_IN" 2>/dev/null || true)"
+  echo "PayGate checkout URL → $CHECKOUT_URL"
+  if printf '%s' "$CHECKOUT_URL" | grep -Eq '%25(2F|2B|3D)'; then
+    fail "checkout-länken dubbelkodar address_in — appen kör gammal kod eller fel build"
+  else
+    ok "checkout-länken dubbelkodar inte address_in"
+  fi
+
+  CHECKOUT_STATUS="$(docker compose exec -T app node -e "
+    fetch(process.argv[1], { redirect: 'manual' })
+      .then(async r => { console.log(r.status); console.log(await r.text()); })
+      .catch(e => { console.error(e.message); process.exit(1); })
+  " "$CHECKOUT_URL" 2>&1 || true)"
+  echo "PayGate process-payment.php → ${CHECKOUT_STATUS}"
+  if printf '%s' "$CHECKOUT_STATUS" | head -n 1 | grep -Eq '^(301|302|303|307|308)$'; then
+    ok "PayGate accepterar checkout-länken och redirectar till provider"
+  elif printf '%s' "$CHECKOUT_STATUS" | grep -qi 'Provided wallet address is not allowed'; then
+    fail "PayGate avvisar länken som ogiltig wallet — oftast dubbelkodad/stale build"
+  else
+    warn "PayGate checkout svarade oväntat — se loggen för exakt svar"
+  fi
+else
+  warn "Hoppar över checkout-test eftersom address_in saknas"
 fi
 
 hdr "Callback endpoint"

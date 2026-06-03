@@ -4,7 +4,7 @@ import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react";
 import {
   adminFetchAll,
   adminSaveSection,
-} from "@/server/site-content.functions";
+} from "@/lib/site-content.functions";
 import { siteDefaults, type SiteDefaults } from "@/lib/site-defaults";
 import { useSiteContentRefresh } from "@/context/SiteContentContext";
 

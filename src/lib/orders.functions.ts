@@ -3,8 +3,12 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { adminAuthMiddleware } from "@/server/admin-middleware";
+import { adminAuthMiddleware } from "@/lib/admin-middleware";
+
+async function getAdminClient() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
 
 const ItemSchema = z.object({
   productId: z.string().min(1).max(200),
@@ -37,6 +41,7 @@ const RecordOrderSchema = z.object({
 export const recordOrder = createServerFn({ method: "POST" })
   .inputValidator((input) => RecordOrderSchema.parse(input))
   .handler(async ({ data }) => {
+    const supabaseAdmin = await getAdminClient();
     // Server-side total recompute as a sanity check.
     const computedSubtotal = data.items.reduce(
       (sum, i) => sum + i.unitPriceOre * i.quantity,
@@ -112,6 +117,7 @@ export const recordOrder = createServerFn({ method: "POST" })
 export const listOrders = createServerFn({ method: "GET" })
   .middleware([adminAuthMiddleware])
   .handler(async () => {
+    const supabaseAdmin = await getAdminClient();
     const { data, error } = await supabaseAdmin
       .from("orders")
       .select("*, order_items(*)")
@@ -132,6 +138,7 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
   .middleware([adminAuthMiddleware])
   .inputValidator((input) => UpdateStatusSchema.parse(input))
   .handler(async ({ data }) => {
+    const supabaseAdmin = await getAdminClient();
     const patch: Record<string, unknown> = {};
     if (data.paymentStatus) patch.payment_status = data.paymentStatus;
     if (data.fulfillmentStatus) patch.fulfillment_status = data.fulfillmentStatus;

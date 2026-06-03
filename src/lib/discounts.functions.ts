@@ -4,7 +4,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { adminAuthMiddleware } from "@/server/admin-middleware";
+import { adminAuthMiddleware } from "@/lib/admin-middleware";
 import type { DbDiscountCode } from "@/lib/discounts.server";
 
 export type { DbDiscountCode, ValidateResult } from "@/lib/discounts.server";
