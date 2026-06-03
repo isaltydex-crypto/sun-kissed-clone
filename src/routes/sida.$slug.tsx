@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { fetchCustomPage, type CustomPage } from "@/server/site-content.functions";
+import { fetchCustomPage, type CustomPage } from "@/lib/site-content.functions";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/sida/$slug")({

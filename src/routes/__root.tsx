@@ -5,7 +5,7 @@ import { CartProvider } from "@/context/CartContext";
 import { ProductsProvider } from "@/context/ProductsContext";
 import { AdminAuthProvider } from "@/context/AdminAuthContext";
 import { SiteContentProvider } from "@/context/SiteContentContext";
-import { fetchSiteBundle } from "@/server/site-content.functions";
+import { fetchSiteBundle } from "@/lib/site-content.functions";
 import { CartDrawer } from "@/components/CartDrawer";
 import { IrcChat } from "@/components/IrcChat";
 import { Toaster } from "@/components/ui/sonner";
