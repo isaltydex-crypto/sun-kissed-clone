@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { sendNotification } from "./notify.server";
 import { renderEmail } from "./email-templates";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { mergeContent, type SiteContentMap } from "@/lib/site-defaults";
 
 const contactSchema = z.object({
@@ -12,6 +11,7 @@ const contactSchema = z.object({
 });
 
 async function loadEmailTemplates() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin.from("site_content").select("key,value");
   const stored: SiteContentMap = {};
   for (const row of data ?? []) {
