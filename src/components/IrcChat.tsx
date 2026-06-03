@@ -6,6 +6,7 @@ import {
   fetchVisitorMessages,
   sendVisitorMessage,
 } from "@/server/chat.functions";
+} from "@/lib/chat.functions";
 import { supabase } from "@/integrations/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 

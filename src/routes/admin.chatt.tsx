@@ -7,6 +7,7 @@ import {
   adminListMessages,
   adminSendMessage,
 } from "@/server/chat.functions";
+} from "@/lib/chat.functions";
 
 export const Route = createFileRoute("/admin/chatt")({
   head: () => ({
