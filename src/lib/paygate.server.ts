@@ -95,7 +95,12 @@ export interface BuildCheckoutUrlInput {
 export function buildPaygateCheckoutUrl(input: BuildCheckoutUrlInput): string {
   const base = input.provider ? PAYGATE_CHECKOUT_SINGLE : PAYGATE_CHECKOUT_MULTI;
   const url = new URL(base);
-  url.searchParams.set("address", input.addressIn);
+  // PayGate returns address_in as a percent-encoded token. URLSearchParams will
+  // encode values once, so decode first to avoid sending `%252F`/`%253D` etc.
+  // The single-provider endpoint rejects double-encoded tokens as an invalid
+  // wallet address.
+  const addressIn = decodeURIComponent(input.addressIn);
+  url.searchParams.set("address", addressIn);
   url.searchParams.set("amount", input.amount.toFixed(2));
   url.searchParams.set("currency", input.currency.toUpperCase());
   url.searchParams.set("email", input.email);
