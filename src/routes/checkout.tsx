@@ -404,7 +404,7 @@ function CheckoutPage() {
                   : paymentMethod === "revolut"
                   ? "Betala med Revolut"
                   : paymentMethod === "paygate"
-                  ? "Fortsätt till PayGate"
+                  ? "Betala med Revolut"
                   : "Betala med kort"}
               </button>
             </div>
