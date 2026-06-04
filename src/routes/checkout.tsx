@@ -58,7 +58,7 @@ function CheckoutPage() {
   const [discountInput, setDiscountInput] = useState("");
   const [discount, setDiscount] = useState<AppliedDiscount | null>(null);
   const [discountError, setDiscountError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paygate");
 
 
   const discountAmount = discount?.amount ?? 0;
