@@ -294,6 +294,33 @@ function CheckoutPage() {
                 Välj betalsätt. Du skickas vidare till en säker betalsida för att slutföra köpet.
               </p>
 
+              {/* Revolut (PayGate) — rekommenderat */}
+              <label
+                className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
+                  paymentMethod === "paygate"
+                    ? "border-ocean-deep bg-ocean-deep/5"
+                    : "border-border hover:border-ocean-deep/50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="paygate"
+                  checked={paymentMethod === "paygate"}
+                  onChange={() => setPaymentMethod("paygate")}
+                  className="mt-1 h-4 w-4 shrink-0 border-border text-ocean-deep focus:ring-ocean"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-ocean-deep">
+                    Revolut — kort, Apple Pay, Google Pay, SEPA
+                    <span className="ml-1.5 rounded-full bg-ocean-deep px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Rekommenderat</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Välj betalsätt på säker hostad sida (Visa, Mastercard, Apple Pay, Google Pay, SEPA m.fl.). KYC kan krävas av betalleverantören vid första köpet.
+                  </p>
+                </div>
+              </label>
+
               <label
                 className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
                   paymentMethod === "card"
@@ -316,57 +343,6 @@ function CheckoutPage() {
                   </p>
                   <p className="mt-1.5 text-xs text-muted-foreground">
                     <span className="font-semibold text-ocean-deep">Har du ingen krypto?</span> Du kan köpa direkt på betalsidan via MoonPay eller Brenxo med kort/Apple Pay/Google Pay. Dessa tjänster kräver en engångs-KYC (ID-verifiering) första gången du köper krypto — sedan slipper du det vid framtida köp.
-                  </p>
-                </div>
-              </label>
-
-              {/* Revolut Pay — dold tills server-endpoint är klar.
-              <label
-                className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
-                  paymentMethod === "revolut"
-                    ? "border-ocean-deep bg-ocean-deep/5"
-                    : "border-border hover:border-ocean-deep/50"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="revolut"
-                  checked={paymentMethod === "revolut"}
-                  onChange={() => setPaymentMethod("revolut")}
-                  className="mt-1 h-4 w-4 shrink-0 border-border text-ocean-deep focus:ring-ocean"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-ocean-deep">Revolut Pay</p>
-                  <p className="text-xs text-muted-foreground">
-                    Snabb bankbetalning via Revolut eller SEPA. Inga kortavgifter.
-                  </p>
-                </div>
-              </label>
-              */}
-
-              <label
-                className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
-                  paymentMethod === "paygate"
-                    ? "border-ocean-deep bg-ocean-deep/5"
-                    : "border-border hover:border-ocean-deep/50"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="paygate"
-                  checked={paymentMethod === "paygate"}
-                  onChange={() => setPaymentMethod("paygate")}
-                  className="mt-1 h-4 w-4 shrink-0 border-border text-ocean-deep focus:ring-ocean"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-ocean-deep">
-                    PayGate — kort, Apple Pay, Google Pay, SEPA
-                    <span className="ml-1 rounded-full bg-ocean-deep/10 px-2 py-0.5 text-[10px] uppercase tracking-wider">Direkt betalning</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Välj betalsätt på säker hostad sida (Visa, Mastercard, Apple Pay, Google Pay, SEPA m.fl.). KYC kan krävas av betalleverantören vid första köpet.
                   </p>
                 </div>
               </label>
@@ -395,7 +371,6 @@ function CheckoutPage() {
                   </p>
                 </div>
               </label>
-
 
               {!PAYMENTS_API_BASE_URL && (
                 <p className="rounded-md border border-dashed border-border bg-sand/40 p-3 text-xs text-muted-foreground">
